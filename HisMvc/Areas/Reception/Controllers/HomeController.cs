@@ -66,7 +66,19 @@ public class HomeController : Controller
     {
         ViewBag.Departments = new SelectList(await _db.Departments.ToListAsync(), "DepartmentId", "Name");
         ViewBag.Doctors = new SelectList(await _db.Staffs.Where(x => x.StaffType == "DOCTOR").ToListAsync(), "StaffId", "FullName");
-        ViewBag.Slots = new SelectList(await _db.TimeSlots.OrderBy(x => x.Start).ToListAsync(), "TimeSlotId", "Code");
+
+        // Hiển thị giờ cụ thể thay vì Code
+        var slots = await _db.TimeSlots.OrderBy(x => x.Start).ToListAsync();
+        ViewBag.Slots = new SelectList(
+            slots.Select(s => new
+            {
+                s.TimeSlotId,
+                DisplayText = $"{s.Start:HH:mm} - {s.End:HH:mm}"
+            }),
+            "TimeSlotId",
+            "DisplayText"
+        );
+
         return View();
     }
 
