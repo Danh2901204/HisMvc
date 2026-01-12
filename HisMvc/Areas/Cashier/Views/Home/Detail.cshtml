@@ -98,7 +98,7 @@
                                 @if (orders.Any())
                                 {
                                     var stt = 2;
-                                    @foreach (var order in orders)
+                                    foreach (var order in orders)
                                     {
                                         <tr>
                                             <td>@stt</td>
@@ -117,7 +117,7 @@
                                                     <span class="badge bg-secondary">@order.Service?.Type</span>
                                                 }
                                             </td>
-                                            <td class="text-end">@(order.Service?.Price ?? 0).ToString("N0") VND</td>
+                                            <td class="text-end">@((order.Service?.Price ?? 0).ToString("N0")) VND</td>
                                         </tr>
                                         stt++;
                                     }
