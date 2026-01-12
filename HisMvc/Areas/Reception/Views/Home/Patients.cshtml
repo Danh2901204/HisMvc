@@ -1,0 +1,136 @@
+@model List<Patient>
+@{
+    ViewData["Title"] = "Quan ly Benh Nhan";
+    var search = (string)ViewBag.Search ?? "";
+}
+
+<div class="container-fluid mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-people"></i> Quan Ly Benh Nhan</h2>
+        <div>
+            <a href="@Url.Action("CreatePatient")" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Them BN moi
+            </a>
+            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Ve lich hen
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Tim theo ten hoac so dien thoai..." 
+                           value="@search" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Tim kiem
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Danh sach benh nhan (@Model.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th><i class="bi bi-person"></i> HO TEN</th>
+                                <th><i class="bi bi-telephone"></i> SDT</th>
+                                <th><i class="bi bi-calendar"></i> NGAY SINH</th>
+                                <th><i class="bi bi-gender-ambiguous"></i> GIOI TINH</th>
+                                <th class="text-center">THAO TAC</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                <tr>
+                                    <td><strong>@p.PatientId</strong></td>
+                                    <td><strong>@p.FullName</strong></td>
+                                    <td>@p.Phone</td>
+                                    <td>
+                                        @if (p.Dob.HasValue)
+                                        {
+                                            <text>@p.Dob.Value.ToString("dd/MM/yyyy")</text>
+                                            <small class="text-muted">
+                                                (@((DateTime.Today.Year - p.Dob.Value.Year)) tuoi)
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (p.Gender == Gender.Male)
+                                        {
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-gender-male"></i> Nam
+                                            </span>
+                                        }
+                                        else if (p.Gender == Gender.Female)
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-gender-female"></i> Nu
+                                            </span>
+                                        }
+                                        else if (p.Gender == Gender.Other)
+                                        {
+                                            <span class="badge bg-secondary">Khac</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark">Chua ro</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("EditPatient", new { id = p.PatientId })" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i> Sua
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-people" style="font-size: 3rem; color: #ddd;"></i>
+                    <p class="text-muted mt-3">
+                        @if (string.IsNullOrEmpty(search))
+                        {
+                            <text>Chua co benh nhan nao</text>
+                        }
+                        else
+                        {
+                            <text>Khong tim thay benh nhan voi tu khoa: "@search"</text>
+                        }
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

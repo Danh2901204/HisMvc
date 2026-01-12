@@ -1,0 +1,210 @@
+﻿@model HisMvc.Entities.Order
+@{
+    ViewData["Title"] = "Nhập kết quả";
+    var hasResult = Model.OrderResult != null;
+}
+
+<div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-clipboard-data"></i> Nhập kết quả - Order #@Model.OrderId
+                        @if (hasResult)
+                        {
+                            <span class="badge bg-warning text-dark float-end">
+                                <i class="bi bi-check-circle"></i> Đã có kết quả
+                            </span>
+                        }
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-person-fill text-primary"></i> Bệnh nhân:</strong><br />
+                                <span class="ms-4 fs-5">@Model.Encounter?.Patient?.FullName</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-telephone-fill text-success"></i> Điện thoại:</strong><br />
+                                <span class="ms-4">@Model.Encounter?.Patient?.Phone</span>
+                            </p>
+                            @if (Model.Encounter?.Patient?.Dob != null)
+                            {
+                                <p class="mb-2">
+                                    <strong><i class="bi bi-calendar"></i> Ngày sinh:</strong><br />
+                                    <span class="ms-4">
+                                        @Model.Encounter.Patient.Dob.Value.ToString("dd/MM/yyyy")
+                                        (@((DateTime.Today.Year - Model.Encounter.Patient.Dob.Value.Year)) tuổi)
+                                    </span>
+                                </p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-clipboard-check-fill text-info"></i> Dịch vụ:</strong><br />
+                                <span class="ms-4">
+                                    @if (Model.Service?.Type == "LAB")
+                                    {
+                                        <span class="badge bg-info text-dark"><i class="bi bi-flask"></i> LAB</span>
+                                    }
+                                    else if (Model.Service?.Type == "IMAGING")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-camera"></i> IMAGING</span>
+                                    }
+                                    @Model.Service?.Name
+                                </span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-person-badge"></i> BS chỉ định:</strong><br />
+                                <span class="ms-4">@Model.Encounter?.Doctor?.FullName</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-clock"></i> Thời gian chỉ định:</strong><br />
+                                <span class="ms-4">@Model.OrderedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-info-circle-fill text-warning"></i> Trạng thái:</strong><br />
+                                <span class="ms-4">
+                                    @if (Model.Status == HisMvc.Entities.OrderStatus.Requested)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-hourglass-split"></i> Chờ xử lý
+                                        </span>
+                                    }
+                                    else if (Model.Status == HisMvc.Entities.OrderStatus.Resulted)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Đã có kết quả
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@Model.Status</span>
+                                    }
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    @if (hasResult)
+                    {
+                        <div class="alert alert-info">
+                            <strong><i class="bi bi-clock-history"></i> Kết quả đã nhập:</strong><br />
+                            <small>
+                                Thời gian: @Model.OrderResult!.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")<br />
+                                Người nhập: <strong>@Model.OrderResult.ResultedBy</strong>
+                            </small>
+                        </div>
+                    }
+
+                    <hr />
+
+                    <form method="post" asp-action="SaveResult">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <strong><i class="bi bi-file-text"></i> Kết quả xét nghiệm</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="resultText" 
+                                      rows="10" 
+                                      class="form-control" 
+                                      placeholder="Nhập kết quả xét nghiệm chi tiết..."
+                                      required>@(Model.OrderResult?.ResultText)</textarea>
+                            <small class="form-text text-muted">
+                                <i class="bi bi-info-circle"></i> 
+                                Nhập đầy đủ thông tin kết quả xét nghiệm/chẩn đoán hình ảnh
+                            </small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                                </a>
+                                @if (hasResult)
+                                {
+                                    <button type="button" class="btn btn-danger" 
+                                            onclick="if(confirm('Xóa kết quả này và chuyển về trạng thái chờ xử lý?')) { document.getElementById('clearForm').submit(); }">
+                                        <i class="bi bi-trash"></i> Xóa kết quả
+                                    </button>
+                                }
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-save"></i> 
+                                @if (hasResult)
+                                {
+                                    <text>Cập nhật kết quả</text>
+                                }
+                                else
+                                {
+                                    <text>Lưu kết quả</text>
+                                }
+                            </button>
+                        </div>
+                    </form>
+
+                    @if (hasResult)
+                    {
+                        <form id="clearForm" method="post" asp-action="ClearResult" style="display:none;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        </form>
+                    }
+                </div>
+            </div>
+
+            @if (hasResult)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0"><i class="bi bi-file-earmark-text"></i> Kết quả hiện tại</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success mb-0">
+                            <strong><i class="bi bi-check-circle"></i> Kết quả:</strong>
+                            <pre class="mb-0 mt-2">@Model.OrderResult!.ResultText</pre>
+                            <hr />
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> Nhập lúc: @Model.OrderResult.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")<br />
+                                <i class="bi bi-person"></i> Người nhập: <strong>@Model.OrderResult.ResultedBy</strong>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+}

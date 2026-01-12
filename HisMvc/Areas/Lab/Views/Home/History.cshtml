@@ -1,0 +1,151 @@
+@model List<HisMvc.Entities.Order>
+@{
+    ViewData["Title"] = "Lich su ket qua";
+    var serviceType = (string)ViewBag.ServiceType ?? "";
+    var date = (DateOnly)ViewBag.Date;
+}
+
+<div class="container-fluid mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history"></i> Lich su ket qua xet nghiem</h2>
+        <a href="@Url.Action("Index")" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Ve danh sach cho
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Loai dich vu:</label>
+                    <select name="serviceType" class="form-select">
+                        <option value="">Tat ca (LAB + IMAGING)</option>
+                        <option value="LAB" selected="@(serviceType == "LAB")">Xet nghiem (LAB)</option>
+                        <option value="IMAGING" selected="@(serviceType == "IMAGING")">Chan doan hinh anh</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngay:</label>
+                    <input type="date" name="date" class="form-control" 
+                           value="@date.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block w-100">
+                        <i class="bi bi-search"></i> Loc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-list-check"></i> Da co ket qua (@Model.Count)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-success table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Order ID</th>
+                                <th><i class="bi bi-person"></i> Benh nhan</th>
+                                <th><i class="bi bi-clipboard-check"></i> Dich vu</th>
+                                <th><i class="bi bi-person-badge"></i> BS chi dinh</th>
+                                <th><i class="bi bi-clock"></i> Chi dinh</th>
+                                <th><i class="bi bi-check-circle"></i> Co KQ</th>
+                                <th><i class="bi bi-person"></i> Nguoi nhap</th>
+                                <th class="text-center">Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var o in Model)
+                            {
+                                <tr>
+                                    <td><strong>#@o.OrderId</strong></td>
+                                    <td>
+                                        <strong>@o.Encounter?.Patient?.FullName</strong><br />
+                                        <small class="text-muted">
+                                            <i class="bi bi-telephone"></i> @o.Encounter?.Patient?.Phone
+                                        </small>
+                                    </td>
+                                    <td>
+                                        @if (o.Service?.Type == "LAB")
+                                        {
+                                            <span class="badge bg-info text-dark">
+                                                <i class="bi bi-flask"></i> LAB
+                                            </span>
+                                        }
+                                        else if (o.Service?.Type == "IMAGING")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-camera"></i> IMAGING
+                                            </span>
+                                        }
+                                        <br />
+                                        <small>@o.Service?.Name</small>
+                                    </td>
+                                    <td>@o.Encounter?.Doctor?.FullName</td>
+                                    <td>
+                                        <small>@o.OrderedAt.ToLocalTime().ToString("dd/MM HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-success">
+                                            <i class="bi bi-check-circle"></i>
+                                            @o.OrderResult?.ResultedAt.ToLocalTime().ToString("dd/MM HH:mm")
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <small><strong>@o.OrderResult?.ResultedBy</strong></small>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("Result", new { id = o.OrderId })" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Xem
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ddd;"></i>
+                    <p class="text-muted mt-3">Khong co ket qua nao trong ngay @date.ToString("dd/MM/yyyy")</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-between">
+        <div>
+            <a href="@Url.Action("History", new { serviceType = serviceType, date = date.AddDays(-1).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Ngay truoc
+            </a>
+            <a href="@Url.Action("History", new { serviceType = serviceType, date = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-today"></i> Hom nay
+            </a>
+            <a href="@Url.Action("History", new { serviceType = serviceType, date = date.AddDays(1).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary">
+                Ngay sau <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

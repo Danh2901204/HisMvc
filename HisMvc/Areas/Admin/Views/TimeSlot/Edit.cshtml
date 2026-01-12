@@ -1,0 +1,93 @@
+@model TimeSlot
+@{
+    ViewData["Title"] = "Sua Khung Gio";
+    var duration = Model.End - Model.Start;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-pencil"></i> Sua Khung Gio</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <input type="hidden" asp-for="TimeSlotId" />
+
+                        <div class="mb-3">
+                            <label asp-for="Code" class="form-label">Ma Khung Gio <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control" required />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Start" class="form-label">Gio Bat Dau <span class="text-danger">*</span></label>
+                            <input asp-for="Start" type="time" class="form-control" required />
+                            <span asp-validation-for="Start" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="End" class="form-label">Gio Ket Thuc <span class="text-danger">*</span></label>
+                            <input asp-for="End" type="time" class="form-control" required />
+                            <span asp-validation-for="End" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> 
+                            <strong>Canh bao:</strong> Thay doi khung gio se anh huong den cac lich hen da dat trong khung gio nay
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay Lai
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-save"></i> Cap Nhat
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current Info -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6><i class="bi bi-info-circle"></i> Thong tin hien tai</h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-2"><strong>ID:</strong> @Model.TimeSlotId</p>
+                            <p class="mb-2"><strong>Ma:</strong> <code>@Model.Code</code></p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-2"><strong>Khung gio:</strong></p>
+                            <span class="badge bg-primary p-2">
+                                @Model.Start.ToString("HH:mm") - @Model.End.ToString("HH:mm")
+                            </span>
+                        </div>
+                    </div>
+                    <p class="mb-0 mt-2">
+                        <strong>Thoi luong:</strong> 
+                        <span class="badge bg-info">@duration.TotalMinutes phut</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Validation: End time must be after Start time
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const start = document.querySelector('input[name="Start"]').value;
+            const end = document.querySelector('input[name="End"]').value;
+            
+            if (start && end && start >= end) {
+                e.preventDefault();
+                alert('Gio ket thuc phai sau gio bat dau!');
+            }
+        });
+    </script>
+}

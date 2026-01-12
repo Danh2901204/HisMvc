@@ -1,0 +1,140 @@
+@model List<Encounter>
+@{
+    ViewData["Title"] = "Encounter chua lap hoa don";
+    var date = (DateOnly)ViewBag.Date;
+}
+
+<div class="container-fluid mt-4">
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-hourglass-split"></i> Luot kham chua lap hoa don</h2>
+        <a href="@Url.Action("Index")" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Ve danh sach HD
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <label class="form-label">Ngay:</label>
+                    <input type="date" name="date" class="form-control" 
+                           value="@date.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block w-100">
+                        <i class="bi bi-search"></i> Loc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="bi bi-list-check"></i> Da chot - Chua co hoa don (@Model.Count)
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Encounter ID</th>
+                                <th><i class="bi bi-person"></i> Benh nhan</th>
+                                <th><i class="bi bi-person-badge"></i> Bac si</th>
+                                <th><i class="bi bi-file-medical"></i> Chan doan</th>
+                                <th><i class="bi bi-clock"></i> Check-in</th>
+                                <th><i class="bi bi-check-circle"></i> Chot luc</th>
+                                <th class="text-center">Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enc in Model)
+                            {
+                                <tr>
+                                    <td><strong>#@enc.EncounterId</strong></td>
+                                    <td>
+                                        <strong>@enc.Patient?.FullName</strong><br />
+                                        <small class="text-muted">
+                                            <i class="bi bi-telephone"></i> @enc.Patient?.Phone
+                                        </small>
+                                    </td>
+                                    <td>@enc.Doctor?.FullName</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(enc.Diagnosis))
+                                        {
+                                            <small title="@enc.Diagnosis">
+                                                @(enc.Diagnosis.Length > 40 ? enc.Diagnosis.Substring(0, 40) + "..." : enc.Diagnosis)
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>@enc.CheckInAt.ToLocalTime().ToString("dd/MM HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        @if (enc.EndAt != default)
+                                        {
+                                            <small class="text-success">
+                                                <i class="bi bi-check-circle"></i> @enc.EndAt.ToLocalTime().ToString("HH:mm:ss")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("Create", new { encounterId = enc.EncounterId })" 
+                                           class="btn btn-sm btn-success">
+                                            <i class="bi bi-plus-circle"></i> Lap hoa don
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-check-circle" style="font-size: 3rem; color: #28a745;"></i>
+                    <p class="text-muted mt-3">Tat ca luot kham da co hoa don</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-between">
+        <div>
+            <a href="@Url.Action("Pending", new { date = date.AddDays(-1).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Ngay truoc
+            </a>
+            <a href="@Url.Action("Pending", new { date = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-today"></i> Hom nay
+            </a>
+            <a href="@Url.Action("Pending", new { date = date.AddDays(1).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary">
+                Ngay sau <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "T?o hóa ??n";
+    var encounter = (Encounter)ViewBag.Encounter;
+    var orders = (List<Order>)ViewBag.Orders;
+    var examFee = (decimal)ViewBag.ExamFee;
+    var totalOrderPrice = (decimal)ViewBag.TotalOrderPrice;
+    var totalAmount = (decimal)ViewBag.TotalAmount;
+}
+
+<div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-receipt"></i> T?o hóa ??n - Encounter #@encounter.EncounterId</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-person-fill text-primary"></i> B?nh nhân:</strong><br />
+                                <span class="ms-4 fs-5">@encounter.Patient?.FullName</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-telephone-fill text-success"></i> ?i?n tho?i:</strong><br />
+                                <span class="ms-4">@encounter.Patient?.Phone</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-2">
+                                <strong><i class="bi bi-person-badge-fill text-info"></i> Bác s?:</strong><br />
+                                <span class="ms-4">@encounter.Doctor?.FullName</span>
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="bi bi-clock"></i> Th?i gian:</strong><br />
+                                <span class="ms-4">@encounter.CheckInAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Chi ti?t d?ch v?:</h5>
+
+                    <div class="table-responsive mb-3">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>STT</th>
+                                    <th>D?ch v?</th>
+                                    <th>Lo?i</th>
+                                    <th class="text-end">??n giá</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><strong>Phí khám</strong></td>
+                                    <td><span class="badge bg-primary">EXAM</span></td>
+                                    <td class="text-end"><strong>@examFee.ToString("N0") ?</strong></td>
+                                </tr>
+                                @if (orders.Any())
+                                {
+                                    var stt = 2;
+                                    @foreach (var order in orders)
+                                    {
+                                        <tr>
+                                            <td>@stt</td>
+                                            <td>@order.Service?.Name</td>
+                                            <td>
+                                                @if (order.Service?.Type == "LAB")
+                                                {
+                                                    <span class="badge bg-info text-dark">LAB</span>
+                                                }
+                                                else if (order.Service?.Type == "IMAGING")
+                                                {
+                                                    <span class="badge bg-warning text-dark">IMAGING</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">@order.Service?.Type</span>
+                                                }
+                                            </td>
+                                            <td class="text-end">@(order.Service?.Price ?? 0).ToString("N0") ?</td>
+                                        </tr>
+                                        stt++;
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end"><strong>T?ng c?ng:</strong></td>
+                                    <td class="text-end">
+                                        <strong class="text-danger fs-5">@totalAmount.ToString("N0") ?</strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <hr />
+
+                    <form method="post" asp-action="CreateInvoice">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="encounterId" value="@encounter.EncounterId" />
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="bi bi-card-text"></i> Ghi chú:</label>
+                            <textarea name="note" class="form-control" rows="3" 
+                                      placeholder="Nh?p ghi chú n?u có..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="@Url.Action("Pending")" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay l?i
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> T?o hóa ??n
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

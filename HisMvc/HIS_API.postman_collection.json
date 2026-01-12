@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "HIS Appointment Booking API",
+    "description": "API for booking medical appointments",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:7239/api/AppointmentsApi",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Get Departments",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/Departments",
+          "host": ["{{base_url}}"],
+          "path": ["Departments"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Get Doctors by Department",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/Doctors?departmentId=1",
+          "host": ["{{base_url}}"],
+          "path": ["Doctors"],
+          "query": [
+            {
+              "key": "departmentId",
+              "value": "1",
+              "description": "Optional - Filter by department"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Available Slots",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/AvailableSlots?date=2026-01-09&departmentId=1",
+          "host": ["{{base_url}}"],
+          "path": ["AvailableSlots"],
+          "query": [
+            {
+              "key": "date",
+              "value": "2026-01-09",
+              "description": "Required - Date in yyyy-MM-dd format"
+            },
+            {
+              "key": "departmentId",
+              "value": "1",
+              "description": "Optional - Filter by department"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Book Appointment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Nguyen Van Test\",\n  \"phone\": \"0987654321\",\n  \"dob\": \"1990-01-01\",\n  \"gender\": 1,\n  \"departmentId\": 1,\n  \"doctorId\": 1,\n  \"date\": \"2026-01-09\",\n  \"timeSlotId\": 1,\n  \"note\": \"Kham suc khoe dinh ky\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/Book",
+          "host": ["{{base_url}}"],
+          "path": ["Book"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Check Appointment",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/Check?code=APT20260109123456",
+          "host": ["{{base_url}}"],
+          "path": ["Check"],
+          "query": [
+            {
+              "key": "code",
+              "value": "APT20260109123456",
+              "description": "Appointment code"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

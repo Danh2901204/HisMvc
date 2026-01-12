@@ -1,0 +1,15 @@
+﻿# Visual Studio
+.vs/
+bin/
+obj/
+
+# User secrets
+appsettings.Development.json
+
+# Database
+*.mdf
+*.ldf
+
+# Node (để sau)
+node_modules/
+.env

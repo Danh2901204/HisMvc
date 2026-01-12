@@ -1,0 +1,171 @@
+﻿@{
+    ViewData["Title"] = "Tao lich hen";
+}
+
+<div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Tao lich hen moi</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <h5 class="mb-3 text-primary"><i class="bi bi-person-circle"></i> Thong tin benh nhan</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">So dien thoai <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input id="phone" name="phone" type="tel" class="form-control" 
+                                           placeholder="Nhap SDT de tim kiem" required />
+                                    <button type="button" class="btn btn-info" onclick="searchPatient()">
+                                        <i class="bi bi-search"></i> Tim
+                                    </button>
+                                </div>
+                                <small class="text-muted">Nhap SDT va click Tim de tu dong dien thong tin BN cu</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ho va ten <span class="text-danger">*</span></label>
+                                <input id="fullName" name="fullName" class="form-control" 
+                                       placeholder="Nhap ho ten benh nhan" required />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngay sinh</label>
+                                <input id="dob" name="dob" type="date" class="form-control" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Gioi tinh</label>
+                                <select id="gender" name="gender" class="form-select">
+                                    <option value="">-- Chon gioi tinh --</option>
+                                    <option value="1">Nam</option>
+                                    <option value="2">Nu</option>
+                                    <option value="3">Khac</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <h5 class="mb-3 text-primary"><i class="bi bi-calendar-check"></i> Thong tin lich hen</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Khoa kham <span class="text-danger">*</span></label>
+                                <select name="departmentId" class="form-select" required>
+                                    <option value="">-- Chon khoa --</option>
+                                    @foreach (var d in ViewBag.Departments)
+                                    {
+                                        <option value="@d.Value">@d.Text</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Bac si <span class="text-danger">*</span></label>
+                                <select name="doctorId" class="form-select" required>
+                                    <option value="">-- Chon bac si --</option>
+                                    @foreach (var d in ViewBag.Doctors)
+                                    {
+                                        <option value="@d.Value">@d.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngay kham <span class="text-danger">*</span></label>
+                                <input type="date" name="date" class="form-control" 
+                                       value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Khung gio <span class="text-danger">*</span></label>
+                                <select name="slotId" class="form-select" required>
+                                    <option value="">-- Chon gio --</option>
+                                    @foreach (var s in ViewBag.Slots)
+                                    {
+                                        <option value="@s.Value">@s.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chu</label>
+                            <textarea name="note" class="form-control" rows="3" 
+                                      placeholder="Nhap ghi chu neu co..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lai
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Tao lich hen
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function searchPatient() {
+        const phone = document.getElementById('phone').value;
+        if (!phone) {
+            alert('Vui long nhap so dien thoai!');
+            return;
+        }
+
+        fetch(`/Reception/Home/SearchPatient?phone=${encodeURIComponent(phone)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.found) {
+                    document.getElementById('fullName').value = data.fullName;
+                    if (data.dob) {
+                        document.getElementById('dob').value = data.dob;
+                    }
+                    if (data.gender) {
+                        const genderMap = { 'Male': '1', 'Female': '2', 'Other': '3' };
+                        document.getElementById('gender').value = genderMap[data.gender] || '';
+                    }
+                    alert('Da tim thay thong tin benh nhan!');
+                } else {
+                    alert('Khong tim thay benh nhan. Vui long nhap thong tin moi.');
+                    document.getElementById('fullName').value = '';
+                    document.getElementById('dob').value = '';
+                    document.getElementById('gender').value = '';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Co loi xay ra khi tim kiem!');
+            });
+    }
+</script>
+}

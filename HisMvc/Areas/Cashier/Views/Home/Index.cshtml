@@ -1,0 +1,154 @@
+@model List<Invoice>
+@{
+    ViewData["Title"] = "Danh sach hoa don";
+    var status = (string)ViewBag.CurrentStatus ?? "";
+    var date = (DateOnly)ViewBag.Date;
+}
+
+<div class="container-fluid mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-receipt"></i> Danh sach hoa don</h2>
+        <a href="@Url.Action("Pending")" class="btn btn-warning">
+            <i class="bi bi-hourglass-split"></i> Chua lap HD
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Trang thai:</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tat ca</option>
+                        <option value="Unpaid" selected="@(status == "Unpaid")">Chua thanh toan</option>
+                        <option value="Paid" selected="@(status == "Paid")">Da thanh toan</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Ngay:</label>
+                    <input type="date" name="date" class="form-control" 
+                           value="@date.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block w-100">
+                        <i class="bi bi-search"></i> Loc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Hoa don (@Model.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma HD</th>
+                                <th><i class="bi bi-person"></i> Benh nhan</th>
+                                <th><i class="bi bi-person-badge"></i> Bac si</th>
+                                <th><i class="bi bi-cash"></i> Tong tien</th>
+                                <th><i class="bi bi-info-circle"></i> Trang thai</th>
+                                <th><i class="bi bi-clock"></i> Ngay tao</th>
+                                <th>Thao tac</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var inv in Model)
+                            {
+                                var isPaid = inv.Status == InvoiceStatus.Paid;
+                                <tr class="@(isPaid ? "table-success" : "")">
+                                    <td><strong>@inv.InvoiceCode</strong></td>
+                                    <td>
+                                        <strong>@inv.Encounter?.Patient?.FullName</strong><br />
+                                        <small class="text-muted">@inv.Encounter?.Patient?.Phone</small>
+                                    </td>
+                                    <td>@inv.Encounter?.Doctor?.FullName</td>
+                                    <td>
+                                        <strong class="text-danger">
+                                            @inv.TotalAmount.ToString("N0") VND
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        @if (isPaid)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Da thanh toan
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-hourglass-split"></i> Chua thanh toan
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <small>@inv.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small>
+                                        @if (isPaid && inv.PaidAt.HasValue)
+                                        {
+                                            <br /><small class="text-success">
+                                                Thanh toan: @inv.PaidAt.Value.ToLocalTime().ToString("HH:mm")
+                                            </small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Detail", new { id = inv.InvoiceId })" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i> Chi tiet
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #ddd;"></i>
+                    <p class="text-muted mt-3">Khong co hoa don nao</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex justify-content-between">
+        <div>
+            <a href="@Url.Action("Index", new { status, date = date.AddDays(-1).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Ngay truoc
+            </a>
+            <a href="@Url.Action("Index", new { status, date = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-secondary">
+                <i class="bi bi-calendar-today"></i> Hom nay
+            </a>
+            <a href="@Url.Action("Index", new { status, date = date.AddDays(1).ToString("yyyy-MM-dd") })" 
+               class="btn btn-outline-primary">
+                Ngay sau <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+@model Patient
+@{
+    ViewData["Title"] = "Sua Thong Tin Benh Nhan";
+}
+
+<div class="container mt-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Sua Thong Tin Benh Nhan</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="PatientId" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ma BN</label>
+                            <input value="@Model.PatientId" class="form-control" disabled />
+                            <small class="text-muted">Ma benh nhan khong the thay doi</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label">
+                                Ho va Ten <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="FullName" class="form-control" placeholder="Nhap ho va ten day du" required />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label">
+                                So dien thoai <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Phone" type="tel" class="form-control" placeholder="Nhap so dien thoai" required />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Dob" class="form-label">Ngay sinh</label>
+                            <input asp-for="Dob" type="date" class="form-control" />
+                            <span asp-validation-for="Dob" class="text-danger"></span>
+                            @if (Model.Dob.HasValue)
+                            {
+                                <small class="text-muted">Hien tai: @((DateTime.Today.Year - Model.Dob.Value.Year)) tuoi</small>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Gender" class="form-label">Gioi tinh</label>
+                            <select asp-for="Gender" class="form-select">
+                                <option value="0">Chua ro</option>
+                                <option value="1">Nam</option>
+                                <option value="2">Nu</option>
+                                <option value="3">Khac</option>
+                            </select>
+                            <span asp-validation-for="Gender" class="text-danger"></span>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> 
+                            <strong>Luu y:</strong> Thay doi thong tin benh nhan se anh huong den tat ca lich hen va ho so lien quan
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="@Url.Action("Patients")" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Quay lai
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-check-circle"></i> Cap nhat
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
