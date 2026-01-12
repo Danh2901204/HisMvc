@@ -215,8 +215,50 @@ public class HomeController : Controller
 
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Da chot luot kham thanh cong! Benh nhan co the thanh toan va ra ve.";
+        // Tự động tạo hóa đơn
+        await CreateInvoiceForEncounter(id);
+
+        TempData["Success"] = "Da chot luot kham va tao hoa don thanh cong! Benh nhan co the thanh toan.";
         return RedirectToAction(nameof(Index));
+    }
+
+    // Helper method để tạo hóa đơn
+    private async Task CreateInvoiceForEncounter(int encounterId)
+    {
+        // Kiểm tra đã có hóa đơn chưa
+        var existingInvoice = await _db.Invoices
+            .FirstOrDefaultAsync(x => x.EncounterId == encounterId);
+
+        if (existingInvoice != null)
+            return; // Đã có hóa đơn rồi
+
+        // Lấy danh sách dịch vụ
+        var orders = await _db.Orders
+            .Include(x => x.Service)
+            .Where(x => x.EncounterId == encounterId)
+            .ToListAsync();
+
+        // Tính tổng tiền
+        decimal examFee = 100000; // Phí khám cố định
+        decimal totalOrderPrice = orders.Sum(x => x.Service?.Price ?? 0);
+        decimal totalAmount = examFee + totalOrderPrice;
+
+        // Tạo mã hóa đơn
+        var invoiceCode = $"INV{DateTime.Now:yyyyMMddHHmmss}";
+
+        // Tạo hóa đơn
+        var invoice = new Invoice
+        {
+            EncounterId = encounterId,
+            InvoiceCode = invoiceCode,
+            TotalAmount = totalAmount,
+            Status = InvoiceStatus.Unpaid,
+            CreatedAt = DateTime.UtcNow,
+            Note = "Tu dong tao khi chot luot kham"
+        };
+
+        _db.Invoices.Add(invoice);
+        await _db.SaveChangesAsync();
     }
 
     // Mở lại lượt khám (nếu cần)
