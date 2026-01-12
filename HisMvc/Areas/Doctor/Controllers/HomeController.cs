@@ -239,7 +239,7 @@ public class HomeController : Controller
             .ToListAsync();
 
         // Tính tổng tiền
-        decimal examFee = 100000; // Phí khám cố định
+        decimal examFee = 100000;
         decimal totalOrderPrice = orders.Sum(x => x.Service?.Price ?? 0);
         decimal totalAmount = examFee + totalOrderPrice;
 
