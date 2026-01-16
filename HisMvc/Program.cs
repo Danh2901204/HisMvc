@@ -36,21 +36,37 @@ builder.Services.AddCors(opt =>
 
 var app = builder.Build();
 
+// Exception handling
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+// CORS ph?i ??t sau UseRouting và tr??c UseAuthentication
 app.UseCors("Portal");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Seed data
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     await SeedData.InitializeAsync(services);
 }
+
+// Map controllers (bao g?m c? API controllers)
+app.MapControllers(); // ? Thêm dòng này ?? map API controllers
 
 app.MapControllerRoute(
     name: "areas",
