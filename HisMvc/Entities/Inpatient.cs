@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HisMvc.Entities;
 
-// 1. Khoa/Bu?ng n?i tr�
+// 1. Khoa/Buồng noi tru
 public class Ward
 {
     public int WardId { get; set; }
@@ -26,7 +27,7 @@ public class Ward
     public string? Description { get; set; }
 }
 
-// 2. Gi??ng b?nh
+// 2. Giường bệnh
 public class Bed
 {
     public int BedId { get; set; }
@@ -45,7 +46,7 @@ public class Bed
     public string? Note { get; set; }
 }
 
-// 3. H? s? nh?p vi?n
+// 3. Ho so nhập viện
 public class Admission
 {
     public int AdmissionId { get; set; }
@@ -70,23 +71,34 @@ public class Admission
     
     [MaxLength(1000)]
     public string AdmissionReason { get; set; } = "";
-    
+
     [MaxLength(1000)]
     public string? InitialDiagnosis { get; set; }
-    
+
+    // ICD-10 ngày vào viện (TT 56/2017)
+    [MaxLength(10)] public string? Icd10Admission { get; set; }
+    // ICD-10 ngày ra vien
+    [MaxLength(10)] public string? Icd10Discharge { get; set; }
+    [MaxLength(50)] public string? Icd10DischargeSecondary { get; set; }
+
     [MaxLength(2000)]
     public string? DischargeSummary { get; set; }
-    
+
     [MaxLength(1000)]
     public string? DischargeInstructions { get; set; }
-    
+
+    // Phân loại theo TT 56/2017: 1=Khoi, 2=Do, 3=Không doi, 4=Nặng, 5=Tử vong
+    public int? DischargeResult { get; set; }
+
     public int? DischargedBy { get; set; }
+
+    [ForeignKey(nameof(DischargedBy))]
     public Staff? DischargedByStaff { get; set; }
-    
+
     public List<MedicalOrder> MedicalOrders { get; set; } = new();
 }
 
-// 4. Y l?nh (theo gi? cho b?nh nh�n n?i tr�)
+// 4. Y lênh (theo gio cho bệnh nhân noi tru)
 public class MedicalOrder
 {
     public int MedicalOrderId { get; set; }
@@ -107,6 +119,8 @@ public class MedicalOrder
     public DateTime ScheduledAt { get; set; }
     
     public int OrderedBy { get; set; }
+
+    [ForeignKey(nameof(OrderedBy))]
     public Staff? OrderedByStaff { get; set; }
     
     public MedicalOrderStatus Status { get; set; } = MedicalOrderStatus.Ordered;
@@ -114,6 +128,8 @@ public class MedicalOrder
     public DateTime? ExecutedAt { get; set; }
     
     public int? ExecutedBy { get; set; }
+
+    [ForeignKey(nameof(ExecutedBy))]
     public Staff? ExecutedByStaff { get; set; }
     
     [MaxLength(1000)]
@@ -122,12 +138,12 @@ public class MedicalOrder
     [MaxLength(500)]
     public string? Note { get; set; }
     
-    // Li�n k?t v?i ??n thu?c n?u l� y l?nh thu?c
+    // Lien ket với đơn thuốc nếu là y lenh thuốc
     public int? PrescriptionId { get; set; }
     public Prescription? Prescription { get; set; }
 }
 
-// 5. Ph?u thu?t/Th? thu?t
+// 5. Phẩu thuật/Thu thuat
 public class Surgery
 {
     public int SurgeryId { get; set; }
@@ -171,24 +187,29 @@ public class Surgery
     public string? Complications { get; set; }
 }
 
-// 6. Sinh hi?u (Vital Signs)
+// 6. Sinh hiệu (Vital Signs)
 public class VitalSign
 {
     public int VitalSignId { get; set; }
-    
+
     public int AdmissionId { get; set; }
     public Admission? Admission { get; set; }
-    
+
     public DateTime RecordedAt { get; set; } = DateTime.UtcNow;
-    
+
+    // Ca ghi: 1=Sang, 2=Chieu, 3=Toi (theo MoH 3 lan/ngày)
+    public int Shift { get; set; } = 1;
+
     public int RecordedBy { get; set; }
+
+    [ForeignKey(nameof(RecordedBy))]
     public Staff? RecordedByStaff { get; set; }
     
-    public decimal? Temperature { get; set; } // ?? C
-    
-    public int? HeartRate { get; set; } // nh?p/ph�t
-    
-    public int? RespiratoryRate { get; set; } // nh?p/ph�t
+    public decimal? Temperature { get; set; } // do C
+
+    public int? HeartRate { get; set; } // nhip/phút
+
+    public int? RespiratoryRate { get; set; } // nhip/phút
     
     public int? BloodPressureSystolic { get; set; } // mmHg
     
@@ -208,22 +229,25 @@ public class VitalSign
 public class Allergy
 {
     public int AllergyId { get; set; }
-    
+
     public int PatientId { get; set; }
     public Patient? Patient { get; set; }
-    
+
     [MaxLength(200)]
     public string Allergen { get; set; } = "";
-    
+
+    // 1=Thuốc, 2=Thuc pham, 3=Moi truong, 4=Khac
+    public int AllergyType { get; set; } = 1;
+
     [MaxLength(500)]
     public string? Reaction { get; set; }
-    
+
     public AllergySeverity Severity { get; set; } = AllergySeverity.Moderate;
-    
+
     public DateTime IdentifiedDate { get; set; } = DateTime.UtcNow;
-    
+
     public bool IsActive { get; set; } = true;
-    
+
     [MaxLength(500)]
     public string? Note { get; set; }
 }

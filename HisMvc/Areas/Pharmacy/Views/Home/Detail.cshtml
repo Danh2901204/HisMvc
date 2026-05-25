@@ -1,81 +1,71 @@
-@model Prescription
+@model PrescriptionDetailViewModel
 @{
-    ViewData["Title"] = "Chi Ti?t ??n Thu?c";
-    var stocks = (Dictionary<int, int>)ViewBag.Stocks;
+    ViewData["Title"] = "Chi tiet đơn thuốc";
+    var rx = Model.Prescription;
+    var stocks = Model.Stocks;
+    var canDispense = Model.CanDispense;
+    var enc = rx.Encounter;
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-file-earmark-medical"></i> Chi Ti?t ??n Thu?c</h2>
-        <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Quay l?i
-        </a>
+        <h2><i class="bi bi-file-earmark-medical"></i> Chi tiet đơn thuốc</h2>
+        <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Quay lại</a>
     </div>
 
-    <!-- Th�ng tin chung -->
+    @if (rx.Status == PrescriptionStatus.Pending && !canDispense)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Chua the cấp phát:</strong> BN chua thanh toán chi phí cuoi tai Thu ngan.
+            Trạng thái hien tai: <strong>@enc?.Status</strong>.
+            Can chuyển sang <strong>WaitingMedicine</strong> trước khi cap thuốc.
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-6">
             <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <i class="bi bi-person"></i> Th�ng Tin B?nh Nh�n
-                </div>
+                <div class="card-header bg-primary text-white"><i class="bi bi-person"></i> Thông tin bệnh nhân</div>
                 <div class="card-body">
                     <table class="table table-borderless mb-0">
+                        <tr><td width="140"><strong>Họ tên:</strong></td><td>@enc?.Patient?.FullName</td></tr>
+                        <tr><td><strong>Ngày sinh:</strong></td><td>@enc?.Patient?.Dob?.ToString("dd/MM/yyyy")</td></tr>
+                        <tr><td><strong>SDT:</strong></td><td>@enc?.Patient?.Phone</td></tr>
+                        <tr><td><strong>Giới tính:</strong></td><td>@enc?.Patient?.Gender</td></tr>
                         <tr>
-                            <td width="150"><strong>H? t�n:</strong></td>
-                            <td>@Model.Encounter?.Patient?.FullName</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Ng�y sinh:</strong></td>
-                            <td>@Model.Encounter?.Patient?.Dob?.ToString("dd/MM/yyyy")</td>
-                        </tr>
-                        <tr>
-                            <td><strong>S? ?i?n tho?i:</strong></td>
-                            <td>@Model.Encounter?.Patient?.Phone</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Gi?i t�nh:</strong></td>
-                            <td>@Model.Encounter?.Patient?.Gender</td>
+                            <td><strong>Trạng thái KCB:</strong></td>
+                            <td>
+                                @switch (enc?.Status)
+                                {
+                                    case EncounterStatus.WaitingMedicine: <span class="badge bg-success">Chờ linh thuốc</span> break;
+                                    case EncounterStatus.Completed: <span class="badge bg-secondary">Hoàn thành</span> break;
+                                    case EncounterStatus.WaitingFinalPayment: <span class="badge bg-warning text-dark">Chờ thu chi phí cuoi</span> break;
+                                    default: <span class="badge bg-info">@enc?.Status</span> break;
+                                }
+                            </td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
-
         <div class="col-md-6">
             <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <i class="bi bi-receipt"></i> Th�ng Tin ??n Thu?c
-                </div>
+                <div class="card-header bg-info text-white"><i class="bi bi-receipt"></i> Thông tin đơn thuốc</div>
                 <div class="card-body">
                     <table class="table table-borderless mb-0">
+                        <tr><td width="140"><strong>Mã don:</strong></td><td><span class="badge bg-dark">@rx.Code</span></td></tr>
+                        <tr><td><strong>Bác sĩ ke:</strong></td><td>@rx.Doctor?.FullName</td></tr>
+                        <tr><td><strong>Thời gian:</strong></td><td>@rx.PrescribedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td></tr>
                         <tr>
-                            <td width="150"><strong>M� ??n:</strong></td>
-                            <td><span class="badge bg-dark">@Model.Code</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>B�c s? k� ??n:</strong></td>
-                            <td>@Model.Doctor?.FullName</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Th?i gian:</strong></td>
-                            <td>@Model.PrescribedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Tr?ng th�i:</strong></td>
+                            <td><strong>Trạng thái:</strong></td>
                             <td>
-                                @if (Model.Status == PrescriptionStatus.Pending)
-                                {
-                                    <span class="badge bg-warning">Ch? c?p ph�t</span>
-                                }
-                                else if (Model.Status == PrescriptionStatus.Dispensed)
-                                {
-                                    <span class="badge bg-success">?� c?p ph�t</span>
-                                }
+                                @if (rx.Status == PrescriptionStatus.Pending)
+                                { <span class="badge bg-warning text-dark">Chờ cấp phát</span> }
+                                else if (rx.Status == PrescriptionStatus.Dispensed)
+                                { <span class="badge bg-success">Đã cấp phát</span> }
                                 else
-                                {
-                                    <span class="badge bg-secondary">?� h?y</span>
-                                }
+                                { <span class="badge bg-secondary">Đã huy</span> }
                             </td>
                         </tr>
                     </table>
@@ -84,32 +74,28 @@
         </div>
     </div>
 
-    <!-- Danh s�ch thu?c -->
     <div class="card">
-        <div class="card-header bg-success text-white">
-            <i class="bi bi-capsule"></i> Danh S�ch Thu?c Trong ??n
-        </div>
+        <div class="card-header bg-success text-white"><i class="bi bi-capsule"></i> Danh sách thuốc trong don</div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-bordered">
                     <thead class="table-light">
                         <tr>
                             <th>STT</th>
-                            <th>T�n thu?c</th>
-                            <th>Li?u d�ng</th>
-                            <th>S? l??ng</th>
-                            <th>S? ng�y</th>
-                            <th>H??ng d?n</th>
-                            <th>T?n kho</th>
+                            <th>Tên thuốc</th>
+                            <th>Lieu dung</th>
+                            <th>Số lượng</th>
+                            <th>So ngày</th>
+                            <th>Huong dan</th>
+                            <th>Tồn kho</th>
                         </tr>
                     </thead>
                     <tbody>
                         @{ int stt = 1; }
-                        @foreach (var item in Model.Items)
+                        @foreach (var item in rx.Items)
                         {
                             var stock = stocks.ContainsKey(item.MedicineId) ? stocks[item.MedicineId] : 0;
                             var hasEnoughStock = stock >= item.Quantity;
-
                             <tr class="@(!hasEnoughStock ? "table-danger" : "")">
                                 <td class="text-center">@(stt++)</td>
                                 <td>
@@ -117,20 +103,14 @@
                                     <small class="text-muted">@item.Medicine?.ActiveIngredient</small>
                                 </td>
                                 <td>@item.Dosage</td>
-                                <td class="text-center">
-                                    <span class="badge bg-primary">@item.Quantity @item.Medicine?.Unit</span>
-                                </td>
-                                <td class="text-center">@item.Duration ng�y</td>
-                                <td>@(item.Instructions ?? "-")</td>
+                                <td class="text-center"><span class="badge bg-primary">@item.Quantity @item.Medicine?.Unit</span></td>
+                                <td class="text-center">@item.Duration ngày</td>
+                                <td>@(item.Instructions ?? "—")</td>
                                 <td class="text-center">
                                     @if (hasEnoughStock)
-                                    {
-                                        <span class="badge bg-success">@stock @item.Medicine?.Unit</span>
-                                    }
+                                    { <span class="badge bg-success">@stock @item.Medicine?.Unit</span> }
                                     else
-                                    {
-                                        <span class="badge bg-danger">@stock @item.Medicine?.Unit (Thi?u)</span>
-                                    }
+                                    { <span class="badge bg-danger">@stock @item.Medicine?.Unit (Thieu)</span> }
                                 </td>
                             </tr>
                         }
@@ -138,33 +118,29 @@
                 </table>
             </div>
 
-            @if (Model.Items.Any(item => !stocks.ContainsKey(item.MedicineId) || stocks[item.MedicineId] < item.Quantity))
+            @if (rx.Items.Any(item => !stocks.ContainsKey(item.MedicineId) || stocks[item.MedicineId] < item.Quantity))
             {
                 <div class="alert alert-danger mt-3">
-                    <i class="bi bi-exclamation-triangle"></i> 
-                    <strong>C?nh b�o:</strong> M?t s? thu?c kh�ng ?? t?n kho ?? c?p ph�t!
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Cảnh báo:</strong> Mot so thuốc không du ton kho de cấp phát!
                 </div>
             }
         </div>
     </div>
 
-    @if (!string.IsNullOrEmpty(Model.Note))
+    @if (!string.IsNullOrEmpty(rx.Note))
     {
         <div class="card mt-3">
-            <div class="card-header">
-                <i class="bi bi-sticky"></i> Ghi ch�
-            </div>
-            <div class="card-body">
-                @Model.Note
-            </div>
+            <div class="card-header"><i class="bi bi-sticky"></i> Ghi chú</div>
+            <div class="card-body">@rx.Note</div>
         </div>
     }
 
-    @if (Model.Status == PrescriptionStatus.Pending)
+    @if (rx.Status == PrescriptionStatus.Pending && canDispense)
     {
         <div class="mt-4">
-            <a asp-action="Dispense" asp-route-id="@Model.PrescriptionId" class="btn btn-success btn-lg">
-                <i class="bi bi-box-seam"></i> Ti?n H�nh C?p Ph�t
+            <a asp-action="Dispense" asp-route-id="@rx.PrescriptionId" class="btn btn-success btn-lg">
+                <i class="bi bi-box-seam"></i> Tien hanh cấp phát (buoc 9)
             </a>
         </div>
     }

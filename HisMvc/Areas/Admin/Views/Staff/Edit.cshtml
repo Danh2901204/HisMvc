@@ -1,6 +1,7 @@
-@model Staff
+@model StaffFormViewModel
 @{
-    ViewData["Title"] = "Sua Nhan Vien";
+    ViewData["Title"] = "Sửa Nhân viên";
+    var staff = Model.Staff;
 }
 
 <div class="container mt-4">
@@ -8,53 +9,53 @@
         <div class="col-lg-6">
             <div class="card shadow-sm">
                 <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0"><i class="bi bi-pencil"></i> Sua Thong Tin Nhan Vien</h4>
+                    <h4 class="mb-0"><i class="bi bi-pencil"></i> Sửa Thông tin Nhân viên</h4>
                 </div>
                 <div class="card-body">
                     <form method="post">
-                        <input type="hidden" asp-for="StaffId" />
+                        <input type="hidden" asp-for="Staff.StaffId" />
 
                         <div class="mb-3">
-                            <label asp-for="FullName" class="form-label">Ho Ten <span class="text-danger">*</span></label>
-                            <input asp-for="FullName" class="form-control" required />
-                            <span asp-validation-for="FullName" class="text-danger"></span>
+                            <label asp-for="Staff.FullName" class="form-label">Họ tên <span class="text-danger">*</span></label>
+                            <input asp-for="Staff.FullName" class="form-control" required />
+                            <span asp-validation-for="Staff.FullName" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="DepartmentId" class="form-label">Khoa/Phong Ban <span class="text-danger">*</span></label>
-                            <select asp-for="DepartmentId" asp-items="ViewBag.Departments" class="form-select" required>
-                                <option value="">-- Chon khoa/phong --</option>
+                            <label asp-for="Staff.DepartmentId" class="form-label">Khoa/Phong Ban <span class="text-danger">*</span></label>
+                            <select asp-for="Staff.DepartmentId" asp-items="Model.Departments" class="form-select" required>
+                                <option value="">-- Chọn khoa/phong --</option>
                             </select>
-                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                            <span asp-validation-for="Staff.DepartmentId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="StaffType" class="form-label">Loai Nhan Vien <span class="text-danger">*</span></label>
-                            <select asp-for="StaffType" class="form-select" required>
-                                <option value="">-- Chon loai nhan vien --</option>
-                                <option value="DOCTOR">Bac si</option>
+                            <label asp-for="Staff.StaffType" class="form-label">Loai Nhân viên <span class="text-danger">*</span></label>
+                            <select asp-for="Staff.StaffType" class="form-select" required>
+                                <option value="">-- Chọn loại nhân viên --</option>
+                                <option value="DOCTOR">Bác sĩ</option>
                                 <option value="NURSE">Dieu duong</option>
                                 <option value="LAB_TECH">Ky thuat vien</option>
                                 <option value="RECEPTION">Le tan</option>
                                 <option value="PHARMACIST">Duoc si</option>
                                 <option value="CASHIER">Thu ngan</option>
-                                <option value="OTHER">Khac</option>
+                                <option value="OTHER">Khác</option>
                             </select>
-                            <span asp-validation-for="StaffType" class="text-danger"></span>
-                            <small class="text-muted">Hien tai: <strong>@Model.StaffType</strong></small>
+                            <span asp-validation-for="Staff.StaffType" class="text-danger"></span>
+                            <small class="text-muted">Hien tai: <strong>@staff.StaffType</strong></small>
                         </div>
 
                         <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle"></i> 
-                            <strong>Canh bao:</strong> Thay doi thong tin nhan vien se anh huong den lich hen va tai khoan lien quan
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Cảnh báo:</strong> Thay doi thông tin nhân viên sẽ ảnh hưởng den lịch hẹn va tài khoản liên quan
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
                             <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Quay Lai
+                                <i class="bi bi-arrow-left"></i> Quay lại
                             </a>
                             <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-save"></i> Cap Nhat
+                                <i class="bi bi-save"></i> Cập nhật
                             </button>
                         </div>
                     </form>
@@ -63,22 +64,22 @@
 
             <div class="card shadow-sm mt-3">
                 <div class="card-body">
-                    <h6><i class="bi bi-info-circle"></i> Thong tin them</h6>
-                    <p class="mb-1"><strong>ID Nhan Vien:</strong> @Model.StaffId</p>
-                    <p class="mb-0"><strong>Loai:</strong> 
-                        @if (Model.StaffType == "DOCTOR")
+                    <h6><i class="bi bi-info-circle"></i> Thông tin them</h6>
+                    <p class="mb-1"><strong>ID Nhân viên:</strong> @staff.StaffId</p>
+                    <p class="mb-0"><strong>Loai:</strong>
+                        @if (staff.StaffType == "DOCTOR")
                         {
-                            <span class="badge bg-primary">Bac si</span>
+                            <span class="badge bg-primary">Bác sĩ</span>
                         }
-                        else if (Model.StaffType == "NURSE")
+                        else if (staff.StaffType == "NURSE")
                         {
                             <span class="badge bg-success">Dieu duong</span>
                         }
-                        else if (Model.StaffType == "LAB_TECH")
+                        else if (staff.StaffType == "LAB_TECH")
                         {
                             <span class="badge bg-info">Ky thuat vien</span>
                         }
-                        else if (Model.StaffType == "RECEPTION")
+                        else if (staff.StaffType == "RECEPTION")
                         {
                             <span class="badge bg-warning text-dark">Le tan</span>
                         }

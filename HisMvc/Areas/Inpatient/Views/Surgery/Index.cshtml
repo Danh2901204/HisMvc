@@ -1,0 +1,294 @@
+@model SurgeryListViewModel
+@{
+    var admission = Model.Admission;
+    var doctors = Model.Doctors;
+    ViewData["Title"] = $"Phau Thuat - {admission.AdmissionCode}";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-scissors"></i> Phieu Phau Thuat / Thu Thuat — @admission.AdmissionCode</h2>
+            <p class="text-muted mb-0">
+                BN: <strong>@admission.Patient?.FullName</strong> — Buồng @admission.Bed?.Ward?.Name, giường @admission.Bed?.BedNumber
+            </p>
+        </div>
+        <a asp-controller="Home" asp-action="Detail" asp-route-id="@admission.AdmissionId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Ve hồ sơ noi tru
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-info py-2 small mb-3">
+        <i class="bi bi-info-circle"></i>
+        Theo <strong>Thông tư 50/2014/TT-BYT</strong> (phan loai phẩu thuật, thủ thuật) va
+        <strong>Mau 03/BV-01</strong> (TT 56/2017) — Bien ban phẩu thuật phai ghi lai diễn biến va ket qua.
+    </div>
+
+    @if (admission.Status == AdmissionStatus.Active)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-danger text-white">
+                <i class="bi bi-clipboard-plus"></i> Lap Phieu Phau Thuat Moi
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="admissionId" value="@admission.AdmissionId" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên phẩu thuật / thủ thuật <span class="text-danger">*</span></label>
+                            <input name="surgeryType" class="form-control"
+                                placeholder="VD: Mo ruot thua noi soi" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Du kien lúc <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="scheduledAt" class="form-control"
+                                value="@DateTime.Now.AddHours(2).ToString("yyyy-MM-ddTHH:mm")" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Phong mo</label>
+                            <input name="operatingRoom" class="form-control" placeholder="P. mo so 1" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Phẩu thuật vien chinh <span class="text-danger">*</span></label>
+                            <select name="surgeonId" class="form-select" required>
+                                <option value="">-- Chọn bac si --</option>
+                                @foreach (var d in doctors)
+                                {
+                                    <option value="@d.StaffId">@d.FullName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Bác sĩ gay me</label>
+                            <select name="anesthesiologistId" class="form-select">
+                                <option value="">-- Chọn (neu can) --</option>
+                                @foreach (var d in doctors)
+                                {
+                                    <option value="@d.StaffId">@d.FullName</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Mô tả / Chuan bi trước mo</label>
+                            <textarea name="description" class="form-control" rows="2"
+                                placeholder="Tinh trang BN, phuong phap vo cam, du kien thoi gian, du kien dung cu..."></textarea>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-check2-circle"></i> Lap phieu
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <i class="bi bi-list-ul"></i> Danh sách phieu phẩu thuật (@Model.Surgeries.Count)
+        </div>
+        <div class="card-body">
+            @if (!Model.Surgeries.Any())
+            {
+                <p class="text-muted text-center py-4 mb-0">Chưa có phieu phẩu thuật nao.</p>
+            }
+            else
+            {
+                @foreach (var s in Model.Surgeries)
+                {
+                    <div class="card mb-3 border-start border-4 border-@(s.Status switch {
+                        SurgeryStatus.Scheduled => "warning",
+                        SurgeryStatus.InProgress => "info",
+                        SurgeryStatus.Completed => "success",
+                        SurgeryStatus.Cancelled => "danger",
+                        SurgeryStatus.Postponed => "secondary",
+                        _ => "secondary"
+                    })">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h5 class="mb-1">@s.SurgeryType <small class="text-muted">— @s.SurgeryCode</small></h5>
+                                    <p class="mb-1 small">
+                                        @s.ScheduledAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        @if (!string.IsNullOrEmpty(s.OperatingRoom))
+                                        {
+                                            <span> — Phong: <strong>@s.OperatingRoom</strong></span>
+                                        }
+                                    </p>
+                                    <p class="mb-1 small">
+                                        <i class="bi bi-person-badge"></i> PTV: <strong>@s.Surgeon?.FullName</strong>
+                                        @if (s.Anesthesiologist != null)
+                                        {
+                                            <span> &nbsp;·&nbsp; Gay me: @s.Anesthesiologist.FullName</span>
+                                        }
+                                    </p>
+                                    @if (!string.IsNullOrEmpty(s.Description))
+                                    {
+                                        <p class="mb-1 small text-muted">@s.Description</p>
+                                    }
+                                    @if (s.StartedAt.HasValue)
+                                    {
+                                        <p class="mb-1 small">
+                                            <i class="bi bi-play-circle text-info"></i> Bat dau: @s.StartedAt.Value.ToLocalTime().ToString("HH:mm dd/MM")
+                                            @if (s.EndedAt.HasValue)
+                                            {
+                                                <span> · Ket thuc: @s.EndedAt.Value.ToLocalTime().ToString("HH:mm dd/MM")</span>
+                                            }
+                                        </p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(s.OperativeNotes))
+                                    {
+                                        <div class="alert alert-light border mt-2 mb-1 small">
+                                            <strong>Bien ban phẩu thuật:</strong> @s.OperativeNotes
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(s.PostOpInstructions))
+                                    {
+                                        <p class="mb-1 small"><strong>Y lênh sau mo:</strong> @s.PostOpInstructions</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(s.Complications))
+                                    {
+                                        <p class="mb-1 small text-danger"><strong>Bien chung / Ghi chú:</strong> @s.Complications</p>
+                                    }
+                                </div>
+                                <div class="text-end">
+                                    @{
+                                        var (badgeClass, badgeText) = s.Status switch
+                                        {
+                                            SurgeryStatus.Scheduled => ("bg-warning text-dark", "Lich da xep"),
+                                            SurgeryStatus.InProgress => ("bg-info", "Đang mo"),
+                                            SurgeryStatus.Completed => ("bg-success", "Hoan tat"),
+                                            SurgeryStatus.Cancelled => ("bg-danger", "Đã huy"),
+                                            SurgeryStatus.Postponed => ("bg-secondary", "Hoan lai"),
+                                            _ => ("bg-secondary", s.Status.ToString())
+                                        };
+                                    }
+                                    <span class="badge @badgeClass mb-2">@badgeText</span>
+                                    <br />
+                                    @if (admission.Status == AdmissionStatus.Active)
+                                    {
+                                        @if (s.Status == SurgeryStatus.Scheduled)
+                                        {
+                                            <form asp-action="Start" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@s.SurgeryId" />
+                                                <button class="btn btn-sm btn-info"
+                                                    onclick="return confirm('Bat dau phẩu thuật?')">
+                                                    <i class="bi bi-play-circle"></i> Bat dau
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (s.Status == SurgeryStatus.InProgress)
+                                        {
+                                            <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                data-bs-target="#completeModal" data-id="@s.SurgeryId">
+                                                <i class="bi bi-check2-circle"></i> Ghi bien ban
+                                            </button>
+                                        }
+                                        @if (s.Status == SurgeryStatus.Scheduled || s.Status == SurgeryStatus.InProgress)
+                                        {
+                                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                                data-bs-target="#cancelModal" data-id="@s.SurgeryId">
+                                                <i class="bi bi-x"></i> Hủy/Hoan
+                                            </button>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Complete -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form asp-action="Complete" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="completeId" />
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-clipboard-check"></i> Bien ban phẩu thuật</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Bien ban phẩu thuật <span class="text-danger">*</span></label>
+                    <textarea name="operativeNotes" class="form-control" rows="5" required
+                        placeholder="Mô tả diễn biến: vào mô, kỹ thuật mo, xu ly thương tồn, ket qua..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Y lênh sau mo</label>
+                    <textarea name="postOpInstructions" class="form-control" rows="2"
+                        placeholder="Theo doi sinh hieu, dieu tri sau mo..."></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Bien chung / Ghi chú (nếu có)</label>
+                    <input name="complications" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bo qua</button>
+                <button type="submit" class="btn btn-success">Hoan tat</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Cancel" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="cancelId" />
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-x-octagon"></i> Hủy / Hoan phẩu thuật</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Ly do <span class="text-danger">*</span></label>
+                    <input name="reason" class="form-control" required />
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" name="postpone" value="true" class="form-check-input" id="postpone" />
+                    <label class="form-check-label" for="postpone">Hoan lai (khong huy hoan toan)</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bo qua</button>
+                <button type="submit" class="btn btn-danger">Xác nhận</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('[data-bs-target="#completeModal"]').forEach(b =>
+    b.addEventListener('click', () => document.getElementById('completeId').value = b.dataset.id));
+document.querySelectorAll('[data-bs-target="#cancelModal"]').forEach(b =>
+    b.addEventListener('click', () => document.getElementById('cancelId').value = b.dataset.id));
+</script>
+}

@@ -1,19 +1,45 @@
 using HisMvc.Data;
+using HisMvc.Middlewares;
 using HisMvc.Services;
+using HisMvc.Services.Workflow;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Bắt buộc: chi SQL Server (localhost), không LocalDB
+var sqlConnectionString = DatabaseConnectionGuard.RequireSqlServerConnectionString(builder.Configuration);
 
 // Configure Services
 builder.Services.AddControllersWithViews();
 
-// Database Configuration
+// Database Configuration — du lieu chi tồn tại tren SQL Server
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    opt.UseSqlServer(sqlConnectionString)
+       .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // Register custom services
 builder.Services.AddScoped<InsuranceService>();
+builder.Services.AddScoped<CurrentStaffService>();
+builder.Services.AddScoped<Icd10Service>();
+
+// Luong KCB — moi buoc 1 class, facade 1 class
+builder.Services.AddScoped<ReceptionWorkflowStep>();
+builder.Services.AddScoped<CashierWorkflowStep>();
+builder.Services.AddScoped<DoctorWorkflowStep>();
+builder.Services.AddScoped<LabWorkflowStep>();
+builder.Services.AddScoped<PharmacyWorkflowStep>();
+builder.Services.AddScoped<OutpatientWorkflowService>();
+
+// View services (doc du lieu cho tung Area)
+builder.Services.AddScoped<HisMvc.Areas.Cashier.Services.CashierViewService>();
+builder.Services.AddScoped<HisMvc.Areas.Doctor.Services.DoctorViewService>();
+builder.Services.AddScoped<HisMvc.Areas.Pharmacy.Services.PharmacyViewService>();
+builder.Services.AddScoped<HisMvc.Areas.Reception.Services.ReceptionViewService>();
+builder.Services.AddScoped<HisMvc.Areas.Lab.Services.LabViewService>();
+builder.Services.AddScoped<HisMvc.Areas.Admin.Services.AdminViewService>();
+builder.Services.AddScoped<HisMvc.Areas.Inpatient.Services.InpatientViewService>();
 
 // Identity Configuration
 builder.Services
@@ -55,7 +81,9 @@ try
         
         try
         {
-            logger.LogInformation("Initializing database...");
+            var db = services.GetRequiredService<AppDbContext>();
+            await DatabaseConnectionGuard.EnsureCanConnectAsync(db, logger);
+            logger.LogInformation("Initializing database on SQL Server...");
             await SeedData.InitializeAsync(services);
             logger.LogInformation("Database initialized successfully.");
         }
@@ -87,6 +115,9 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+// Không có SQL Server => không phuc vu trang có dữ liệu (503)
+app.UseMiddleware<SqlServerRequiredMiddleware>();
 
 // CORS must be placed after UseRouting and before UseAuthentication
 app.UseCors("Portal");

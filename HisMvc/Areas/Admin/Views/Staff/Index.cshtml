@@ -1,17 +1,17 @@
-@model List<Staff>
+@model StaffListViewModel
 @{
-    ViewData["Title"] = "Quan Ly Nhan Vien";
+    ViewData["Title"] = "Quản lý Nhân viên";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-people"></i> Quan Ly Nhan Vien</h2>
+        <h2><i class="bi bi-people"></i> Quản lý Nhân viên</h2>
         <div>
             <a href="@Url.Action("Create")" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Them Moi
+                <i class="bi bi-plus-circle"></i> Thêm mới
             </a>
             <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Ve Dashboard
+                <i class="bi bi-arrow-left"></i> Về Dashboard
             </a>
         </div>
     </div>
@@ -33,7 +33,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sach Nhan Vien (@Model.Count)</h5>
+            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sách Nhân viên (@Model.Staffs.Count)</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -41,14 +41,14 @@
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Ho Ten</th>
+                            <th>Họ tên</th>
                             <th>Khoa/Phong</th>
                             <th>Loai</th>
-                            <th class="text-center">Thao Tac</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var staff in Model)
+                        @foreach (var staff in Model.Staffs)
                         {
                             <tr>
                                 <td><strong>@staff.StaffId</strong></td>
@@ -67,7 +67,7 @@
                                     @if (staff.StaffType == "DOCTOR")
                                     {
                                         <span class="badge bg-primary">
-                                            <i class="bi bi-person-badge"></i> Bac si
+                                            <i class="bi bi-person-badge"></i> Bác sĩ
                                         </span>
                                     }
                                     else if (staff.StaffType == "NURSE")
@@ -97,7 +97,7 @@
                                     <a href="@Url.Action("Edit", new { id = staff.StaffId })" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Sua
                                     </a>
-                                    <form asp-action="Delete" asp-route-id="@staff.StaffId" method="post" style="display:inline;" onsubmit="return confirm('Ban co chac muon xoa nhan vien nay?')">
+                                    <form asp-action="Delete" asp-route-id="@staff.StaffId" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa nhân viên nay?')">
                                         <button type="submit" class="btn btn-sm btn-danger">
                                             <i class="bi bi-trash"></i> Xoa
                                         </button>
@@ -114,10 +114,10 @@
     <div class="mt-3">
         <div class="card">
             <div class="card-body">
-                <h6>Chu thich Loai Nhan Vien:</h6>
+                <h6>Chú thích Loai Nhân viên:</h6>
                 <div class="d-flex gap-3 flex-wrap">
                     <div>
-                        <span class="badge bg-primary"><i class="bi bi-person-badge"></i> Bac si</span> - Bac si chuyen khoa
+                        <span class="badge bg-primary"><i class="bi bi-person-badge"></i> Bác sĩ</span> - Bác sĩ chuyen khoa
                     </div>
                     <div>
                         <span class="badge bg-success"><i class="bi bi-heart-pulse"></i> Dieu duong</span> - Dieu duong vien

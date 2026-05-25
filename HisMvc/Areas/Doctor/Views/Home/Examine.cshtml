@@ -1,9 +1,18 @@
-﻿@model HisMvc.Entities.Encounter
+﻿@using HisMvc.Entities
+@model ExamineViewModel
 @{
-    ViewData["Title"] = "Kham benh";
-    var isCompleted = Model.Status == HisMvc.Entities.EncounterStatus.Completed;
-    var orders = (List<HisMvc.Entities.Order>)ViewBag.Orders;
-    var pendingOrders = orders.Where(o => o.Status == HisMvc.Entities.OrderStatus.Requested).ToList();
+    ViewData["Title"] = "Khám bệnh";
+    var enc = Model.Encounter;
+    var status = enc.Status;
+    var isCompleted = status == EncounterStatus.Completed || status == EncounterStatus.Cancelled;
+    var orders = Model.Orders;
+    var pendingOrders = orders.Where(o => o.Status == OrderStatus.Requested || o.Status == OrderStatus.InProgress).ToList();
+    var allergies = Model.Allergies;
+    var histories = Model.MedicalHistories;
+    var previousEncounters = Model.PreviousEncounters;
+    var hasSevereAllergy = allergies.Any(a => a.Severity == AllergySeverity.Severe);
+    var prescription = Model.Prescription;
+    var canPrescribe = status == EncounterStatus.InService || status == EncounterStatus.WaitingResult;
 }
 
 <div class="container-fluid mt-4">
@@ -22,158 +31,173 @@
         </div>
     }
 
+    @if (allergies.Any() || histories.Any())
+    {
+        <div class="alert @(hasSevereAllergy ? "alert-danger" : "alert-warning") d-flex align-items-start mb-3">
+            <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading mb-2">@(hasSevereAllergy ? "CANH BAO NGHIEM TRONG" : "Lưu ý trước khi kham/ke don")</h5>
+                @if (allergies.Any())
+                {
+                    <div class="mb-2">
+                        <strong>Dị ứng:</strong>
+                        @foreach (var a in allergies)
+                        {
+                            var sev = a.Severity switch { AllergySeverity.Severe => "bg-danger", AllergySeverity.Moderate => "bg-warning text-dark", _ => "bg-info" };
+                            <span class="badge @sev me-1" title="@(a.Reaction ?? "")">@a.Allergen — @a.Severity</span>
+                        }
+                    </div>
+                }
+                @if (histories.Any())
+                {
+                    <div><strong>Tien su:</strong>
+                        @foreach (var h in histories) { <span class="badge bg-secondary me-1">@h.Condition (@h.DiagnosedDate.ToString("yyyy"))</span> }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-primary text-white">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">
-                        <i class="bi bi-stethoscope"></i> Kham benh - Encounter #@Model.EncounterId
-                        @if (isCompleted)
-                        {
-                            <span class="badge bg-success float-end">
-                                <i class="bi bi-lock"></i> Da chot
-                            </span>
-                        }
+                        <i class="bi bi-stethoscope"></i> @(enc.EncounterCode ?? $"Encounter #{enc.EncounterId}")
+                        @if (enc.QueueNumber.HasValue) { <span class="badge bg-light text-dark ms-2">STT @enc.QueueNumber</span> }
                     </h4>
+                    @{
+                        string statusBadge = status switch
+                        {
+                            EncounterStatus.CheckedIn => "<span class='badge bg-secondary'>Chờ thu phi kham</span>",
+                            EncounterStatus.WaitingExam => "<span class='badge bg-info'>Đã thu phi - cho goi</span>",
+                            EncounterStatus.InService => "<span class='badge bg-warning text-dark'>Đang kham</span>",
+                            EncounterStatus.WaitingResult => "<span class='badge bg-info'>Chờ ket qua CLS</span>",
+                            EncounterStatus.WaitingFinalPayment => "<span class='badge bg-warning text-dark'>Chờ thu chi phí cuoi</span>",
+                            EncounterStatus.WaitingMedicine => "<span class='badge bg-success'>Chờ linh thuốc</span>",
+                            EncounterStatus.Completed => "<span class='badge bg-success'>Hoàn thành</span>",
+                            EncounterStatus.Cancelled => "<span class='badge bg-danger'>Đã huy</span>",
+                            _ => $"<span class='badge bg-secondary'>{status}</span>"
+                        };
+                    }
+                    @Html.Raw(statusBadge)
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p class="mb-2">
-                                <strong><i class="bi bi-person-fill text-primary"></i> Benh nhan:</strong><br />
-                                <span class="ms-4 fs-5">@Model.Patient?.FullName</span>
-                            </p>
-                            <p class="mb-2">
-                                <strong><i class="bi bi-telephone-fill text-success"></i> Dien thoai:</strong><br />
-                                <span class="ms-4">@Model.Patient?.Phone</span>
-                            </p>
-                            @if (Model.Patient?.Dob != null)
-                            {
-                                <p class="mb-2">
-                                    <strong><i class="bi bi-calendar"></i> Ngay sinh:</strong><br />
-                                    <span class="ms-4">
-                                        @Model.Patient.Dob.Value.ToString("dd/MM/yyyy")
-                                        (@((DateTime.Today.Year - Model.Patient.Dob.Value.Year)) tuoi)
-                                    </span>
-                                </p>
-                            }
+                            <p class="mb-1"><strong>BN:</strong> @enc.Patient?.FullName · SDT @enc.Patient?.Phone</p>
+                            @if (enc.Patient?.Dob != null)
+                            { <p class="mb-1"><strong>Tuổi:</strong> @((DateTime.Today.Year - enc.Patient.Dob.Value.Year))</p> }
+                            @if (!string.IsNullOrEmpty(enc.Patient?.InsuranceNumber))
+                            { <p class="mb-1"><strong>BHYT:</strong> @enc.Patient.InsuranceNumber (@enc.Patient.InsuranceCoveragePercent%)</p> }
                         </div>
                         <div class="col-md-6">
-                            <p class="mb-2">
-                                <strong><i class="bi bi-person-badge-fill text-info"></i> Bac si kham:</strong><br />
-                                <span class="ms-4">@Model.Doctor?.FullName</span>
-                            </p>
-                            <p class="mb-2">
-                                <strong><i class="bi bi-clock-history"></i> Check-in:</strong><br />
-                                <span class="ms-4">@Model.CheckInAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span>
-                            </p>
-                            <p class="mb-2">
-                                <strong><i class="bi bi-info-circle-fill text-warning"></i> Trang thai:</strong><br />
-                                <span class="ms-4">
-                                    @if (Model.Status == HisMvc.Entities.EncounterStatus.CheckedIn)
-                                    {
-                                        <span class="badge bg-info">
-                                            <i class="bi bi-hourglass-split"></i> Dang cho kham
-                                        </span>
-                                    }
-                                    else if (Model.Status == HisMvc.Entities.EncounterStatus.InService)
-                                    {
-                                        <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-activity"></i> Dang kham
-                                        </span>
-                                    }
-                                    else if (Model.Status == HisMvc.Entities.EncounterStatus.Completed)
-                                    {
-                                        <span class="badge bg-success">
-                                            <i class="bi bi-check-circle"></i> Hoan thanh
-                                        </span>
-                                        @if (Model.EndAt != default)
-                                        {
-                                            <br /><small class="ms-4">Chot luc: @Model.EndAt.ToLocalTime().ToString("HH:mm:ss")</small>
-                                        }
-                                    }
-                                </span>
-                            </p>
+                            <p class="mb-1"><strong>BS:</strong> @enc.Doctor?.FullName</p>
+                            <p class="mb-1"><strong>Check-in:</strong> @enc.CheckInAt.ToLocalTime():dd/MM HH:mm</p>
+                            @if (enc.StartedAt.HasValue) { <p class="mb-1"><strong>Goi vào luc:</strong> @enc.StartedAt.Value.ToLocalTime():HH:mm</p> }
                         </div>
                     </div>
+
+                    @if (status == EncounterStatus.WaitingExam)
+                    {
+                        <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                            <div>BN da thanh toán phi kham, Đang xếp hàng STT <strong>@enc.QueueNumber</strong>. Bam <em>Gọi BN</em> de bat dau kham.</div>
+                            <form method="post" asp-action="CallPatient" class="d-flex gap-2">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@enc.EncounterId" />
+                                <input type="text" name="roomNumber" placeholder="Phong" class="form-control form-control-sm" style="width:90px" value="@(enc.RoomNumber ?? "")" />
+                                <button class="btn btn-success btn-sm"><i class="bi bi-megaphone"></i> Gọi BN</button>
+                            </form>
+                        </div>
+                    }
 
                     <hr />
 
                     <form method="post" asp-action="Save">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="id" value="@Model.EncounterId" />
+                        <input type="hidden" name="id" value="@enc.EncounterId" />
 
-                        <div class="mb-3">
-                            <label class="form-label">
-                                <strong><i class="bi bi-clipboard-pulse"></i> Chan doan</strong>
-                                @if (!isCompleted)
-                                {
-                                    <span class="text-danger">*</span>
-                                }
-                            </label>
-                            <input name="diagnosis" value="@Model.Diagnosis" 
-                                   class="form-control @(!isCompleted && string.IsNullOrEmpty(Model.Diagnosis) ? "border-danger" : "")" 
-                                   placeholder="Nhap chan doan benh (bat buoc truoc khi chot)"
-                                   @(isCompleted ? "readonly" : "") />
-                            @if (!isCompleted && string.IsNullOrEmpty(Model.Diagnosis))
-                            {
-                                <small class="text-danger">Vui long nhap chan doan truoc khi chot luot kham</small>
-                            }
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">
-                                <strong><i class="bi bi-card-text"></i> Ket luan / Dan do</strong>
-                            </label>
-                            <textarea name="conclusion" rows="4" 
-                                      class="form-control" 
-                                      placeholder="Nhap ket luan va loi dan cho benh nhan"
-                                      @(isCompleted ? "readonly" : "")>@Model.Conclusion</textarea>
-                        </div>
-
-                        @if (!isCompleted)
+                        @if (canPrescribe)
                         {
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-save"></i> Luu thong tin
-                            </button>
+                            <div class="mb-3 position-relative">
+                                <label class="form-label small"><strong>Tim chẩn đoán ICD-10</strong></label>
+                                <input type="text" id="icdSearch" class="form-control" placeholder="Go tên bệnh (vd: tang huyet ap, viem da day) hoặc ma (I10)..." autocomplete="off" />
+                                <div id="icdDropdown" class="list-group position-absolute w-100 shadow-sm icd-dropdown"></div>
+                                <small class="text-muted">Chọn tu gọi y — không can nho ma. Hoặc ghi chẩn đoán kem ma (vd: I10 - Tang huyet ap).</small>
+                            </div>
+                        }
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-3">
+                                <label class="form-label small"><strong>ICD-10 chinh</strong> <span class="text-danger">*</span></label>
+                                <input name="icd10Primary" id="icd10Primary" value="@enc.Icd10Primary" maxlength="10" class="form-control text-uppercase bg-light" placeholder="Tu dong" readonly />
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small"><strong>Tên benh chinh</strong></label>
+                                <input name="icd10PrimaryName" id="icd10PrimaryName" value="@enc.Icd10PrimaryName" maxlength="200" class="form-control bg-light" placeholder="Tu dong" readonly />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small"><strong>ICD-10 kem theo</strong></label>
+                                <input name="icd10Secondary" id="icd10Secondary" value="@enc.Icd10Secondary" maxlength="50" class="form-control text-uppercase bg-light" placeholder="Tu dong" readonly />
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label small"><strong>Chẩn đoán</strong> <span class="text-danger">*</span></label>
+                            <input name="diagnosis" id="diagnosisInput" value="@enc.Diagnosis" class="form-control" placeholder="VD: I10 - Tang huyet ap man tinh / K29.5 - Viem da day" @(canPrescribe ? "" : "readonly") />
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label small"><strong>Ket luan</strong></label>
+                            <textarea name="conclusion" rows="3" class="form-control" @(canPrescribe ? "" : "readonly")>@enc.Conclusion</textarea>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-8">
+                                <label class="form-label small"><strong>Dan do BN</strong></label>
+                                <textarea name="instructions" rows="2" class="form-control" @(canPrescribe ? "" : "readonly")>@enc.Instructions</textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small"><strong>Hen tai kham</strong></label>
+                                <input type="date" name="followUpDate" value="@(enc.FollowUpDate?.ToString("yyyy-MM-dd"))" class="form-control" @(canPrescribe ? "" : "readonly") />
+                            </div>
+                        </div>
+
+                        @if (canPrescribe)
+                        {
+                            <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Luu thông tin khám</button>
                         }
                     </form>
                 </div>
             </div>
 
-            <!-- Chi dinh dich vu -->
-            <div class="card shadow-sm">
+            <!-- Chỉ định CLS -->
+            <div class="card shadow-sm mb-4">
                 <div class="card-header bg-info text-white">
                     <h5 class="mb-0">
-                        <i class="bi bi-clipboard-check"></i> Chi dinh dich vu
-                        @if (pendingOrders.Any())
-                        {
-                            <span class="badge bg-warning text-dark float-end">
-                                @pendingOrders.Count chi dinh chua co KQ
-                            </span>
-                        }
+                        <i class="bi bi-clipboard-check"></i> Chỉ định can lam sang
+                        @if (pendingOrders.Any()) { <span class="badge bg-warning text-dark float-end">@pendingOrders.Count cho KQ</span> }
                     </h5>
                 </div>
                 <div class="card-body">
-                    @if (!isCompleted)
+                    @if (canPrescribe)
                     {
                         <form method="post" asp-action="AddOrder" class="mb-3">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="encounterId" value="@Model.EncounterId" />
+                            <input type="hidden" name="encounterId" value="@enc.EncounterId" />
                             <div class="row g-2">
-                                <div class="col-md-8">
+                                <div class="col-md-7">
                                     <select name="serviceId" class="form-select" required>
-                                        <option value="">-- Chon dich vu --</option>
-                                        @foreach (var s in (Microsoft.AspNetCore.Mvc.Rendering.SelectList)ViewBag.Services)
-                                        {
-                                            <option value="@s.Value">@s.Text</option>
-                                        }
+                                        <option value="">-- Chọn DV CLS --</option>
+                                        @foreach (var s in Model.Services)
+                                        { <option value="@s.Value">@s.Text</option> }
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <button type="submit" class="btn btn-primary w-100">
-                                        <i class="bi bi-plus-circle"></i> Them chi dinh
-                                    </button>
+                                <div class="col-md-2">
+                                    <input type="number" name="quantity" value="1" min="1" class="form-control" placeholder="SL" />
+                                </div>
+                                <div class="col-md-3">
+                                    <button class="btn btn-primary w-100"><i class="bi bi-plus-circle"></i> Chỉ định</button>
                                 </div>
                             </div>
                         </form>
@@ -182,79 +206,39 @@
                     @if (orders.Any())
                     {
                         <div class="table-responsive">
-                            <table class="table table-bordered table-hover">
+                            <table class="table table-sm table-bordered table-hover mb-0">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Dich vu</th>
-                                        <th>Loai</th>
-                                        <th>Trang thai</th>
-                                        <th>Ket qua</th>
-                                        <th>Thao tac</th>
-                                    </tr>
+                                    <tr><th>Dịch vụ</th><th>SL</th><th>Trạng thái</th><th>Kết quả</th><th></th></tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var o in orders)
                                     {
-                                        <tr class="@(o.Status == HisMvc.Entities.OrderStatus.Resulted ? "table-success" : "")">
-                                            <td><strong>#@o.OrderId</strong></td>
-                                            <td>@o.Service?.Name</td>
+                                        <tr class="@(o.Status == OrderStatus.Resulted ? "table-success" : "")">
+                                            <td>@o.Service?.Name <small class="text-muted">(@o.Service?.Type)</small></td>
+                                            <td>@o.Quantity</td>
                                             <td>
-                                                <span class="badge bg-secondary">@o.Service?.Type</span>
-                                            </td>
-                                            <td>
-                                                @if (o.Status == HisMvc.Entities.OrderStatus.Requested)
+                                                @switch (o.Status)
                                                 {
-                                                    <span class="badge bg-warning text-dark">
-                                                        <i class="bi bi-hourglass-split"></i> Cho xu ly
-                                                    </span>
-                                                }
-                                                else if (o.Status == HisMvc.Entities.OrderStatus.Resulted)
-                                                {
-                                                    <span class="badge bg-success">
-                                                        <i class="bi bi-check-circle"></i> Da co KQ
-                                                    </span>
-                                                }
-                                                else if (o.Status == HisMvc.Entities.OrderStatus.Cancelled)
-                                                {
-                                                    <span class="badge bg-danger">Da huy</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@o.Status</span>
+                                                    case OrderStatus.Requested: <span class="badge bg-warning text-dark">Cho</span> break;
+                                                    case OrderStatus.InProgress: <span class="badge bg-info">Đang lam</span> break;
+                                                    case OrderStatus.Resulted: <span class="badge bg-success">Co KQ</span> break;
+                                                    case OrderStatus.Cancelled: <span class="badge bg-danger">Hủy</span> break;
                                                 }
                                             </td>
                                             <td>
                                                 @if (o.OrderResult != null)
-                                                {
-                                                    <div class="alert alert-success mb-0 py-2">
-                                                        <strong><i class="bi bi-check-circle"></i> Da co ket qua</strong><br />
-                                                        <small class="text-muted">
-                                                            @o.OrderResult.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
-                                                        </small><br />
-                                                        <div class="mt-1 p-2 bg-light rounded">
-                                                            <small><strong>Ket qua:</strong> @o.OrderResult.ResultText</small>
-                                                        </div>
-                                                    </div>
-                                                }
+                                                { <small>@o.OrderResult.ResultText</small> }
                                                 else
-                                                {
-                                                    <div class="alert alert-warning mb-0 py-2">
-                                                        <i class="bi bi-hourglass-split"></i> Chua co ket qua
-                                                    </div>
-                                                }
+                                                { <small class="text-muted">—</small> }
                                             </td>
                                             <td>
-                                                @if (!isCompleted && o.Status == HisMvc.Entities.OrderStatus.Requested)
+                                                @if (canPrescribe && (o.Status == OrderStatus.Requested || o.Status == OrderStatus.InProgress))
                                                 {
-                                                    <form method="post" asp-action="CancelOrder" style="display: inline;">
+                                                    <form method="post" asp-action="CancelOrder">
                                                         @Html.AntiForgeryToken()
                                                         <input type="hidden" name="orderId" value="@o.OrderId" />
-                                                        <input type="hidden" name="encounterId" value="@Model.EncounterId" />
-                                                        <button type="submit" class="btn btn-sm btn-danger"
-                                                                onclick="return confirm('Huy chi dinh nay?')">
-                                                            <i class="bi bi-x-circle"></i> Huy
-                                                        </button>
+                                                        <input type="hidden" name="encounterId" value="@enc.EncounterId" />
+                                                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Hủy chi dinh?')"><i class="bi bi-x"></i></button>
                                                     </form>
                                                 }
                                             </td>
@@ -266,125 +250,277 @@
                     }
                     else
                     {
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i> Chua co chi dinh dich vu nao
-                        </div>
+                        <div class="text-muted small">Chưa có chi dinh CLS.</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Kê đơn thuốc -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-capsule"></i> Kê đơn thuốc</h5>
+                </div>
+                <div class="card-body">
+                    @if (prescription == null)
+                    {
+                        @if (canPrescribe)
+                        {
+                            <form method="post" asp-action="CreatePrescription">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="encounterId" value="@enc.EncounterId" />
+                                <button class="btn btn-outline-success"><i class="bi bi-plus-circle"></i> Tạo đơn thuốc</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <div class="text-muted small">Chưa có đơn thuốc.</div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="mb-2 small">Don @prescription.Code · @prescription.Status</p>
+
+                        @if (prescription.Items.Any())
+                        {
+                            <table class="table table-sm table-bordered mb-3">
+                                <thead class="table-light"><tr><th>Thuốc</th><th>SL</th><th>Lieu dung</th><th>Ngay</th><th></th></tr></thead>
+                                <tbody>
+                                    @foreach (var it in prescription.Items)
+                                    {
+                                        <tr>
+                                            <td>@it.Medicine?.Name <small class="text-muted">@it.Medicine?.Unit</small></td>
+                                            <td>@it.Quantity</td>
+                                            <td>@it.Dosage</td>
+                                            <td>@it.Duration</td>
+                                            <td>
+                                                @if (canPrescribe && prescription.Status == PrescriptionStatus.Pending)
+                                                {
+                                                    <form method="post" asp-action="RemoveMedicine">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="itemId" value="@it.PrescriptionItemId" />
+                                                        <input type="hidden" name="encounterId" value="@enc.EncounterId" />
+                                                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i></button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+
+                        @if (canPrescribe && prescription.Status == PrescriptionStatus.Pending)
+                        {
+                            <form method="post" asp-action="AddMedicine" class="row g-2 align-items-end">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="prescriptionId" value="@prescription.PrescriptionId" />
+                                <div class="col-md-4">
+                                    <label class="form-label small">Thuốc</label>
+                                    <select name="medicineId" class="form-select" required>
+                                        <option value="">-- Chọn thuốc --</option>
+                                        @foreach (var m in Model.Medicines)
+                                        { <option value="@m.Value">@m.Text</option> }
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label small">SL</label>
+                                    <input type="number" name="quantity" min="1" value="1" class="form-control" required />
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small">Lieu dung</label>
+                                    <input name="dosage" class="form-control" placeholder="VD: 1v x 3 lan/ngày" required />
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small">Ngay</label>
+                                    <input type="number" name="duration" min="1" value="3" class="form-control" />
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-success w-100"><i class="bi bi-plus"></i> Them</button>
+                                </div>
+                                <div class="col-12">
+                                    <input name="instructions" class="form-control form-control-sm" placeholder="Huong dan (vd: uong sau an)" />
+                                </div>
+                            </form>
+                        }
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar Thao tac -->
+        <!-- Sidebar Thao tác -->
         <div class="col-lg-4">
             <div class="card shadow-sm sticky-top" style="top: 20px;">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="bi bi-tools"></i> Thao tac</h5>
-                </div>
+                <div class="card-header bg-dark text-white"><h5 class="mb-0"><i class="bi bi-tools"></i> Thao tác</h5></div>
                 <div class="card-body">
-                    @if (!isCompleted)
+                    @if (canPrescribe)
                     {
-                        <div class="mb-3">
-                            <h6 class="text-muted">Trang thai hien tai:</h6>
-                            @if (Model.Status == HisMvc.Entities.EncounterStatus.CheckedIn)
-                            {
-                                <span class="badge bg-info">Dang cho kham</span>
-                            }
-                            else if (Model.Status == HisMvc.Entities.EncounterStatus.InService)
-                            {
-                                <span class="badge bg-warning text-dark">Dang kham</span>
-                            }
-                        </div>
-
-                        <div class="alert alert-warning">
-                            <small>
-                                <i class="bi bi-exclamation-triangle"></i> 
-                                <strong>Dieu kien chot:</strong><br />
-                                ✓ Phai co chan doan<br />
-                                ✓ Tat ca chi dinh da co ket qua
-                            </small>
+                        <div class="alert alert-warning small mb-3">
+                            <strong>Dieu kien chot kham:</strong><br />
+                            • Co chẩn đoán + ICD-10<br />
+                            • Tất cả chi dinh đã có KQ
                         </div>
 
                         @if (pendingOrders.Any())
                         {
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>
-                                Con <strong>@pendingOrders.Count</strong> chi dinh chua co ket qua!
-                            </div>
+                            <div class="alert alert-danger small">Còn @pendingOrders.Count chi dinh chưa có KQ!</div>
                         }
-
-                        @if (string.IsNullOrEmpty(Model.Diagnosis))
+                        @if (string.IsNullOrEmpty(enc.Diagnosis))
                         {
-                            <div class="alert alert-danger">
-                                <i class="bi bi-exclamation-circle"></i>
-                                Chua co chan doan!
-                            </div>
+                            <div class="alert alert-danger small">Chưa có chẩn đoán!</div>
+                        }
+                        @if (string.IsNullOrEmpty(enc.Icd10Primary))
+                        {
+                            <div class="alert alert-danger small">Chưa có ICD-10 benh chinh!</div>
                         }
 
                         <form method="post" asp-action="Close">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.EncounterId" />
-                            <button type="submit" class="btn btn-danger w-100 mb-3"
-                                    onclick="return confirm('Ban co chac muon CHOT luot kham nay?\n\nSau khi chot se khong the sua duoc.\n\n✓ Da co chan doan?\n✓ Tat ca chi dinh da co ket qua?')">
-                                <i class="bi bi-lock"></i> CHOT luot kham
+                            <input type="hidden" name="id" value="@enc.EncounterId" />
+                            <button class="btn btn-danger w-100 mb-3" onclick="return confirm('CHOT lượt khám? BN sẽ chuyển sang Thu ngan thu chi phí phát sinh.')">
+                                <i class="bi bi-lock"></i> CHOT lượt khám
                             </button>
                         </form>
                     }
-                    else
+                    else if (status == EncounterStatus.WaitingFinalPayment)
                     {
-                        <div class="alert alert-success">
-                            <i class="bi bi-check-circle"></i> 
-                            <strong>Luot kham da hoan thanh</strong><br />
-                            <small>Chot luc: @Model.EndAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</small>
-                        </div>
-
+                        <div class="alert alert-info small">BN đang chờ Thu ngân thu chi phí cuối. Có thể mở lại nếu chưa thanh toán.</div>
                         <form method="post" asp-action="Reopen">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.EncounterId" />
-                            <button type="submit" class="btn btn-warning w-100 mb-3"
-                                    onclick="return confirm('Mo lai luot kham de chinh sua?')">
-                                <i class="bi bi-unlock"></i> Mo lai luot kham
-                            </button>
+                            <input type="hidden" name="id" value="@enc.EncounterId" />
+                            <button class="btn btn-warning w-100"><i class="bi bi-unlock"></i> Mo lai</button>
                         </form>
                     }
+                    else if (status == EncounterStatus.Completed)
+                    {
+                        <div class="alert alert-success small">Lượt khám hoàn thành @enc.EndAt.ToLocalTime().ToString("dd/MM HH:mm").</div>
+                    }
 
-                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100">
-                        <i class="bi bi-arrow-left"></i> Quay lai danh sach
-                    </a>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100 mt-2"><i class="bi bi-arrow-left"></i> Quay lại danh sach</a>
                 </div>
             </div>
 
-            <!-- Thong tin them -->
-            <div class="card shadow-sm mt-3">
-                <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Huong dan</h6>
+            @if (previousEncounters.Any())
+            {
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-info text-white"><h6 class="mb-0">Lịch sử kham</h6></div>
+                    <div class="card-body p-2">
+                        @foreach (var prev in previousEncounters)
+                        {
+                            <div class="border-start border-3 border-info ps-2 mb-2 small">
+                                <strong>@prev.EndAt.ToLocalTime().ToString("dd/MM/yyyy")</strong>
+                                — BS @prev.Doctor?.FullName<br />
+                                <span class="text-muted">@(prev.Diagnosis ?? "—") @(string.IsNullOrEmpty(prev.Icd10Primary) ? "" : $"({prev.Icd10Primary})")</span>
+                            </div>
+                        }
+                    </div>
                 </div>
-                <div class="card-body">
-                    <small>
-                        <p class="mb-2"><strong>1. Nhap thong tin kham:</strong></p>
-                        <ul class="mb-2">
-                            <li>Chan doan (bat buoc)</li>
-                            <li>Ket luan, dan do</li>
-                        </ul>
-                        
-                        <p class="mb-2"><strong>2. Chi dinh dich vu:</strong></p>
-                        <ul class="mb-2">
-                            <li>Chon dich vu can lam</li>
-                            <li>Lab se nhap ket qua</li>
-                        </ul>
-                        
-                        <p class="mb-2"><strong>3. Chot luot kham:</strong></p>
-                        <ul class="mb-0">
-                            <li>Kiem tra du dieu kien</li>
-                            <li>Click "Chot luot kham"</li>
-                            <li>BN co the thanh toan</li>
-                        </ul>
-                    </small>
-                </div>
-            </div>
+            }
         </div>
     </div>
 </div>
 
-@section Styles {
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+@if (canPrescribe)
+{
+    <style>
+        .icd-dropdown { display: none; z-index: 1050; max-height: 240px; overflow-y: auto; }
+        .icd-dropdown.show { display: block; }
+        .icd-dropdown .list-group-item { cursor: pointer; font-size: 0.9rem; }
+        .icd-dropdown .list-group-item:hover { background: #e7f1ff; }
+        .icd-dropdown .icd-code { font-weight: 600; color: #0d6efd; min-width: 4rem; display: inline-block; }
+    </style>
+    <script>
+        (function () {
+            const searchUrl = '@Url.Action("SearchIcd10", "Home", new { area = "Doctor" })';
+            const parseUrl = '@Url.Action("ParseIcd10", "Home", new { area = "Doctor" })';
+            const searchInput = document.getElementById('icdSearch');
+            const dropdown = document.getElementById('icdDropdown');
+            const primary = document.getElementById('icd10Primary');
+            const primaryName = document.getElementById('icd10PrimaryName');
+            const secondary = document.getElementById('icd10Secondary');
+            const diagnosisInput = document.getElementById('diagnosisInput');
+            let debounceTimer;
+
+            function fillIcd(code, name, sec) {
+                if (primary) primary.value = code || '';
+                if (primaryName) primaryName.value = name || '';
+                if (sec !== undefined && secondary && !secondary.value.trim())
+                    secondary.value = sec || '';
+            }
+
+            function hideDropdown() {
+                dropdown?.classList.remove('show');
+            }
+
+            function showResults(items) {
+                if (!dropdown) return;
+                dropdown.innerHTML = '';
+                if (!items.length) {
+                    dropdown.innerHTML = '<div class="list-group-item text-muted small">Không tìm thay — thu gọi tu khac hoặc ghi chẩn đoán kem ma.</div>';
+                } else {
+                    items.forEach(item => {
+                        const btn = document.createElement('button');
+                        btn.type = 'button';
+                        btn.className = 'list-group-item list-group-item-action';
+                        btn.innerHTML = `<span class="icd-code">${item.code}</span> ${item.name}` +
+                            (item.chapter ? ` <small class="text-muted">(${item.chapter})</small>` : '');
+                        btn.addEventListener('click', () => {
+                            fillIcd(item.code, item.name);
+                            if (diagnosisInput && !diagnosisInput.value.trim())
+                                diagnosisInput.value = `${item.code} - ${item.name}`;
+                            hideDropdown();
+                            searchInput.value = '';
+                        });
+                        dropdown.appendChild(btn);
+                    });
+                }
+                dropdown.classList.add('show');
+            }
+
+            async function fetchIcd(q) {
+                const res = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}`);
+                return res.json();
+            }
+
+            async function parseFromDiagnosis(force) {
+                const dx = diagnosisInput?.value?.trim() || '';
+                if (!dx) return;
+                if (!force && primary?.value?.trim()) return;
+                const res = await fetch(`${parseUrl}?diagnosis=${encodeURIComponent(dx)}`);
+                const data = await res.json();
+                if (data.primaryCode) {
+                    fillIcd(data.primaryCode, data.primaryName || '', data.secondaryCodes || '');
+                }
+            }
+
+            searchInput?.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(async () => {
+                    const q = searchInput.value.trim();
+                    const items = await fetchIcd(q);
+                    showResults(items);
+                }, 250);
+            });
+
+            searchInput?.addEventListener('focus', async () => {
+                const items = await fetchIcd(searchInput.value.trim());
+                showResults(items);
+            });
+
+            document.addEventListener('click', e => {
+                if (!dropdown?.contains(e.target) && e.target !== searchInput)
+                    hideDropdown();
+            });
+
+            diagnosisInput?.addEventListener('blur', () => parseFromDiagnosis(false));
+
+            document.querySelector('form[action*="Save"]')?.addEventListener('submit', () => {
+                if (!primary?.value?.trim() && diagnosisInput?.value?.trim()) {
+                    const m = diagnosisInput.value.match(/\b([A-TV-Z][0-9]{2}(?:\.[0-9]{1,2})?)\b/i);
+                    if (m) primary.value = m[1].toUpperCase();
+                }
+            });
+
+            parseFromDiagnosis(false);
+        })();
+    </script>
 }

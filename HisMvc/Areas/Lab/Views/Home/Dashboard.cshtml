@@ -1,0 +1,103 @@
+@model LabDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - Lab";
+}
+
+<div data-auto-refresh="1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0 fw-bold text-primary"><i class="bi bi-flask"></i> Dashboard Lab / Hình ảnh</h2>
+            <small class="text-muted">
+                <span class="live-indicator"></span>
+                Tự động cập nhật moi 30 giay
+            </small>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-warning">
+                <div><div class="kpi-label">LAB Chờ XL</div><div class="kpi-value">@Model.Kpi.LabPending</div></div>
+                <div class="kpi-sub"><i class="bi bi-flask"></i> Xet nghiem</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-warning">
+                <div><div class="kpi-label">IMAGING Chờ XL</div><div class="kpi-value">@Model.Kpi.ImagingPending</div></div>
+                <div class="kpi-sub"><i class="bi bi-camera-fill"></i> Chẩn đoán hinh anh</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-success">
+                <div><div class="kpi-label">Đã Tra KQ Hom Nay</div><div class="kpi-value">@Model.Kpi.DoneToday</div></div>
+                <div class="kpi-sub"><i class="bi bi-check-circle"></i> Hoàn thành</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-info">
+                <div><div class="kpi-label">Tổng CD Hom Nay</div><div class="kpi-value">@Model.Kpi.OrderToday</div></div>
+                <div class="kpi-sub"><i class="bi bi-clipboard"></i> Tiep nhan</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between">
+                    <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> Chi Dinh Chờ Xu Ly</h5>
+                    <span class="badge bg-light text-dark">@Model.PendingOrders.Count</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.PendingOrders.Any())
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr><th>Loai</th><th>Dịch vụ</th><th>Bệnh nhân</th><th>Gio CD</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var o in Model.PendingOrders)
+                                {
+                                    <tr>
+                                        <td>
+                                            @if (o.Service?.Type == "IMAGING")
+                                            { <span class="badge bg-info">CDHA</span> }
+                                            else
+                                            { <span class="badge bg-primary">LAB</span> }
+                                        </td>
+                                        <td>@o.Service?.Name</td>
+                                        <td>@o.Encounter?.Patient?.FullName</td>
+                                        <td><small>@o.OrderedAt.ToLocalTime().ToString("dd/MM HH:mm")</small></td>
+                                        <td>
+                                            <a asp-action="Result" asp-route-id="@o.OrderId" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-4 mb-0">
+                            <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                            Không có chi dinh cho xu ly
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><span class="live-indicator"></span> Hoat Dong Gan Day</h5>
+                </div>
+                <div class="card-body">
+                    <partial name="_ActivityFeed" model="@Model.Activities" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,178 @@
+@model InsuranceClaimListViewModel
+@{
+    ViewData["Title"] = "Giám định BHYT";
+    var status = Model.SelectedStatus;
+    var search = Model.Search;
+    var stats = Model.Stats;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-shield-fill-check"></i> Giám định BHYT</h2>
+            <p class="text-muted mb-0">
+                Theo <strong>TT 22/2023/TT-BYT</strong>, <strong>QD 4210/QD-BYT</strong> va
+                <strong>QD 130/QD-BHXH</strong> ve chuan du lieu XML giam dinh.
+            </p>
+        </div>
+        <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Về Dashboard
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">CHO NOP</small>
+                    <h3 class="mb-0 text-warning">@stats.Pending</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">DA NOP</small>
+                    <h3 class="mb-0 text-info">@stats.Submitted</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">DA DUYET</small>
+                    <h3 class="mb-0 text-success">@stats.Approved</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <small class="text-muted">BHYT DA CHI TRA</small>
+                    <h4 class="mb-0 text-success">@(((decimal)stats.TotalInsurancePaid).ToString("N0")) VND</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label small">Tìm kiếm</label>
+                    <input name="search" class="form-control" placeholder="Mã claim, ma BHYT, ten BN..." value="@search" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- Tất cả --</option>
+                        <option value="Pending" selected="@(status == ClaimStatus.Pending)">Chờ nop</option>
+                        <option value="Submitted" selected="@(status == ClaimStatus.Submitted)">Đã nop, cho duyet</option>
+                        <option value="Approved" selected="@(status == ClaimStatus.Approved)">Đã duyet</option>
+                        <option value="PartiallyApproved" selected="@(status == ClaimStatus.PartiallyApproved)">Duyet 1 phan</option>
+                        <option value="Rejected" selected="@(status == ClaimStatus.Rejected)">Bi tu choi</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> Loc</button>
+                </div>
+                <div class="col-md-2">
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100"><i class="bi bi-x-circle"></i> Bo loc</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-list-ul"></i> Ho So Giam Dinh (@Model.Claims.Count)
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Claims.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã claim</th>
+                                <th>Bệnh nhân</th>
+                                <th>BHYT</th>
+                                <th>Tổng CP</th>
+                                <th>BHYT tra</th>
+                                <th>BN tra</th>
+                                <th>Trạng thái</th>
+                                <th>Ngay tao</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Claims)
+                            {
+                                <tr>
+                                    <td><strong>@c.ClaimCode</strong></td>
+                                    <td>
+                                        @c.Patient?.FullName<br />
+                                        <small class="text-muted">@c.Patient?.Phone</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@c.InsuranceType</span>
+                                        <strong>@c.CoveragePercent%</strong>
+                                        <br /><small class="text-muted">@c.InsuranceNumber</small>
+                                    </td>
+                                    <td>@c.TotalAmount.ToString("N0")</td>
+                                    <td class="text-success">@c.InsuranceCovered.ToString("N0")</td>
+                                    <td class="text-danger">@c.PatientPayment.ToString("N0")</td>
+                                    <td>
+                                        @switch (c.Status)
+                                        {
+                                            case ClaimStatus.Pending:
+                                                <span class="badge bg-warning text-dark">Chờ nop</span>
+                                                break;
+                                            case ClaimStatus.Submitted:
+                                                <span class="badge bg-info">Đã nop</span>
+                                                break;
+                                            case ClaimStatus.Approved:
+                                                <span class="badge bg-success">Duyet</span>
+                                                break;
+                                            case ClaimStatus.PartiallyApproved:
+                                                <span class="badge bg-primary">Duyet 1 phan</span>
+                                                break;
+                                            case ClaimStatus.Rejected:
+                                                <span class="badge bg-danger">Tu choi</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>@c.CreatedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                                    <td>
+                                        <a asp-action="Detail" asp-route-id="@c.InsuranceClaimId" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Xem
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center py-4 mb-0">Không có hồ sơ giam dinh.</p>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,145 @@
+@model DoctorDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - Bác sĩ";
+}
+
+<div data-auto-refresh="1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0 fw-bold text-primary"><i class="bi bi-stethoscope"></i> Dashboard bác sĩ</h2>
+            <small class="text-muted">
+                <span class="live-indicator"></span>
+                Tự động cập nhật moi 30 giay
+            </small>
+        </div>
+        <a asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-list"></i> Danh sách lượt khám
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="kpi-card kpi-warning">
+                <div>
+                    <div class="kpi-label">Chờ Kham</div>
+                    <div class="kpi-value">@Model.Kpi.Waiting</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-hourglass-split"></i> Đã check-in</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Đang Kham</div>
+                    <div class="kpi-value">@Model.Kpi.InProgress</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-activity"></i> Trong gio</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="kpi-card kpi-success">
+                <div>
+                    <div class="kpi-label">Đã Chot Hom Nay</div>
+                    <div class="kpi-value">@Model.Kpi.DoneToday</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-check-circle"></i> Hoàn thành</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="kpi-card kpi-info">
+                <div>
+                    <div class="kpi-label">BN Nội trú</div>
+                    <div class="kpi-value">@Model.Kpi.MyAdmissions</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-hospital"></i> Theo doi</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3 col-xl-2">
+            <div class="kpi-card kpi-warning">
+                <div>
+                    <div class="kpi-label">CLS Chờ KQ</div>
+                    <div class="kpi-value">@Model.Kpi.PendingOrders</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-flask"></i> Toan he thong</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between">
+                    <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> Hang Chờ BN Chờ Kham</h5>
+                    <span class="badge bg-light text-dark">@Model.Queue.Count</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Queue.Any())
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Bệnh nhân</th>
+                                    <th>Check-in</th>
+                                    <th>Trạng thái</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int stt = 1; }
+                                @foreach (var e in Model.Queue)
+                                {
+                                    <tr>
+                                        <td><strong>#@stt</strong></td>
+                                        <td>
+                                            @e.Patient?.FullName<br />
+                                            <small class="text-muted">@e.Patient?.Phone</small>
+                                        </td>
+                                        <td>
+                                            <small>@e.CheckInAt.ToLocalTime().ToString("HH:mm")</small><br />
+                                            <small class="text-muted">@(((DateTime.UtcNow - e.CheckInAt.ToUniversalTime()).TotalMinutes < 0 ? 0 : (int)(DateTime.UtcNow - e.CheckInAt.ToUniversalTime()).TotalMinutes)) phút</small>
+                                        </td>
+                                        <td>
+                                            @if (e.Status == EncounterStatus.CheckedIn)
+                                            {
+                                                <span class="badge bg-warning text-dark">Cho</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info">Đang kham</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="Examine" asp-route-id="@e.EncounterId" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-stethoscope"></i> Kham
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    stt++;
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-4 mb-0">
+                            <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                            Không có BN nao trong hang doi
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><span class="live-indicator"></span> Hoat Dong Gan Day</h5>
+                </div>
+                <div class="card-body">
+                    <partial name="_ActivityFeed" model="@Model.Activities" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

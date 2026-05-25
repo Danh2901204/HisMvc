@@ -1,5 +1,5 @@
-﻿@{
-    ViewData["Title"] = "Tao lich hen";
+@{
+    ViewData["Title"] = "Tạo lịch hẹn";
 }
 
 <div class="container-fluid mt-4 pb-5">
@@ -22,23 +22,23 @@
         <div class="col-lg-10">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Tao lich hen moi</h4>
+                    <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Tạo lịch hẹn moi</h4>
                 </div>
                 <div class="card-body p-4">
                     <form method="post">
                         @Html.AntiForgeryToken()
 
-                        <h5 class="mb-3 text-primary"><i class="bi bi-person-circle"></i> Thong tin benh nhan</h5>
+                        <h5 class="mb-3 text-primary"><i class="bi bi-person-circle"></i> Thông tin bệnh nhân</h5>
                         <partial name="_PatientFormFieldsLoose" />
 
                         <hr class="my-4" />
 
-                        <h5 class="mb-3 text-primary"><i class="bi bi-calendar-check"></i> Thong tin lich hen</h5>
+                        <h5 class="mb-3 text-primary"><i class="bi bi-calendar-check"></i> Thông tin lịch hẹn</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Khoa kham <span class="text-danger">*</span></label>
                                 <select name="departmentId" class="form-select" required>
-                                    <option value="">-- Chon khoa --</option>
+                                    <option value="">-- Chọn khoa --</option>
                                     @foreach (var d in ViewBag.Departments)
                                     {
                                         <option value="@d.Value">@d.Text</option>
@@ -47,9 +47,9 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Bac si <span class="text-danger">*</span></label>
+                                <label class="form-label">Bác sĩ <span class="text-danger">*</span></label>
                                 <select name="doctorId" class="form-select" required>
-                                    <option value="">-- Chon bac si --</option>
+                                    <option value="">-- Chọn bac si --</option>
                                     @foreach (var d in ViewBag.Doctors)
                                     {
                                         <option value="@d.Value">@d.Text</option>
@@ -68,7 +68,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Khung gio <span class="text-danger">*</span></label>
                                 <select name="slotId" class="form-select" required>
-                                    <option value="">-- Chon gio --</option>
+                                    <option value="">-- Chọn gio --</option>
                                     @foreach (var s in ViewBag.Slots)
                                     {
                                         <option value="@s.Value">@s.Text</option>
@@ -78,17 +78,17 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label">Ghi chu</label>
+                            <label class="form-label">Ghi chú</label>
                             <textarea name="note" class="form-control" rows="3"
-                                      placeholder="Nhap ghi chu neu co..."></textarea>
+                                      placeholder="Nhập ghi chú nếu có..."></textarea>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4 pt-3 border-top">
                             <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Quay lai
+                                <i class="bi bi-arrow-left"></i> Quay lại
                             </a>
                             <button type="submit" class="btn btn-success btn-lg">
-                                <i class="bi bi-check-circle"></i> Tao lich hen
+                                <i class="bi bi-check-circle"></i> Tạo lịch hẹn
                             </button>
                         </div>
                     </form>
@@ -137,7 +137,7 @@
     function searchPatient() {
         const phone = document.getElementById('phone').value.trim();
         if (!phone) {
-            alert('Vui long nhap so dien thoai!');
+            alert('Vui lòng nhập so dien thoai!');
             return;
         }
 
@@ -146,10 +146,10 @@
             .then(data => {
                 if (data.found) {
                     fillPatientFields(data);
-                    alert('Da tim thay thong tin benh nhan!');
+                    alert('Đã tìm thấy thông tin bệnh nhân!');
                 } else {
                     clearPatientFields();
-                    alert('Khong tim thay benh nhan. Vui long nhap thong tin moi.');
+                    alert('Không tìm thay bệnh nhân. Vui lòng nhập thông tin mới.');
                 }
             })
             .catch(err => {

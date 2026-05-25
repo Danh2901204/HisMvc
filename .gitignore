@@ -60,5 +60,10 @@ packages/
 # VS Code
 .vscode/
 
-# Mac
-.DS_Store
+# Logs
+*.log
+ef.log
+run.log
+
+# Local build output folders
+**/bin/build-check*/

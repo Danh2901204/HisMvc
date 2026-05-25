@@ -24,17 +24,17 @@ public class AppointmentsApiController : ControllerBase
     {
         try
         {
-            // Lay danh sach khung gio
+            // Lấy danh sách khung giờ
             var timeSlots = await _db.TimeSlots
                 .OrderBy(x => x.Start)
                 .ToListAsync();
 
-            // Lay danh sach appointment da dat trong ngay
+            // Lấy danh sách appointment da dat trong ngày
             var bookedAppointments = await _db.Appointments
                 .Where(x => x.Date == date && x.Status == AppointmentStatus.Booked)
                 .ToListAsync();
 
-            // Tinh so luong con trong moi khung gio (gia su moi khung gio cho phep 10 appointment)
+            // Tinh so luong con trong moi khung giờ (gia su moi khung giờ cho phep 10 appointment)
             var availableSlots = timeSlots.Select(slot => new
             {
                 slot.TimeSlotId,
@@ -56,7 +56,7 @@ public class AppointmentsApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting available slots");
-            return StatusCode(500, new { success = false, message = "Loi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi server" });
         }
     }
 
@@ -85,7 +85,7 @@ public class AppointmentsApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting departments");
-            return StatusCode(500, new { success = false, message = "Loi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi server" });
         }
     }
 
@@ -124,7 +124,7 @@ public class AppointmentsApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting doctors");
-            return StatusCode(500, new { success = false, message = "Loi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi server" });
         }
     }
 
@@ -137,10 +137,10 @@ public class AppointmentsApiController : ControllerBase
             // Validate request
             if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Phone))
             {
-                return BadRequest(new { success = false, message = "Vui long nhap day du thong tin" });
+                return BadRequest(new { success = false, message = "Vui lòng nhập đầy đủ thông tin" });
             }
 
-            // Tim hoac tao benh nhan
+            // Tim hoặc tao bệnh nhân
             var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Phone == request.Phone);
             if (patient == null)
             {
@@ -156,14 +156,14 @@ public class AppointmentsApiController : ControllerBase
             }
             else
             {
-                // Cap nhat thong tin
+                // Cập nhật thông tin
                 patient.FullName = request.FullName;
                 if (request.Dob.HasValue) patient.Dob = request.Dob;
                 if (request.Gender.HasValue) patient.Gender = request.Gender.Value;
                 await _db.SaveChangesAsync();
             }
 
-            // Kiem tra khung gio con trong
+            // Kiểm tra khung giờ con trong
             var existingCount = await _db.Appointments
                 .CountAsync(x => x.Date == request.Date && 
                                  x.TimeSlotId == request.TimeSlotId && 
@@ -171,13 +171,13 @@ public class AppointmentsApiController : ControllerBase
 
             if (existingCount >= 10)
             {
-                return BadRequest(new { success = false, message = "Khung gio da day, vui long chon khung gio khac" });
+                return BadRequest(new { success = false, message = "Khung gio da day, vui long chọn khung giờ khac" });
             }
 
-            // Tao ma lich hen
+            // Tạo ma lịch hẹn
             var code = $"APT{DateTime.Now:yyyyMMddHHmmss}";
 
-            // Tao appointment
+            // Tạo appointment
             var appointment = new Appointment
             {
                 Code = code,
@@ -197,7 +197,7 @@ public class AppointmentsApiController : ControllerBase
             return Ok(new
             {
                 success = true,
-                message = "Dat lich thanh cong",
+                message = "Dat lich thành công",
                 appointmentCode = code,
                 appointmentId = appointment.AppointmentId,
                 date = request.Date.ToString("dd/MM/yyyy")
@@ -206,7 +206,7 @@ public class AppointmentsApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error booking appointment");
-            return StatusCode(500, new { success = false, message = "Loi server khi dat lich" });
+            return StatusCode(500, new { success = false, message = "Lỗi server khi dat lich" });
         }
     }
 
@@ -218,7 +218,7 @@ public class AppointmentsApiController : ControllerBase
         {
             if (string.IsNullOrWhiteSpace(code))
             {
-                return BadRequest(new { success = false, message = "Ma lich hen khong hop le" });
+                return BadRequest(new { success = false, message = "Mã lịch hẹn không hop le" });
             }
 
             var appointment = await _db.Appointments
@@ -230,7 +230,7 @@ public class AppointmentsApiController : ControllerBase
 
             if (appointment == null)
             {
-                return NotFound(new { success = false, message = "Khong tim thay lich hen" });
+                return NotFound(new { success = false, message = "Không tìm thay lịch hẹn" });
             }
 
             return Ok(new
@@ -257,7 +257,7 @@ public class AppointmentsApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking appointment");
-            return StatusCode(500, new { success = false, message = "Loi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi server" });
         }
     }
 }

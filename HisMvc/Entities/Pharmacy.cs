@@ -2,35 +2,40 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HisMvc.Entities;
 
-// 1. Thu?c
+// 1. Thuốc
 public class Medicine
 {
     public int MedicineId { get; set; }
-    
+
     [MaxLength(50)]
     public string Code { get; set; } = "";
-    
+
     [MaxLength(200)]
     public string Name { get; set; } = "";
-    
+
     [MaxLength(200)]
     public string ActiveIngredient { get; set; } = "";
-    
+
     [MaxLength(50)]
-    public string Unit { get; set; } = ""; // Vi�n, H?p, Chai, Tu�p
-    
+    public string Unit { get; set; } = ""; // Vien, Hop, Chai, Tuyp
+
     [MaxLength(200)]
     public string? Manufacturer { get; set; }
-    
+
     public bool RequiresPrescription { get; set; } = true;
-    
+
+    // BHYT theo TT 30/2018 + QD 130/BHXH
+    [MaxLength(20)] public string? BhytCode { get; set; } // Mã thuốc BHYT
+    public bool IsInBhytList { get; set; } = true;
+    public decimal? BhytPrice { get; set; }
+
     [MaxLength(500)]
     public string? Description { get; set; }
-    
+
     public bool IsActive { get; set; } = true;
 }
 
-// 2. L� thu?c (qu?n l� theo h?n d�ng v� gi� nh?p)
+// 2. Lô thuốc (quản lý theo hạn dùng và giá nhập)
 public class MedicineBatch
 {
     public int MedicineBatchId { get; set; }
@@ -49,36 +54,40 @@ public class MedicineBatch
     
     public int QuantityInStock { get; set; }
     
-    public int MinStockLevel { get; set; } = 10; // C?nh b�o khi t?n kho th?p
+    public int MinStockLevel { get; set; } = 10; // Cảnh báo khi ton kho thap
     
     public bool IsActive { get; set; } = true;
 }
 
-// 3. ??n thu?c
+// 3. Don thuốc
 public class Prescription
 {
     public int PrescriptionId { get; set; }
-    
+
     [MaxLength(30)]
     public string Code { get; set; } = "";
-    
-    public int EncounterId { get; set; }
+
+    // Mot trong hai phai co - encounter cho ngoai tru, admission cho noi tru
+    public int? EncounterId { get; set; }
     public Encounter? Encounter { get; set; }
-    
+
+    public int? AdmissionId { get; set; }
+    public Admission? Admission { get; set; }
+
     public int PrescribedBy { get; set; }
     public Staff? Doctor { get; set; }
-    
+
     public DateTime PrescribedAt { get; set; } = DateTime.UtcNow;
-    
+
     public PrescriptionStatus Status { get; set; } = PrescriptionStatus.Pending;
-    
+
     [MaxLength(500)]
     public string? Note { get; set; }
-    
+
     public List<PrescriptionItem> Items { get; set; } = new();
 }
 
-// 4. Chi ti?t ??n thu?c
+// 4. Chi tiet đơn thuốc
 public class PrescriptionItem
 {
     public int PrescriptionItemId { get; set; }
@@ -92,15 +101,15 @@ public class PrescriptionItem
     public int Quantity { get; set; }
     
     [MaxLength(200)]
-    public string Dosage { get; set; } = ""; // "2 vi�n x 3 l?n/ng�y"
+    public string Dosage { get; set; } = ""; // "2 vien x 3 lan/ngày"
     
     [MaxLength(500)]
-    public string? Instructions { get; set; } // "U?ng sau ?n"
+    public string? Instructions { get; set; } // "Uong sau an"
     
-    public int Duration { get; set; } = 1; // S? ng�y d�ng thu?c
+    public int Duration { get; set; } = 1; // So ngày dung thuốc
 }
 
-// 5. C?p ph�t thu?c
+// 5. Cấp phát thuốc
 public class PharmacyDispense
 {
     public int PharmacyDispenseId { get; set; }
@@ -119,7 +128,7 @@ public class PharmacyDispense
     public List<DispenseItem> Items { get; set; } = new();
 }
 
-// 6. Chi ti?t c?p ph�t (ghi l?i l� thu?c ?� c?p)
+// 6. Chi tiet cấp phát (ghi lai lo thuốc đã cấp)
 public class DispenseItem
 {
     public int DispenseItemId { get; set; }
@@ -137,7 +146,7 @@ public class DispenseItem
     public decimal TotalPrice { get; set; }
 }
 
-// 7. Qu?n l� kho (nh?p/xu?t/?i?u ch?nh)
+// 7. Quản lý kho (nhap/xuat/dieu chinh)
 public class InventoryTransaction
 {
     public int InventoryTransactionId { get; set; }
@@ -150,16 +159,17 @@ public class InventoryTransaction
     
     public TransactionType Type { get; set; }
     
-    public int Quantity { get; set; } // + cho nh?p, - cho xu?t
+    public int Quantity { get; set; } // + cho nhập, - cho xuất
     
     public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
     
     public int? CreatedBy { get; set; }
+    public int? StaffId { get; set; }
     public Staff? Staff { get; set; }
     
     [MaxLength(500)]
     public string? Note { get; set; }
     
     [MaxLength(100)]
-    public string? ReferenceCode { get; set; } // M� phi?u nh?p/xu?t
+    public string? ReferenceCode { get; set; } // Mã phiếu nhập/xuat
 }

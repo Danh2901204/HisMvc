@@ -1,0 +1,309 @@
+@model MedicalOrderListViewModel
+@{
+    var admission = Model.Admission;
+    var medicines = Model.Medicines;
+    var services = Model.Services;
+    ViewData["Title"] = $"Y Lenh - {admission.AdmissionCode}";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-prescription2"></i> Phieu Y Lenh — @admission.AdmissionCode</h2>
+            <p class="text-muted mb-0">
+                BN: <strong>@admission.Patient?.FullName</strong> — Buồng @admission.Bed?.Ward?.Name, giường @admission.Bed?.BedNumber
+                — BS: @admission.AttendingDoctor?.FullName
+            </p>
+        </div>
+        <a asp-controller="Home" asp-action="Detail" asp-route-id="@admission.AdmissionId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Ve hồ sơ noi tru
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-info py-2 small mb-3">
+        <i class="bi bi-info-circle"></i>
+        Theo <strong>Thông tư 56/2017/TT-BYT</strong> — Phieu Y Lenh la phan bat buoc cua benh an noi tru.
+        Bác sĩ ra y lệnh, điều dưỡng/kỹ thuật viên thực hiện và ghi nhận thời gian.
+    </div>
+
+    @if (admission.Status == AdmissionStatus.Active)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-plus-circle"></i> Ra Y Lenh Moi
+            </div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" id="orderForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="admissionId" value="@admission.AdmissionId" />
+
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Loai Y Lenh <span class="text-danger">*</span></label>
+                            <select name="orderType" class="form-select" id="orderType" required>
+                                <option value="@MedicalOrderType.Medication">Thuốc</option>
+                                <option value="@MedicalOrderType.Lab">Xet nghiem</option>
+                                <option value="@MedicalOrderType.Imaging">Chẩn đoán hinh anh</option>
+                                <option value="@MedicalOrderType.Procedure">Thu thuat</option>
+                                <option value="@MedicalOrderType.Nursing">Cham soc</option>
+                                <option value="@MedicalOrderType.Diet">Dinh duong</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Thời gian thuc hien <span class="text-danger">*</span></label>
+                            <input type="datetime-local" name="scheduledAt" class="form-control"
+                                value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Noi dung y lenh <span class="text-danger">*</span></label>
+                            <input type="text" name="orderDetails" class="form-control"
+                                placeholder="Vi du: Truyen NaCl 0.9% 500ml; Theo doi mach huyet ap 30 phút/lan" required />
+                        </div>
+
+                        <div class="col-12 panel-medication" style="display:none;">
+                            <div class="card border-info">
+                                <div class="card-body">
+                                    <h6 class="text-info"><i class="bi bi-capsule"></i> Don thuốc (y lenh thuốc)</h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-5">
+                                            <select name="medicineId" class="form-select">
+                                                <option value="">-- Chọn thuốc --</option>
+                                                @foreach (var m in medicines)
+                                                {
+                                                    <option value="@m.MedicineId">@m.Name (@m.Unit)</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="number" name="quantity" class="form-control" placeholder="Số lượng" min="1" />
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="text" name="dosage" class="form-control" placeholder='VD: "1 vien x 3 lan/ngày"' />
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="number" name="duration" class="form-control" placeholder="So ngày" min="1" value="1" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 panel-service" style="display:none;">
+                            <div class="card border-warning">
+                                <div class="card-body">
+                                    <h6 class="text-warning"><i class="bi bi-clipboard-pulse"></i> Dịch vụ CLS</h6>
+                                    <select name="serviceId" class="form-select">
+                                        <option value="">-- Chọn dịch vụ --</option>
+                                        @foreach (var s in services)
+                                        {
+                                            <option value="@s.ServiceId">@s.Name (@s.Type)</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="note" class="form-control" placeholder="Lưu ý khi thuc hien" />
+                        </div>
+                    </div>
+
+                    <div class="mt-3 text-end">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2-circle"></i> Ra Y Lenh
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <i class="bi bi-list-ul"></i> Danh sách y lenh (@Model.Orders.Count)
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Orders.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ma</th>
+                                <th>Loai</th>
+                                <th>Noi dung</th>
+                                <th>Ra luc</th>
+                                <th>BS ra</th>
+                                <th>Thuc hien luc</th>
+                                <th>Nguoi thuc hien</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var o in Model.Orders)
+                            {
+                                <tr>
+                                    <td><strong>@o.OrderCode</strong></td>
+                                    <td><span class="badge bg-info">@o.OrderType</span></td>
+                                    <td>
+                                        @o.OrderDetails
+                                        @if (o.Prescription != null && o.Prescription.Items.Any())
+                                        {
+                                            <br />
+                                            @foreach (var item in o.Prescription.Items)
+                                            {
+                                                <small class="text-muted">
+                                                    <i class="bi bi-capsule"></i>
+                                                    @item.Medicine?.Name — @item.Quantity x @item.Dosage (@item.Duration ngày)
+                                                </small><br />
+                                            }
+                                        }
+                                        @if (!string.IsNullOrEmpty(o.Note))
+                                        {
+                                            <br /><small class="text-warning"><i class="bi bi-sticky"></i> @o.Note</small>
+                                        }
+                                    </td>
+                                    <td>@o.OrderedAt.ToLocalTime().ToString("dd/MM HH:mm")</td>
+                                    <td>@o.OrderedByStaff?.FullName</td>
+                                    <td>
+                                        @o.ScheduledAt.ToLocalTime().ToString("dd/MM HH:mm")
+                                        @if (o.ExecutedAt.HasValue)
+                                        {
+                                            <br /><small class="text-success">Đã xong: @o.ExecutedAt.Value.ToLocalTime().ToString("HH:mm")</small>
+                                        }
+                                    </td>
+                                    <td>@o.ExecutedByStaff?.FullName</td>
+                                    <td>
+                                        @switch (o.Status)
+                                        {
+                                            case MedicalOrderStatus.Ordered:
+                                                <span class="badge bg-warning text-dark">Chờ thuc hien</span>
+                                                break;
+                                            case MedicalOrderStatus.InProgress:
+                                                <span class="badge bg-info">Đang lam</span>
+                                                break;
+                                            case MedicalOrderStatus.Completed:
+                                                <span class="badge bg-success">Đã xong</span>
+                                                break;
+                                            case MedicalOrderStatus.Cancelled:
+                                                <span class="badge bg-danger">Đã huy</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (admission.Status == AdmissionStatus.Active)
+                                        {
+                                            @if (o.Status == MedicalOrderStatus.Ordered)
+                                            {
+                                                <form asp-action="Start" method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@o.MedicalOrderId" />
+                                                    <button class="btn btn-sm btn-info" title="Bat dau">
+                                                        <i class="bi bi-play"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            @if (o.Status == MedicalOrderStatus.Ordered || o.Status == MedicalOrderStatus.InProgress)
+                                            {
+                                                <button class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                                    data-bs-target="#completeModal" data-id="@o.MedicalOrderId" title="Hoàn thành">
+                                                    <i class="bi bi-check2"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                    data-bs-target="#cancelModal" data-id="@o.MedicalOrderId" title="Hủy">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center py-4 mb-0">Chưa có y lenh nao.</p>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Complete modal -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Complete" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="completeOrderId" />
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check2-circle"></i> Hoàn thành y lenh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Ghi chú thuc hien</label>
+                <textarea name="executionNote" class="form-control" rows="3"
+                    placeholder="VD: Đã thuc hien thành công, BN dap ung tot"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bo qua</button>
+                <button type="submit" class="btn btn-success">Xác nhận</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Cancel" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" id="cancelOrderId" />
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-x-octagon"></i> Hủy y lenh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Ly do huy <span class="text-danger">*</span></label>
+                <input type="text" name="reason" class="form-control" required />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bo qua</button>
+                <button type="submit" class="btn btn-danger">Xác nhận huy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('orderType')?.addEventListener('change', function() {
+    const t = this.value;
+    document.querySelector('.panel-medication').style.display = (t === 'Medication') ? 'block' : 'none';
+    document.querySelector('.panel-service').style.display = (t === 'Lab' || t === 'Imaging') ? 'block' : 'none';
+});
+
+document.querySelectorAll('[data-bs-target="#completeModal"]').forEach(btn =>
+    btn.addEventListener('click', () => document.getElementById('completeOrderId').value = btn.dataset.id));
+
+document.querySelectorAll('[data-bs-target="#cancelModal"]').forEach(btn =>
+    btn.addEventListener('click', () => document.getElementById('cancelOrderId').value = btn.dataset.id));
+</script>
+}

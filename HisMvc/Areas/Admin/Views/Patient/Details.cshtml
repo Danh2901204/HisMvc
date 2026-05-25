@@ -1,0 +1,209 @@
+@model PatientDetailViewModel
+@{
+    ViewData["Title"] = "Hồ sơ bệnh nhân";
+    var patient = Model.Patient;
+    var allergies = Model.Allergies;
+    var histories = Model.MedicalHistories;
+}
+
+<div class="container-fluid mt-4 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-person-vcard"></i> @patient.FullName
+            </h2>
+            <p class="text-muted mb-0">Mã BN #@patient.PatientId — SDT: @patient.Phone</p>
+        </div>
+        <div>
+            <a asp-action="Edit" asp-route-id="@patient.PatientId" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Sửa thông tin
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Danh sách
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Thông tin cơ bản</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Ngày sinh</dt>
+                        <dd class="col-sm-8">@(patient.Dob?.ToString("dd/MM/yyyy") ?? "-")</dd>
+                        <dt class="col-sm-4">Giới tính</dt>
+                        <dd class="col-sm-8">
+                            @switch (patient.Gender)
+                            {
+                                case Gender.Male:
+                                    <span class="badge bg-primary"><i class="bi bi-gender-male"></i> Nam</span>
+                                    break;
+                                case Gender.Female:
+                                    <span class="badge bg-danger"><i class="bi bi-gender-female"></i> Nữ</span>
+                                    break;
+                                case Gender.Other:
+                                    <span class="badge bg-secondary">Khác</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-light text-dark">Chưa rõ</span>
+                                    break;
+                            }
+                        </dd>
+                        <dt class="col-sm-4">CCCD</dt>
+                        <dd class="col-sm-8">@(patient.IdentityNumber ?? "-")</dd>
+                        <dt class="col-sm-4">Địa chỉ</dt>
+                        <dd class="col-sm-8">@(patient.Address ?? "-")</dd>
+                        <dt class="col-sm-4">Mã BHYT</dt>
+                        <dd class="col-sm-8">@(patient.InsuranceNumber ?? "-")</dd>
+                        <dt class="col-sm-4">Loại thẻ</dt>
+                        <dd class="col-sm-8">@(patient.InsuranceType ?? "-")</dd>
+                        <dt class="col-sm-4">Tỷ lệ BHYT</dt>
+                        <dd class="col-sm-8">@patient.InsuranceCoveragePercent%</dd>
+                        <dt class="col-sm-4">Hết hạn BHYT</dt>
+                        <dd class="col-sm-8">@(patient.InsuranceExpiry?.ToString("dd/MM/yyyy") ?? "-")</dd>
+                        <dt class="col-sm-4">Nơi ĐK KCB</dt>
+                        <dd class="col-sm-8">@(patient.InsuranceHospital ?? "-")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-exclamation-octagon"></i> Dị ứng (@allergies.Count)</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (allergies.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Chất gây dị ứng</th>
+                                        <th>Phản ứng</th>
+                                        <th>Mức độ</th>
+                                        <th>Ngày ghi nhận</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var a in allergies)
+                                    {
+                                        <tr class="@(a.IsActive ? "" : "text-muted")">
+                                            <td><strong>@a.Allergen</strong></td>
+                                            <td>@(a.Reaction ?? "-")</td>
+                                            <td>@a.Severity</td>
+                                            <td>@a.IdentifiedDate.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted p-3 mb-0">Chưa ghi nhận dị ứng.</p>
+                    }
+                </div>
+                <div class="card-footer bg-light">
+                    <form asp-action="AddAllergy" method="post" class="row g-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="patientId" value="@patient.PatientId" />
+                        <div class="col-md-4">
+                            <input name="allergen" class="form-control form-control-sm" placeholder="Chất gây dị ứng *" required />
+                        </div>
+                        <div class="col-md-3">
+                            <input name="reaction" class="form-control form-control-sm" placeholder="Phản ứng" />
+                        </div>
+                        <div class="col-md-2">
+                            <select name="severity" class="form-select form-select-sm">
+                                <option value="@AllergySeverity.Mild">Nhẹ</option>
+                                <option value="@AllergySeverity.Moderate" selected>Trung bình</option>
+                                <option value="@AllergySeverity.Severe">Nặng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-sm btn-danger w-100">
+                                <i class="bi bi-plus"></i> Thêm dị ứng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="bi bi-journal-medical"></i> Tiền sử bệnh (@histories.Count)</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (histories.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Bệnh / Tình trạng</th>
+                                        <th>Ngày chẩn đoán</th>
+                                        <th>Điều trị</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var h in histories)
+                                    {
+                                        <tr class="@(h.IsActive ? "" : "text-muted")">
+                                            <td><strong>@h.Condition</strong></td>
+                                            <td>@h.DiagnosedDate.ToString("dd/MM/yyyy")</td>
+                                            <td>@(h.Treatment ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted p-3 mb-0">Chưa có tiền sử bệnh.</p>
+                    }
+                </div>
+                <div class="card-footer bg-light">
+                    <form asp-action="AddMedicalHistory" method="post" class="row g-2">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="patientId" value="@patient.PatientId" />
+                        <div class="col-md-4">
+                            <input name="condition" class="form-control form-control-sm" placeholder="Bệnh / tình trạng *" required />
+                        </div>
+                        <div class="col-md-3">
+                            <input name="diagnosedDate" type="date" class="form-control form-control-sm" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-md-3">
+                            <input name="treatment" class="form-control form-control-sm" placeholder="Điều trị" />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-sm btn-info w-100 text-white">
+                                <i class="bi bi-plus"></i> Them
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

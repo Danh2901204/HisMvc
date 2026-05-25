@@ -2,8 +2,8 @@
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label asp-for="FullName" class="form-label">Ho va Ten <span class="text-danger">*</span></label>
-        <input asp-for="FullName" class="form-control" placeholder="Nhap ho va ten day du" required />
+        <label asp-for="FullName" class="form-label">Ho va Tên <span class="text-danger">*</span></label>
+        <input asp-for="FullName" class="form-control" placeholder="Nhập ho va ten đầy đủ" required />
         <span asp-validation-for="FullName" class="text-danger"></span>
     </div>
     <div class="col-md-6 mb-3">
@@ -15,17 +15,17 @@
 
 <div class="row">
     <div class="col-md-4 mb-3">
-        <label asp-for="Dob" class="form-label">Ngay Sinh</label>
+        <label asp-for="Dob" class="form-label">Ngày sinh</label>
         <input asp-for="Dob" type="date" class="form-control" />
         <span asp-validation-for="Dob" class="text-danger"></span>
     </div>
     <div class="col-md-4 mb-3">
-        <label asp-for="Gender" class="form-label">Gioi Tinh</label>
+        <label asp-for="Gender" class="form-label">Giới tính</label>
         <select asp-for="Gender" class="form-select">
-            <option value="0">Chua ro</option>
+            <option value="0">Chưa rõ</option>
             <option value="1">Nam</option>
-            <option value="2">Nu</option>
-            <option value="3">Khac</option>
+            <option value="2">Nữ</option>
+            <option value="3">Khác</option>
         </select>
     </div>
     <div class="col-md-4 mb-3">
@@ -37,23 +37,23 @@
 
 <div class="mb-3">
     <label asp-for="Address" class="form-label">Dia Chi</label>
-    <input asp-for="Address" class="form-control" placeholder="Dia chi thuong tru" />
+    <input asp-for="Address" class="form-control" placeholder="Địa chỉ thuong tru" />
     <span asp-validation-for="Address" class="text-danger"></span>
 </div>
 
 <hr class="my-4" />
-<h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Thong Tin BHYT (tuy chon)</h6>
+<h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Thông tin BHYT (tuy chon)</h6>
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label asp-for="InsuranceNumber" class="form-label">Ma The BHYT</label>
+        <label asp-for="InsuranceNumber" class="form-label">Mã The BHYT</label>
         <input asp-for="InsuranceNumber" class="form-control" maxlength="15" placeholder="15 ky tu" />
         <span asp-validation-for="InsuranceNumber" class="text-danger"></span>
     </div>
     <div class="col-md-6 mb-3">
         <label asp-for="InsuranceType" class="form-label">Loai The</label>
         <select asp-for="InsuranceType" class="form-select">
-            <option value="">-- Chon loai the --</option>
+            <option value="">-- Chọn loại the --</option>
             <option value="QN">QN - Quan nhan</option>
             <option value="KC">KC - Kham chua benh</option>
             <option value="GD">GD - Gia dinh</option>
@@ -74,7 +74,7 @@
         <small class="text-muted">VD: 80, 95, 100</small>
     </div>
     <div class="col-md-4 mb-3">
-        <label asp-for="InsuranceHospital" class="form-label">Noi DK KCB Ban Dau</label>
-        <input asp-for="InsuranceHospital" class="form-control" placeholder="Ten benh vien" />
+        <label asp-for="InsuranceHospital" class="form-label">Nơi ĐK KCB Ban Dau</label>
+        <input asp-for="InsuranceHospital" class="form-control" placeholder="Tên bệnh viện" />
     </div>
 </div>

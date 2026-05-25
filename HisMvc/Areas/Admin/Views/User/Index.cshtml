@@ -1,17 +1,17 @@
-@model List<(AppUser User, string Roles)>
+@model UserListViewModel
 @{
-    ViewData["Title"] = "Quan Ly Tai Khoan";
+    ViewData["Title"] = "Quản lý Tài khoản";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-person-gear"></i> Quan Ly Tai Khoan & Phan Quyen</h2>
+        <h2><i class="bi bi-person-gear"></i> Quản lý Tài khoản & Phan Quyen</h2>
         <div>
             <a href="@Url.Action("Create")" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Tao Tai Khoan
+                <i class="bi bi-plus-circle"></i> Tạo Tài khoản
             </a>
             <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Ve Dashboard
+                <i class="bi bi-arrow-left"></i> Về Dashboard
             </a>
         </div>
     </div>
@@ -33,7 +33,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sach Tai Khoan (@Model.Count)</h5>
+            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sách Tài khoản (@Model.Users.Count)</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -42,13 +42,13 @@
                         <tr>
                             <th>Username</th>
                             <th>Email</th>
-                            <th>Nhan Vien</th>
+                            <th>Nhân viên</th>
                             <th>Phan Quyen</th>
-                            <th class="text-center">Thao Tac</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.Users)
                         {
                             <tr>
                                 <td><strong>@item.User.UserName</strong></td>
@@ -90,9 +90,9 @@
                                         <i class="bi bi-pencil"></i> Sua
                                     </a>
                                     <a href="@Url.Action("ResetPassword", new { id = item.User.Id })" class="btn btn-sm btn-info">
-                                        <i class="bi bi-key"></i> Doi MK
+                                        <i class="bi bi-key"></i> Chờ MK
                                     </a>
-                                    <form asp-action="Delete" asp-route-id="@item.User.Id" method="post" style="display:inline;" onsubmit="return confirm('Ban co chac muon xoa tai khoan nay?')">
+                                    <form asp-action="Delete" asp-route-id="@item.User.Id" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa tài khoản nay?')">
                                         <button type="submit" class="btn btn-sm btn-danger">
                                             <i class="bi bi-trash"></i> Xoa
                                         </button>
@@ -109,10 +109,10 @@
     <div class="mt-3">
         <div class="card">
             <div class="card-body">
-                <h6>Chu thich Phan Quyen:</h6>
+                <h6>Chú thích Phan Quyen:</h6>
                 <div class="d-flex gap-3 flex-wrap">
                     <div><span class="badge bg-danger">ADMIN</span> - Quan tri vien</div>
-                    <div><span class="badge bg-primary">DOCTOR</span> - Bac si</div>
+                    <div><span class="badge bg-primary">DOCTOR</span> - Bác sĩ</div>
                     <div><span class="badge bg-success">RECEPTION</span> - Le tan</div>
                     <div><span class="badge bg-warning text-dark">CASHIER</span> - Thu ngan</div>
                     <div><span class="badge bg-info">LAB_TECH</span> - Ky thuat vien</div>

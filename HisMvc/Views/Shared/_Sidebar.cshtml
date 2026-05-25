@@ -1,0 +1,195 @@
+@using HisMvc.Models
+@{
+    var area = ViewContext.RouteData.Values["area"]?.ToString() ?? "";
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var act = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string ActiveIf(string a, string c = "", string ac = "") =>
+        (string.Equals(area, a, StringComparison.OrdinalIgnoreCase)
+            && (string.IsNullOrEmpty(c) || string.Equals(ctrl, c, StringComparison.OrdinalIgnoreCase))
+            && (string.IsNullOrEmpty(ac) || string.Equals(act, ac, StringComparison.OrdinalIgnoreCase)))
+        ? "active" : "";
+
+    bool IsAdmin = User.IsInRole(AppRoles.ADMIN);
+    bool IsReception = User.IsInRole(AppRoles.RECEPTION);
+    bool IsDoctor = User.IsInRole(AppRoles.DOCTOR);
+    bool IsLab = User.IsInRole(AppRoles.LAB_TECH);
+    bool IsPharmacist = User.IsInRole(AppRoles.PHARMACIST);
+    bool IsCashier = User.IsInRole(AppRoles.CASHIER);
+}
+
+<aside id="appSidebar" class="app-sidebar">
+    <div class="sidebar-header">
+        <i class="bi bi-hospital sidebar-brand-icon"></i>
+        <span class="sidebar-brand-text">HIS</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        @if (IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Quản trị hệ thống</span>
+                <a class="sidebar-link @ActiveIf("Admin", "Home")" asp-area="Admin" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-speedometer2"></i>
+                    <span class="sidebar-text">Dashboard tổng</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "Patient")" asp-area="Admin" asp-controller="Patient" asp-action="Index">
+                    <i class="bi bi-person-hearts"></i>
+                    <span class="sidebar-text">Bệnh nhân (HSBA)</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "Department")" asp-area="Admin" asp-controller="Department" asp-action="Index">
+                    <i class="bi bi-building"></i>
+                    <span class="sidebar-text">Khoa / Phòng</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "Staff")" asp-area="Admin" asp-controller="Staff" asp-action="Index">
+                    <i class="bi bi-people"></i>
+                    <span class="sidebar-text">Nhân viên</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "Service")" asp-area="Admin" asp-controller="Service" asp-action="Index">
+                    <i class="bi bi-heart-pulse"></i>
+                    <span class="sidebar-text">Dịch vụ / Bảng giá</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "TimeSlot")" asp-area="Admin" asp-controller="TimeSlot" asp-action="Index">
+                    <i class="bi bi-clock"></i>
+                    <span class="sidebar-text">Khung giờ khám</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "InsuranceConfig")" asp-area="Admin" asp-controller="InsuranceConfig" asp-action="Index">
+                    <i class="bi bi-shield-check"></i>
+                    <span class="sidebar-text">Cấu hình BHYT</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "InsuranceClaim")" asp-area="Admin" asp-controller="InsuranceClaim" asp-action="Index">
+                    <i class="bi bi-shield-fill-check"></i>
+                    <span class="sidebar-text">Giám định BHYT</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Admin", "User")" asp-area="Admin" asp-controller="User" asp-action="Index">
+                    <i class="bi bi-person-badge"></i>
+                    <span class="sidebar-text">Tài khoản</span>
+                </a>
+            </div>
+        }
+
+        @if (IsReception || IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Tiếp đón</span>
+                <a class="sidebar-link @ActiveIf("Reception", "Home", "Dashboard")" asp-area="Reception" asp-controller="Home" asp-action="Dashboard">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span class="sidebar-text">Dashboard lễ tân</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Reception", "Home", "Index")" asp-area="Reception" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-calendar-check"></i>
+                    <span class="sidebar-text">Lịch hẹn hôm nay</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Reception", "Home", "Create")" asp-area="Reception" asp-controller="Home" asp-action="Create">
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="sidebar-text">Tạo lịch hẹn</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Reception", "Home", "Patients")" asp-area="Reception" asp-controller="Home" asp-action="Patients">
+                    <i class="bi bi-person-hearts"></i>
+                    <span class="sidebar-text">Quản lý BN</span>
+                </a>
+            </div>
+        }
+
+        @if (IsDoctor || IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Bác sĩ</span>
+                <a class="sidebar-link @ActiveIf("Doctor", "Home", "Dashboard")" asp-area="Doctor" asp-controller="Home" asp-action="Dashboard">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span class="sidebar-text">Dashboard bác sĩ</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Doctor", "Home", "Index")" asp-area="Doctor" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-clipboard2-pulse"></i>
+                    <span class="sidebar-text">Danh sách lượt khám</span>
+                </a>
+            </div>
+        }
+
+        @if (IsLab || IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Lab / Hình ảnh</span>
+                <a class="sidebar-link @ActiveIf("Lab", "Home", "Dashboard")" asp-area="Lab" asp-controller="Home" asp-action="Dashboard">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span class="sidebar-text">Dashboard Lab</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Lab", "Home", "Index")" asp-area="Lab" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-flask"></i>
+                    <span class="sidebar-text">Chỉ định chờ xử lý</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Lab", "Home", "History")" asp-area="Lab" asp-controller="Home" asp-action="History">
+                    <i class="bi bi-clock-history"></i>
+                    <span class="sidebar-text">Lịch sử kết quả</span>
+                </a>
+            </div>
+        }
+
+        @if (IsPharmacist || IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Dược / Thuốc</span>
+                <a class="sidebar-link @ActiveIf("Pharmacy", "Home", "Dashboard")" asp-area="Pharmacy" asp-controller="Home" asp-action="Dashboard">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span class="sidebar-text">Dashboard dược</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Pharmacy", "Home", "Index")" asp-area="Pharmacy" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-capsule"></i>
+                    <span class="sidebar-text">Đơn chờ cấp phát</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Pharmacy", "Medicine")" asp-area="Pharmacy" asp-controller="Medicine" asp-action="Index">
+                    <i class="bi bi-box-seam"></i>
+                    <span class="sidebar-text">Quản lý thuốc</span>
+                </a>
+            </div>
+        }
+
+        @if (IsCashier || IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Thu ngân</span>
+                <a class="sidebar-link @ActiveIf("Cashier", "Home", "Dashboard")" asp-area="Cashier" asp-controller="Home" asp-action="Dashboard">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span class="sidebar-text">Dashboard thu ngân</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Cashier", "Home", "Index")" asp-area="Cashier" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-receipt"></i>
+                    <span class="sidebar-text">Hóa đơn hôm nay</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Cashier", "Home", "Pending")" asp-area="Cashier" asp-controller="Home" asp-action="Pending">
+                    <i class="bi bi-cash-coin"></i>
+                    <span class="sidebar-text">Chờ tạo hóa đơn</span>
+                </a>
+            </div>
+        }
+
+        @if (IsDoctor || IsAdmin)
+        {
+            <div class="sidebar-section">
+                <span class="sidebar-section-title">Nội trú</span>
+                <a class="sidebar-link @ActiveIf("Inpatient", "Home", "Dashboard")" asp-area="Inpatient" asp-controller="Home" asp-action="Dashboard">
+                    <i class="bi bi-grid-1x2-fill"></i>
+                    <span class="sidebar-text">Dashboard nội trú</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Inpatient", "Home", "Index")" asp-area="Inpatient" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-hospital"></i>
+                    <span class="sidebar-text">Bệnh nhân nội trú</span>
+                </a>
+                        @if (IsAdmin)
+                        {
+                            <a class="sidebar-link @ActiveIf("Inpatient", "Ward")" asp-area="Inpatient" asp-controller="Ward" asp-action="Index">
+                                <i class="bi bi-door-open"></i>
+                                <span class="sidebar-text">Quản lý buồng</span>
+                            </a>
+                        }
+                <a class="sidebar-link @ActiveIf("Inpatient", "Home", "Admit")" asp-area="Inpatient" asp-controller="Home" asp-action="Admit">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span class="sidebar-text">Nhập viện mới</span>
+                </a>
+            </div>
+        }
+    </nav>
+
+    <div class="sidebar-footer">
+        <small class="text-muted">@User.Identity?.Name</small>
+    </div>
+</aside>

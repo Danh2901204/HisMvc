@@ -1,9 +1,11 @@
-@model Invoice
+@model InvoiceDetailViewModel
 @{
-    ViewData["Title"] = "Chi tiet hoa don";
-    var orders = (List<Order>)ViewBag.Orders;
-    var examFee = (decimal)ViewBag.ExamFee;
-    var isPaid = Model.Status == InvoiceStatus.Paid;
+    ViewData["Title"] = "Chi tiet hóa đơn";
+    var invoice = Model.Invoice;
+    var isPaid = invoice.Status == InvoiceStatus.Paid;
+    var enc = invoice.Encounter;
+    var isExamFee = invoice.InvoiceType == InvoiceType.ExamFee;
+    var isFinal = invoice.InvoiceType == InvoiceType.Final;
 }
 
 <div class="container mt-4">
@@ -22,150 +24,175 @@
         </div>
     }
 
+    <div class="alert alert-info py-2 mb-3">
+        <i class="bi bi-signpost-split"></i>
+        <strong>Luong KCB:</strong>
+        @if (isExamFee)
+        {
+            <span>Bước 2 — Thu <strong>phi kham</strong> trước khi BN vào hàng doi phòng khám.</span>
+        }
+        else if (isFinal)
+        {
+            <span>Bước 8 — Thu <strong>chi phí phát sinh</strong> (CLS + thuốc) sau khi BS chot kham.</span>
+        }
+        else
+        {
+            <span>@Model.InvoiceTypeLabel</span>
+        }
+    </div>
+
     <div class="row">
         <div class="col-lg-8">
             <div class="card shadow-sm">
-                <div class="card-header @(isPaid ? "bg-success" : "bg-warning text-dark") text-white">
+                <div class="card-header @(isPaid ? "bg-success" : "bg-warning text-dark")">
                     <h4 class="mb-0">
-                        <i class="bi bi-receipt"></i> Hoa don: @Model.InvoiceCode
+                        <i class="bi bi-receipt"></i> @invoice.InvoiceCode
+                        <span class="badge bg-dark ms-2">@Model.InvoiceTypeLabel</span>
                         @if (isPaid)
                         {
-                            <span class="badge bg-light text-success float-end">
-                                <i class="bi bi-check-circle"></i> Da thanh toan
-                            </span>
+                            <span class="badge bg-light text-success float-end"><i class="bi bi-check-circle"></i> Đã thanh toán</span>
                         }
                         else
                         {
-                            <span class="badge bg-danger float-end">
-                                <i class="bi bi-hourglass-split"></i> Chua thanh toan
-                            </span>
+                            <span class="badge bg-danger float-end"><i class="bi bi-hourglass-split"></i> Chua thanh toán</span>
                         }
                     </h4>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <p class="mb-2">
-                                <strong><i class="bi bi-person-fill text-primary"></i> Benh nhan:</strong><br />
-                                <span class="ms-4 fs-5">@Model.Encounter?.Patient?.FullName</span>
-                            </p>
-                            <p class="mb-2">
-                                <strong><i class="bi bi-telephone-fill text-success"></i> Dien thoai:</strong><br />
-                                <span class="ms-4">@Model.Encounter?.Patient?.Phone</span>
-                            </p>
+                            <p class="mb-1"><strong>Bệnh nhân:</strong> @enc?.Patient?.FullName</p>
+                            <p class="mb-1"><strong>SDT:</strong> @enc?.Patient?.Phone</p>
+                            @if (enc?.QueueNumber.HasValue == true)
+                            {
+                                <p class="mb-1"><strong>STT:</strong> <span class="badge bg-info">@enc.QueueNumber</span></p>
+                            }
                         </div>
                         <div class="col-md-6">
-                            <p class="mb-2">
-                                <strong><i class="bi bi-person-badge-fill text-info"></i> Bac si:</strong><br />
-                                <span class="ms-4">@Model.Encounter?.Doctor?.FullName</span>
+                            <p class="mb-1"><strong>Bác sĩ:</strong> @enc?.Doctor?.FullName</p>
+                            <p class="mb-1"><strong>Trạng thái KCB:</strong>
+                                @switch (enc?.Status)
+                                {
+                                    case EncounterStatus.CheckedIn: <span class="badge bg-secondary">Chờ thu phi kham</span> break;
+                                    case EncounterStatus.WaitingExam: <span class="badge bg-info">Chờ gọi vào phòng</span> break;
+                                    case EncounterStatus.InService: <span class="badge bg-warning text-dark">Đang kham</span> break;
+                                    case EncounterStatus.WaitingResult: <span class="badge bg-info">Chờ ket qua CLS</span> break;
+                                    case EncounterStatus.WaitingFinalPayment: <span class="badge bg-warning text-dark">Chờ thu chi phí cuoi</span> break;
+                                    case EncounterStatus.WaitingMedicine: <span class="badge bg-success">Chờ linh thuốc</span> break;
+                                    case EncounterStatus.Completed: <span class="badge bg-success">Hoàn thành</span> break;
+                                    default: <span class="text-muted">—</span> break;
+                                }
                             </p>
-                            <p class="mb-2">
-                                <strong><i class="bi bi-clock"></i> Ngay tao:</strong><br />
-                                <span class="ms-4">@Model.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span>
-                            </p>
-                            @if (isPaid && Model.PaidAt.HasValue)
+                            <p class="mb-1"><strong>Ngay tao HD:</strong> @invoice.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                            @if (isPaid && invoice.PaidAt.HasValue)
                             {
-                                <p class="mb-2">
-                                    <strong><i class="bi bi-check-circle text-success"></i> Thanh toan:</strong><br />
-                                    <span class="ms-4">@Model.PaidAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")</span><br />
-                                    <span class="ms-4"><small>Nguoi thu: <strong>@Model.PaidBy</strong></small></span>
-                                </p>
+                                <p class="mb-1"><strong>Thanh toán luc:</strong> @invoice.PaidAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                                <p class="mb-1"><strong>Nguoi thu:</strong> @(invoice.PaidByStaff?.FullName ?? invoice.PaidBy ?? "—")</p>
                             }
                         </div>
                     </div>
 
                     <hr />
 
-                    <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Chi tiet dich vu:</h5>
-
+                    <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Chi tiet chi phí</h5>
                     <div class="table-responsive">
                         <table class="table table-bordered">
                             <thead class="table-light">
-                                <tr>
-                                    <th>STT</th>
-                                    <th>Dich vu</th>
-                                    <th>Loai</th>
-                                    <th class="text-end">Don gia</th>
-                                </tr>
+                                <tr><th>STT</th><th>Hang muc</th><th>Loai</th><th class="text-end">Thanh tien</th></tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td><strong>Phi kham</strong></td>
-                                    <td><span class="badge bg-primary">EXAM</span></td>
-                                    <td class="text-end"><strong>@examFee.ToString("N0") VND</strong></td>
-                                </tr>
-                                @if (orders.Any())
+                                @if (isExamFee || invoice.ExamFeeAmount > 0)
                                 {
-                                    var stt = 2;
-                                    foreach (var order in orders)
+                                    <tr>
+                                        <td>1</td>
+                                        <td><strong>Phí khám</strong></td>
+                                        <td><span class="badge bg-primary">EXAM</span></td>
+                                        <td class="text-end">@((isExamFee ? invoice.TotalAmount : invoice.ExamFeeAmount).ToString("N0")) VND</td>
+                                    </tr>
+                                }
+                                @if (isFinal || invoice.ServicesAmount > 0)
+                                {
+                                    var stt = (isExamFee || invoice.ExamFeeAmount > 0) ? 2 : 1;
+                                    @if (Model.Orders.Any())
+                                    {
+                                        foreach (var order in Model.Orders)
+                                        {
+                                            var lineTotal = (order.Service?.Price ?? 0) * order.Quantity;
+                                            <tr>
+                                                <td>@stt</td>
+                                                <td>@order.Service?.Name <small class="text-muted">x@order.Quantity</small></td>
+                                                <td><span class="badge bg-info text-dark">@order.Service?.Type</span></td>
+                                                <td class="text-end">@lineTotal.ToString("N0") VND</td>
+                                            </tr>
+                                            stt++;
+                                        }
+                                    }
+                                    else if (invoice.ServicesAmount > 0)
                                     {
                                         <tr>
                                             <td>@stt</td>
-                                            <td>@order.Service?.Name</td>
-                                            <td>
-                                                @if (order.Service?.Type == "LAB")
-                                                {
-                                                    <span class="badge bg-info text-dark">LAB</span>
-                                                }
-                                                else if (order.Service?.Type == "IMAGING")
-                                                {
-                                                    <span class="badge bg-warning text-dark">IMAGING</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary">@order.Service?.Type</span>
-                                                }
-                                            </td>
-                                            <td class="text-end">@((order.Service?.Price ?? 0).ToString("N0")) VND</td>
+                                            <td>Dịch vụ CLS</td>
+                                            <td><span class="badge bg-info">CLS</span></td>
+                                            <td class="text-end">@invoice.ServicesAmount.ToString("N0") VND</td>
                                         </tr>
-                                        stt++;
+                                    }
+                                }
+                                @if (isFinal && (invoice.MedicineAmount > 0 || Model.Prescription?.Items.Any() == true))
+                                {
+                                    @if (Model.Prescription?.Items.Any() == true)
+                                    {
+                                        foreach (var item in Model.Prescription.Items)
+                                        {
+                                            var unitPrice = item.Medicine?.BhytPrice ?? 0m;
+                                            <tr>
+                                                <td>—</td>
+                                                <td>@item.Medicine?.Name <small class="text-muted">x@item.Quantity</small></td>
+                                                <td><span class="badge bg-success">THUOC</span></td>
+                                                <td class="text-end">@((unitPrice * item.Quantity).ToString("N0")) VND</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else if (invoice.MedicineAmount > 0)
+                                    {
+                                        <tr>
+                                            <td>—</td>
+                                            <td>Thuốc ke don</td>
+                                            <td><span class="badge bg-success">THUOC</span></td>
+                                            <td class="text-end">@invoice.MedicineAmount.ToString("N0") VND</td>
+                                        </tr>
                                     }
                                 }
                             </tbody>
                             <tfoot>
-                                @if (Model.HasInsurance)
+                                @if (invoice.HasInsurance)
                                 {
                                     <tr class="table-light">
-                                        <td colspan="3" class="text-end"><strong>T?ng chi ph�:</strong></td>
-                                        <td class="text-end">
-                                            <strong>@Model.TotalAmount.ToString("N0") VND</strong>
-                                        </td>
+                                        <td colspan="3" class="text-end"><strong>Tổng chi phí:</strong></td>
+                                        <td class="text-end"><strong>@invoice.TotalAmount.ToString("N0") VND</strong></td>
                                     </tr>
                                     <tr class="table-success">
-                                        <td colspan="3" class="text-end">
-                                            <i class="bi bi-shield-check"></i> <strong>BHYT chi tr?:</strong>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong class="text-success">@Model.InsuranceAmount.ToString("N0") VND</strong>
-                                        </td>
+                                        <td colspan="3" class="text-end"><i class="bi bi-shield-check"></i> <strong>BHYT chi trả:</strong></td>
+                                        <td class="text-end"><strong class="text-success">@invoice.InsuranceAmount.ToString("N0") VND</strong></td>
                                     </tr>
                                     <tr class="table-warning">
-                                        <td colspan="3" class="text-end"><strong>B?nh nh�n tr?:</strong></td>
-                                        <td class="text-end">
-                                            <strong class="text-danger fs-4">@Model.PatientAmount.ToString("N0") VND</strong>
-                                        </td>
+                                        <td colspan="3" class="text-end"><strong>Bệnh nhân tra:</strong></td>
+                                        <td class="text-end"><strong class="text-danger fs-4">@invoice.PatientAmount.ToString("N0") VND</strong></td>
                                     </tr>
                                 }
                                 else
                                 {
                                     <tr class="table-success">
-                                        <td colspan="3" class="text-end"><strong>T?ng c?ng:</strong></td>
-                                        <td class="text-end">
-                                            <strong class="text-danger fs-4">@Model.TotalAmount.ToString("N0") VND</strong>
-                                        </td>
+                                        <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
+                                        <td class="text-end"><strong class="text-danger fs-4">@invoice.TotalAmount.ToString("N0") VND</strong></td>
                                     </tr>
                                 }
                             </tfoot>
                         </table>
                     </div>
 
-                    @if (!string.IsNullOrEmpty(Model.Note))
+                    @if (!string.IsNullOrEmpty(invoice.Note))
                     {
-                        <div class="alert alert-info mt-3">
-                            <strong><i class="bi bi-info-circle"></i> Ghi chu:</strong><br />
-                            @Model.Note
-                        </div>
+                        <div class="alert alert-info mt-3"><strong>Ghi chú:</strong> @invoice.Note</div>
                     }
                 </div>
             </div>
@@ -173,67 +200,45 @@
 
         <div class="col-lg-4">
             <div class="card shadow-sm sticky-top" style="top: 20px;">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="bi bi-tools"></i> Thao tac</h5>
-                </div>
+                <div class="card-header bg-dark text-white"><h5 class="mb-0"><i class="bi bi-tools"></i> Thao tác</h5></div>
                 <div class="card-body">
+                    <div class="alert alert-secondary small mb-3">
+                        <i class="bi bi-arrow-right-circle"></i> @Model.NextStepHint
+                    </div>
+
                     @if (!isPaid)
                     {
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle"></i>
-                            <strong>Chua thanh toan!</strong><br />
-                            <small>Vui long thu tien tu benh nhan</small>
-                        </div>
-
                         <form method="post" asp-action="Pay">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.InvoiceId" />
+                            <input type="hidden" name="id" value="@invoice.InvoiceId" />
                             <button type="submit" class="btn btn-success w-100 btn-lg mb-3"
-                                    onclick="return confirm('Xac nhan da thu tien: @Model.TotalAmount.ToString("N0") VND?')">
-                                <i class="bi bi-cash"></i> THU TIEN
+                                    onclick="return confirm('Xác nhận thu @invoice.PatientAmount.ToString("N0") VND?')">
+                                <i class="bi bi-cash"></i>
+                                @(isExamFee ? "THU PHI KHAM" : "THU CHI PHI")
                             </button>
                         </form>
                     }
                     else
                     {
                         <div class="alert alert-success">
-                            <i class="bi bi-check-circle"></i>
-                            <strong>Da thanh toan</strong><br />
-                            <small>
-                                Luc: @Model.PaidAt.Value.ToLocalTime().ToString("HH:mm:ss")<br />
-                                Nguoi thu: <strong>@Model.PaidBy</strong>
-                            </small>
+                            <i class="bi bi-check-circle"></i> Đã thanh toán
+                            @if (isExamFee && enc?.QueueNumber.HasValue == true)
+                            {
+                                <br /><small>BN đã cấp STT <strong>@enc.QueueNumber</strong>, cho vào phòng khám.</small>
+                            }
+                            @if (isFinal && enc?.Status == EncounterStatus.WaitingMedicine)
+                            {
+                                <br /><small>BN chuyển sang <strong>Nha thuốc</strong> linh thuốc.</small>
+                            }
                         </div>
                     }
 
-                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100 mb-2">
-                        <i class="bi bi-arrow-left"></i> Ve danh sach
-                    </a>
-
-                    <button type="button" class="btn btn-outline-primary w-100" onclick="window.print()">
-                        <i class="bi bi-printer"></i> In hoa don
-                    </button>
-                </div>
-            </div>
-
-            <div class="card shadow-sm mt-3">
-                <div class="card-header bg-secondary text-white">
-                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> Thong tin</h6>
-                </div>
-                <div class="card-body">
-                    <small>
-                        <p class="mb-2"><strong>Tong tien:</strong></p>
-                        <ul class="mb-2">
-                            <li>Phi kham: @examFee.ToString("N0") VND</li>
-                            <li>Dich vu: @((Model.TotalAmount - examFee).ToString("N0")) VND</li>
-                        </ul>
-                        
-                        <p class="mb-0"><strong>Trang thai:</strong></p>
-                        <ul class="mb-0">
-                            <li>Encounter: Completed</li>
-                            <li>Hoa don: @(isPaid ? "Paid" : "Unpaid")</li>
-                        </ul>
-                    </small>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100 mb-2"><i class="bi bi-arrow-left"></i> Danh sách HD</a>
+                    @if (isFinal)
+                    {
+                        <a href="@Url.Action("Pending")" class="btn btn-outline-warning w-100 mb-2"><i class="bi bi-hourglass"></i> Chờ thu chi phí cuoi</a>
+                    }
+                    <button type="button" class="btn btn-outline-primary w-100" onclick="window.print()"><i class="bi bi-printer"></i> In hóa đơn</button>
                 </div>
             </div>
         </div>
@@ -243,16 +248,8 @@
 @section Styles {
     <style>
         @@media print {
-            .card-header,
-            .btn,
-            .alert,
-            .sticky-top {
-                display: none !important;
-            }
-            .card {
-                border: none !important;
-                box-shadow: none !important;
-            }
+            .card-header, .btn, .alert, .sticky-top { display: none !important; }
+            .card { border: none !important; box-shadow: none !important; }
         }
     </style>
 }

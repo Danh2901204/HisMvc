@@ -1,6 +1,6 @@
 @model List<MedicineBatch>
 @{
-    ViewData["Title"] = "T?n Kho Thu?c";
+    ViewData["Title"] = "Tồn kho thuốc";
     var medicine = (Medicine)ViewBag.Medicine;
     var totalStock = (int)ViewBag.TotalStock;
 }
@@ -8,26 +8,25 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-box-seam"></i> T?n Kho: @medicine.Name</h2>
-            <p class="text-muted mb-0">M�: @medicine.Code | Ho?t ch?t: @medicine.ActiveIngredient</p>
+            <h2><i class="bi bi-box-seam"></i> Tồn kho: @medicine.Name</h2>
+            <p class="text-muted mb-0">Mã: @medicine.Code | Hoạt chất: @medicine.ActiveIngredient</p>
         </div>
         <div class="btn-group">
             <a asp-action="Index" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Quay l?i
+                <i class="bi bi-arrow-left"></i> Quay lại
             </a>
             <a asp-action="AddBatch" asp-route-medicineId="@medicine.MedicineId" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Nh?p L� M?i
+                <i class="bi bi-plus-circle"></i> Nhập lô moi
             </a>
         </div>
     </div>
 
-    <!-- T?ng k?t -->
     <div class="row mb-4">
         <div class="col-md-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h3 class="text-primary">@totalStock</h3>
-                    <p class="mb-0 text-muted">T?ng t?n kho (@medicine.Unit)</p>
+                    <p class="mb-0 text-muted">Tổng ton kho (@medicine.Unit)</p>
                 </div>
             </div>
         </div>
@@ -35,7 +34,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h3 class="text-success">@Model.Count(b => b.IsActive)</h3>
-                    <p class="mb-0 text-muted">L� ?ang s? d?ng</p>
+                    <p class="mb-0 text-muted">Lô đang su dung</p>
                 </div>
             </div>
         </div>
@@ -43,7 +42,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h3 class="text-warning">@Model.Count(b => b.ExpiryDate <= DateTime.Today.AddMonths(3) && b.ExpiryDate > DateTime.Today)</h3>
-                    <p class="mb-0 text-muted">S?p h?t h?n (&lt;3 th�ng)</p>
+                    <p class="mb-0 text-muted">Sắp hết hạn (&lt;3 tháng)</p>
                 </div>
             </div>
         </div>
@@ -51,7 +50,7 @@
             <div class="card text-center">
                 <div class="card-body">
                     <h3 class="text-danger">@Model.Count(b => b.ExpiryDate <= DateTime.Today)</h3>
-                    <p class="mb-0 text-muted">?� h?t h?n</p>
+                    <p class="mb-0 text-muted">Đã hết hạn</p>
                 </div>
             </div>
         </div>
@@ -65,19 +64,18 @@
         </div>
     }
 
-    <!-- Danh s�ch l� -->
     <div class="card">
         <div class="card-header bg-primary text-white">
-            <i class="bi bi-list"></i> Danh S�ch L� Thu?c
+            <i class="bi bi-list"></i> Danh sách lô thuốc
         </div>
         <div class="card-body">
             @if (Model.Count == 0)
             {
                 <div class="text-center py-5">
                     <i class="bi bi-inbox fs-1 text-muted"></i>
-                    <h5 class="mt-3">Ch?a c� l� thu?c n�o</h5>
+                    <h5 class="mt-3">Chưa có lô thuốc nào</h5>
                     <a asp-action="AddBatch" asp-route-medicineId="@medicine.MedicineId" class="btn btn-success mt-3">
-                        <i class="bi bi-plus-circle"></i> Nh?p L� ??u Ti�n
+                        <i class="bi bi-plus-circle"></i> Nhập lô đầu tiên
                     </a>
                 </div>
             }
@@ -87,13 +85,13 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>S? l�</th>
-                                <th>Ng�y s?n xu?t</th>
-                                <th>H?n d�ng</th>
-                                <th>??n gi�</th>
-                                <th>T?n kho</th>
-                                <th>M?c t?i thi?u</th>
-                                <th>Tr?ng th�i</th>
+                                <th>Số lô</th>
+                                <th>Ngày sản xuất</th>
+                                <th>Hạn dùng</th>
+                                <th>Đơn giá</th>
+                                <th>Tồn kho</th>
+                                <th>Muc toi thieu</th>
+                                <th>Trạng thái</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,7 +101,6 @@
                                 var isExpired = batch.ExpiryDate <= DateTime.Today;
                                 var isExpiringSoon = daysToExpiry <= 90 && daysToExpiry > 0;
                                 var isLowStock = batch.QuantityInStock <= batch.MinStockLevel;
-
                                 var rowClass = isExpired ? "table-danger" : isExpiringSoon ? "table-warning" : "";
 
                                 <tr class="@rowClass">
@@ -113,34 +110,34 @@
                                         @batch.ExpiryDate.ToString("dd/MM/yyyy")
                                         @if (isExpired)
                                         {
-                                            <br /><span class="badge bg-danger">?� h?t h?n</span>
+                                            <br /><span class="badge bg-danger">Đã hết hạn</span>
                                         }
                                         else if (isExpiringSoon)
                                         {
-                                            <br /><span class="badge bg-warning">C�n @daysToExpiry ng�y</span>
+                                            <br /><span class="badge bg-warning">Còn @daysToExpiry ngày</span>
                                         }
                                     </td>
-                                    <td>@batch.UnitPrice.ToString("N0") ?</td>
+                                    <td>@batch.UnitPrice.ToString("N0") đ</td>
                                     <td>
                                         <strong>@batch.QuantityInStock</strong> @medicine.Unit
                                         @if (isLowStock && batch.QuantityInStock > 0)
                                         {
-                                            <br /><span class="badge bg-warning">T?n th?p!</span>
+                                            <br /><span class="badge bg-warning">Tồn thấp!</span>
                                         }
                                         else if (batch.QuantityInStock == 0)
                                         {
-                                            <br /><span class="badge bg-secondary">H?t h�ng</span>
+                                            <br /><span class="badge bg-secondary">Hết hàng</span>
                                         }
                                     </td>
                                     <td>@batch.MinStockLevel @medicine.Unit</td>
                                     <td>
                                         @if (batch.IsActive)
                                         {
-                                            <span class="badge bg-success">?ang d�ng</span>
+                                            <span class="badge bg-success">Đang dùng</span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-secondary">Ng?ng</span>
+                                            <span class="badge bg-secondary">Ngừng</span>
                                         }
                                     </td>
                                 </tr>

@@ -1,17 +1,17 @@
-@model List<TimeSlot>
+@model TimeSlotListViewModel
 @{
-    ViewData["Title"] = "Quan Ly Khung Gio";
+    ViewData["Title"] = "Quản lý Khung Gio";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-clock"></i> Quan Ly Khung Gio</h2>
+        <h2><i class="bi bi-clock"></i> Quản lý Khung Gio</h2>
         <div>
             <a href="@Url.Action("Create")" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Them Moi
+                <i class="bi bi-plus-circle"></i> Thêm mới
             </a>
             <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Ve Dashboard
+                <i class="bi bi-arrow-left"></i> Về Dashboard
             </a>
         </div>
     </div>
@@ -33,7 +33,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sach Khung Gio (@Model.Count)</h5>
+            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sách Khung Gio (@Model.TimeSlots.Count)</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -45,11 +45,11 @@
                             <th>Gio Bat Dau</th>
                             <th>Gio Ket Thuc</th>
                             <th>Thoi Luong</th>
-                            <th class="text-center">Thao Tac</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var slot in Model)
+                        @foreach (var slot in Model.TimeSlots)
                         {
                             var duration = slot.End - slot.Start;
                             <tr>
@@ -65,14 +65,14 @@
                                 </td>
                                 <td>
                                     <span class="badge bg-info">
-                                        @duration.TotalMinutes phut
+                                        @duration.TotalMinutes phút
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <a href="@Url.Action("Edit", new { id = slot.TimeSlotId })" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Sua
                                     </a>
-                                    <form asp-action="Delete" asp-route-id="@slot.TimeSlotId" method="post" style="display:inline;" onsubmit="return confirm('Ban co chac muon xoa khung gio nay?')">
+                                    <form asp-action="Delete" asp-route-id="@slot.TimeSlotId" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa khung giờ nay?')">
                                         <button type="submit" class="btn btn-sm btn-danger">
                                             <i class="bi bi-trash"></i> Xoa
                                         </button>
@@ -92,9 +92,9 @@
                 <h6><i class="bi bi-info-circle"></i> Huong dan:</h6>
                 <ul class="mb-0">
                     <li>Khung gio dung de phan chia thoi gian dat lich kham benh</li>
-                    <li>Moi khung gio nen co thoi luong tu 30-60 phut</li>
-                    <li>Tranh khung gio trung lap hoac chong cheo</li>
-                    <li>Nen tao khung gio trong gio hanh chinh (8h-17h)</li>
+                    <li>Moi khung giờ nen co thoi luong từ 30-60 phút</li>
+                    <li>Tránh khung giờ trung lap hoặc chong cheo</li>
+                    <li>Nên tạo khung giờ trong giờ hành chính (8h-17h)</li>
                 </ul>
             </div>
         </div>

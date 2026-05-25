@@ -1,6 +1,6 @@
 @model Patient
 @{
-    ViewData["Title"] = "Sua Benh Nhan";
+    ViewData["Title"] = "Sửa Benh Nhan";
 }
 
 <div class="container-fluid mt-4 pb-5">
@@ -8,7 +8,7 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Cap Nhat Benh Nhan #@Model.PatientId</h4>
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> Cập nhật Benh Nhan #@Model.PatientId</h4>
                 </div>
                 <div class="card-body p-4">
                     <form method="post">
@@ -17,22 +17,22 @@
                         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                         <div class="alert alert-secondary py-2">
-                            <i class="bi bi-hash"></i> Ma benh nhan: <strong>@Model.PatientId</strong> (khong doi)
+                            <i class="bi bi-hash"></i> Mã bệnh nhân: <strong>@Model.PatientId</strong> (không đổi)
                         </div>
 
                         <partial name="_PatientFormFields" model="Model" />
 
                         <div class="alert alert-info mt-3 mb-0">
                             <i class="bi bi-info-circle"></i>
-                            Thay doi thong tin se ap dung cho lich hen, luot kham va hoa don lien quan.
+                            Thay doi thông tin sẽ ap dung cho lịch hẹn, lượt khám va hóa đơn liên quan.
                         </div>
 
                         <div class="d-flex justify-content-between mt-4 pt-3 border-top">
                             <a asp-action="Index" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Quay Lai
+                                <i class="bi bi-arrow-left"></i> Quay lại
                             </a>
                             <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-save"></i> Cap Nhat
+                                <i class="bi bi-save"></i> Cập nhật
                             </button>
                         </div>
                     </form>
