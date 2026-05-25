@@ -1,6 +1,9 @@
-﻿using HisMvc.Data;
+using HisMvc.Areas.Reception.Models;
+using HisMvc.Areas.Reception.Services;
+using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -13,68 +16,36 @@ namespace HisMvc.Areas.Reception.Controllers;
 public class HomeController : Controller
 {
     private readonly AppDbContext _db;
-    public HomeController(AppDbContext db) => _db = db;
+    private readonly ReceptionViewService _views;
+    private readonly OutpatientWorkflowService _workflow;
 
-    // Trang lịch hẹn theo ngày với filter
-    public async Task<IActionResult> Index(DateOnly? date, string status = "")
+    public HomeController(AppDbContext db, ReceptionViewService views, OutpatientWorkflowService workflow)
     {
-        var d = date ?? DateOnly.FromDateTime(DateTime.Today);
-
-        var query = _db.Appointments
-            .Include(x => x.Patient)
-            .Include(x => x.Department)
-            .Include(x => x.Doctor)
-            .Include(x => x.TimeSlot)
-            .Where(x => x.Date == d);
-
-        // Filter theo status nếu có
-        if (!string.IsNullOrEmpty(status))
-        {
-            if (status == "Booked")
-                query = query.Where(x => x.Status == AppointmentStatus.Booked);
-            else if (status == "CheckedIn")
-            {
-                // Lấy các appointment đã check-in (có Encounter)
-                var checkedInIds = await _db.Encounters
-                    .Where(e => e.Appointment!.Date == d)
-                    .Select(e => e.AppointmentId)
-                    .ToListAsync();
-                query = query.Where(x => checkedInIds.Contains(x.AppointmentId));
-            }
-            else if (status == "Cancelled")
-                query = query.Where(x => x.Status == AppointmentStatus.Cancelled);
-        }
-
-        var appts = await query
-            .OrderBy(x => x.TimeSlot!.Start)
-            .ToListAsync();
-
-        // Lấy danh sách appointment đã check-in
-        var checkedInAppointments = await _db.Encounters
-            .Where(e => e.Appointment!.Date == d && e.AppointmentId.HasValue)
-            .Select(e => e.AppointmentId.Value)
-            .ToListAsync();
-
-        ViewBag.Date = d;
-        ViewBag.CheckedInAppointments = checkedInAppointments;
-        ViewBag.CurrentStatus = status;
-        return View(appts);
+        _db = db;
+        _views = views;
+        _workflow = workflow;
     }
 
-    // Form tạo lịch hẹn
+    public async Task<IActionResult> Dashboard()
+    {
+        var model = await _views.BuildDashboardAsync();
+        return View(model);
+    }
+
+    public async Task<IActionResult> Index(DateOnly? date, string status = "")
+    {
+        var model = await _views.GetAppointmentListAsync(date, status);
+        return View(model);
+    }
+
     public async Task<IActionResult> Create()
     {
         ViewBag.Departments = new SelectList(await _db.Departments.ToListAsync(), "DepartmentId", "Name");
         ViewBag.Doctors = new SelectList(await _db.Staffs.Where(x => x.StaffType == "DOCTOR").ToListAsync(), "StaffId", "FullName");
 
-        // Hiển thị giờ cụ thể thay vì Code
         var slots = await _db.TimeSlots.OrderBy(x => x.Start).ToListAsync();
         ViewBag.Slots = new SelectList(
-            slots.Select(s => new
-            {
-                s.TimeSlotId,
-                DisplayText = $"{s.Start:HH:mm} - {s.End:HH:mm}"
-            }),
+            slots.Select(s => new { s.TimeSlotId, DisplayText = $"{s.Start:HH:mm} - {s.End:HH:mm}" }),
             "TimeSlotId",
             "DisplayText"
         );
@@ -85,34 +56,21 @@ public class HomeController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
-        string fullName,
-        string phone,
-        DateOnly? dob,
-        Gender? gender,
-        string? identityNumber,
-        string? address,
-        string? insuranceNumber,
-        string? insuranceType,
-        DateTime? insuranceExpiry,
-        decimal insuranceCoveragePercent,
-        string? insuranceHospital,
-        int departmentId,
-        int doctorId,
-        int slotId,
-        DateOnly date,
-        string? note
-    )
+        string fullName, string phone, DateOnly? dob, Gender? gender,
+        string? identityNumber, string? address, string? insuranceNumber,
+        string? insuranceType, DateTime? insuranceExpiry, decimal insuranceCoveragePercent,
+        string? insuranceHospital, int departmentId, int doctorId, int slotId,
+        DateOnly date, string? note)
     {
         phone = (phone ?? "").Trim();
         fullName = (fullName ?? "").Trim();
 
         if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phone))
         {
-            TempData["Error"] = "Vui long nhap day du ho ten va so dien thoai!";
+            TempData["Error"] = "Vui lòng nhập đầy đủ ho ten va so dien thoai!";
             return RedirectToAction(nameof(Create));
         }
 
-        // Tạo hoặc cập nhật bệnh nhân
         var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Phone == phone);
         if (patient == null)
         {
@@ -121,7 +79,8 @@ public class HomeController : Controller
                 FullName = fullName,
                 Phone = phone,
                 Dob = dob,
-                Gender = gender ?? Gender.Unknown
+                Gender = gender ?? Gender.Unknown,
+                InsuranceCoveragePercent = insuranceCoveragePercent
             };
             _db.Patients.Add(patient);
         }
@@ -131,7 +90,6 @@ public class HomeController : Controller
 
         await _db.SaveChangesAsync();
 
-        // Tạo mã lịch hẹn
         var code = $"APT{DateTime.Now:yyyyMMddHHmmss}";
 
         var appt = new Appointment
@@ -149,62 +107,23 @@ public class HomeController : Controller
         _db.Appointments.Add(appt);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = $"Da tao lich hen thanh cong! Ma: {code}";
+        TempData["Success"] = $"Đã tạo lịch hẹn thành công! Mã: {code}";
         return RedirectToAction(nameof(Index), new { date = date.ToString("yyyy-MM-dd") });
     }
 
-    // Check-in → tạo Encounter
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CheckIn(int appointmentId)
     {
-        var appt = await _db.Appointments
-            .Include(x => x.Patient)
-            .FirstOrDefaultAsync(x => x.AppointmentId == appointmentId);
+        var result = await _workflow.CheckInAsync(appointmentId);
 
-        if (appt == null)
-        {
-            TempData["Error"] = "Khong tim thay lich hen!";
-            return RedirectToAction(nameof(Index));
-        }
+        TempData[result.Success ? "Success" : "Error"] = result.Message;
 
-        if (appt.Status != AppointmentStatus.Booked)
-        {
-            TempData["Error"] = "Lich hen khong o trang thai Booked!";
-            return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
-        }
-
-        // Kiểm tra đã check-in chưa
-        var exists = await _db.Encounters
-            .AnyAsync(x => x.AppointmentId == appointmentId);
-        if (exists)
-        {
-            TempData["Error"] = "Lich hen da duoc check-in!";
-            return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
-        }
-
-        // Tạo Encounter
-        var enc = new Encounter
-        {
-            PatientId = appt.PatientId,
-            AppointmentId = appt.AppointmentId,
-            DoctorId = appt.DoctorId!.Value,
-            Status = EncounterStatus.CheckedIn,
-            CheckInAt = DateTime.UtcNow
-        };
-
-        _db.Encounters.Add(enc);
-
-        // Cập nhật trạng thái appointment
-        appt.Status = AppointmentStatus.Booked; // Giữ nguyên, hoặc có thể thêm enum mới
-
-        await _db.SaveChangesAsync();
-
-        TempData["Success"] = $"Da check-in thanh cong cho benh nhan: {appt.Patient?.FullName}";
-        return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
+        var appt = await _db.Appointments.FindAsync(appointmentId);
+        var date = appt?.Date.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd");
+        return RedirectToAction(nameof(Index), new { date });
     }
 
-    // Hủy lịch hẹn
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int appointmentId)
@@ -212,26 +131,37 @@ public class HomeController : Controller
         var appt = await _db.Appointments.FindAsync(appointmentId);
         if (appt == null)
         {
-            TempData["Error"] = "Khong tim thay lich hen!";
+            TempData["Error"] = "Không tìm thay lịch hẹn!";
             return RedirectToAction(nameof(Index));
+        }
+
+        var hasEncounter = await _db.Encounters.AnyAsync(e => e.AppointmentId == appointmentId);
+        if (hasEncounter)
+        {
+            TempData["Error"] = "Không thể huy lịch hẹn da check-in. Vui lòng huy lich kham trong he thong.";
+            return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
+        }
+
+        if (appt.Status == AppointmentStatus.Cancelled)
+        {
+            TempData["Error"] = "Lịch hẹn đã hủy trước đó.";
+            return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
         }
 
         appt.Status = AppointmentStatus.Cancelled;
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Da huy lich hen thanh cong!";
+        TempData["Success"] = "Đã huy lịch hẹn thành công!";
         return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
     }
 
-    // Tìm kiếm bệnh nhân
     [HttpGet]
     public async Task<IActionResult> SearchPatient(string phone)
     {
         if (string.IsNullOrWhiteSpace(phone))
             return Json(new { found = false });
 
-        var patient = await _db.Patients
-            .FirstOrDefaultAsync(x => x.Phone == phone);
+        var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Phone == phone);
 
         if (patient == null)
             return Json(new { found = false });
@@ -255,16 +185,9 @@ public class HomeController : Controller
     }
 
     private static void ApplyPatientDetails(
-        Patient patient,
-        string fullName,
-        DateOnly? dob,
-        Gender? gender,
-        string? identityNumber,
-        string? address,
-        string? insuranceNumber,
-        string? insuranceType,
-        DateTime? insuranceExpiry,
-        decimal insuranceCoveragePercent,
+        Patient patient, string fullName, DateOnly? dob, Gender? gender,
+        string? identityNumber, string? address, string? insuranceNumber,
+        string? insuranceType, DateTime? insuranceExpiry, decimal insuranceCoveragePercent,
         string? insuranceHospital)
     {
         patient.FullName = fullName;
@@ -279,61 +202,46 @@ public class HomeController : Controller
         patient.InsuranceHospital = string.IsNullOrWhiteSpace(insuranceHospital) ? null : insuranceHospital.Trim();
     }
 
-    // Trang quản lý bệnh nhân
     public async Task<IActionResult> Patients(string search = "")
     {
         var query = _db.Patients.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
-        {
             query = query.Where(x => x.FullName.Contains(search) || x.Phone.Contains(search));
-        }
 
-        var patients = await query
-            .OrderByDescending(x => x.PatientId)
-            .Take(100)
-            .ToListAsync();
+        var patients = await query.OrderByDescending(x => x.PatientId).Take(100).ToListAsync();
 
         ViewBag.Search = search;
         return View(patients);
     }
 
-    // Tạo bệnh nhân mới
-    public IActionResult CreatePatient()
-    {
-        return View();
-    }
+    public IActionResult CreatePatient() => View();
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreatePatient(Patient model)
     {
         if (!ModelState.IsValid)
-        {
             return View(model);
-        }
 
-        // Kiểm tra trùng số điện thoại
         if (await _db.Patients.AnyAsync(x => x.Phone == model.Phone))
         {
-            ModelState.AddModelError("Phone", "So dien thoai da ton tai!");
+            ModelState.AddModelError("Phone", "So dien thoai da tồn tại!");
             return View(model);
         }
 
         _db.Patients.Add(model);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Da them benh nhan thanh cong!";
+        TempData["Success"] = "Đã them bệnh nhân thành công!";
         return RedirectToAction(nameof(Patients));
     }
 
-    // Sửa thông tin bệnh nhân
     public async Task<IActionResult> EditPatient(int id)
     {
         var patient = await _db.Patients.FindAsync(id);
         if (patient == null)
             return NotFound();
-
         return View(patient);
     }
 
@@ -342,9 +250,7 @@ public class HomeController : Controller
     public async Task<IActionResult> EditPatient(Patient model)
     {
         if (!ModelState.IsValid)
-        {
             return View(model);
-        }
 
         var patient = await _db.Patients.FindAsync(model.PatientId);
         if (patient == null)
@@ -352,7 +258,7 @@ public class HomeController : Controller
 
         if (await _db.Patients.AnyAsync(x => x.Phone == model.Phone && x.PatientId != model.PatientId))
         {
-            ModelState.AddModelError(nameof(Patient.Phone), "So dien thoai da duoc su dung boi benh nhan khac!");
+            ModelState.AddModelError(nameof(Patient.Phone), "So dien thoai da duoc su dung boi bệnh nhân khac!");
             return View(model);
         }
 
@@ -363,7 +269,7 @@ public class HomeController : Controller
 
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Da cap nhat thong tin benh nhan!";
+        TempData["Success"] = "Đã cập nhật thông tin bệnh nhân!";
         return RedirectToAction(nameof(Patients));
     }
 }

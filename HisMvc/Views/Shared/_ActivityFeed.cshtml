@@ -1,0 +1,47 @@
+@using HisMvc.Areas.Admin.Controllers
+@model List<DashboardActivity>
+
+<div class="activity-feed">
+    @if (Model == null || !Model.Any())
+    {
+        <p class="text-muted text-center py-4">
+            <i class="bi bi-inbox fs-1 d-block mb-2 text-secondary"></i>
+            Chưa có hoat dong nao
+        </p>
+    }
+    else
+    {
+        @foreach (var a in Model)
+        {
+            <div class="activity-item @(string.IsNullOrEmpty(a.Priority) ? "" : "priority-" + a.Priority)">
+                <div class="d-flex justify-content-between gap-2">
+                    <div class="flex-grow-1">
+                        <a href="@a.Url" class="text-decoration-none text-dark">
+                            <div class="activity-title">
+                                <i class="bi @a.Icon me-1 text-primary"></i> @a.Title
+                            </div>
+                            <div class="activity-detail">@a.Detail</div>
+                        </a>
+                    </div>
+                    <div class="text-end" style="min-width: 100px;">
+                        @if (!string.IsNullOrEmpty(a.Tag))
+                        {
+                            <span class="badge bg-light text-dark mb-1">@a.Tag</span><br />
+                        }
+                        <span class="activity-time">
+                            @{
+                                var diff = DateTime.UtcNow - a.At.ToUniversalTime();
+                                string timeStr;
+                                if (diff.TotalMinutes < 1) timeStr = "vua xong";
+                                else if (diff.TotalMinutes < 60) timeStr = $"{(int)diff.TotalMinutes} phút";
+                                else if (diff.TotalHours < 24) timeStr = $"{(int)diff.TotalHours} gio";
+                                else timeStr = a.At.ToLocalTime().ToString("dd/MM HH:mm");
+                            }
+                            @timeStr
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>

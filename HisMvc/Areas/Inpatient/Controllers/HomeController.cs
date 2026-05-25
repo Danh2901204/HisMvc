@@ -1,6 +1,9 @@
+using HisMvc.Areas.Inpatient.Models;
+using HisMvc.Areas.Inpatient.Services;
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,136 +15,57 @@ namespace HisMvc.Areas.Inpatient.Controllers;
 public class HomeController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly InpatientViewService _views;
+    private readonly CurrentStaffService _staffService;
 
-    public HomeController(AppDbContext db)
+    public HomeController(AppDbContext db, InpatientViewService views, CurrentStaffService staffService)
     {
         _db = db;
+        _views = views;
+        _staffService = staffService;
     }
 
-    // Dashboard - Danh sach benh nhan noi tru
+    public async Task<IActionResult> Dashboard()
+    {
+        var model = await _views.BuildDashboardAsync();
+        return View(model);
+    }
+
     public async Task<IActionResult> Index(int? wardId, AdmissionStatus? status)
     {
-        var query = _db.Admissions
-            .Include(a => a.Patient)
-            .Include(a => a.Bed).ThenInclude(b => b!.Ward)
-            .Include(a => a.AttendingDoctor)
-            .AsQueryable();
-
-        if (wardId.HasValue)
-        {
-            query = query.Where(a => a.Bed!.WardId == wardId.Value);
-        }
-
-        if (status.HasValue)
-        {
-            query = query.Where(a => a.Status == status.Value);
-        }
-        else
-        {
-            // Mac dinh chi hien Active
-            query = query.Where(a => a.Status == AdmissionStatus.Active);
-        }
-
-        var admissions = await query
-            .OrderByDescending(a => a.AdmittedAt)
-            .ToListAsync();
-
-        // Lay danh sach ward cho filter
-        var wards = await _db.Wards
-            .Where(w => w.IsActive)
-            .OrderBy(w => w.Name)
-            .ToListAsync();
-
-        ViewBag.Wards = wards;
-        ViewBag.SelectedWardId = wardId;
-        ViewBag.SelectedStatus = status;
-
-        return View(admissions);
+        var model = await _views.GetAdmissionListAsync(wardId, status);
+        return View(model);
     }
 
-    // Chi tiet ho so nhap vien
     public async Task<IActionResult> Detail(int id)
     {
-        var admission = await _db.Admissions
-            .Include(a => a.Patient)
-            .Include(a => a.Bed).ThenInclude(b => b!.Ward)
-            .Include(a => a.AttendingDoctor)
-            .Include(a => a.MedicalOrders).ThenInclude(o => o.OrderedByStaff)
-            .FirstOrDefaultAsync(a => a.AdmissionId == id);
-
-        if (admission == null)
-        {
+        var model = await _views.GetAdmissionDetailAsync(id);
+        if (model == null)
             return NotFound();
-        }
-
-        // Lay sinh hieu gan nhat
-        var latestVitalSigns = await _db.VitalSigns
-            .Where(v => v.AdmissionId == id)
-            .OrderByDescending(v => v.RecordedAt)
-            .Take(5)
-            .ToListAsync();
-
-        ViewBag.VitalSigns = latestVitalSigns;
-
-        // Lay don thuoc (neu co)
-        var prescriptions = await _db.Prescriptions
-            .Include(p => p.Items).ThenInclude(i => i.Medicine)
-            .Where(p => _db.MedicalOrders
-                .Where(mo => mo.AdmissionId == id && mo.PrescriptionId != null)
-                .Select(mo => mo.PrescriptionId)
-                .Contains(p.PrescriptionId))
-            .ToListAsync();
-
-        ViewBag.Prescriptions = prescriptions;
-
-        return View(admission);
+        return View(model);
     }
 
-    // Nhap vien - GET
     public async Task<IActionResult> Admit(int? patientId)
     {
-        // Lay danh sach giuong trong
-        var availableBeds = await _db.Beds
-            .Include(b => b.Ward)
-            .Where(b => b.IsActive && b.Status == BedStatus.Empty)
-            .OrderBy(b => b.Ward!.Name).ThenBy(b => b.BedNumber)
-            .ToListAsync();
-
-        ViewBag.AvailableBeds = availableBeds;
-
-        // Lay danh sach bac si
-        var doctors = await _db.Staffs
-            .Where(s => s.StaffType == "DOCTOR")
-            .OrderBy(s => s.FullName)
-            .ToListAsync();
-
-        ViewBag.Doctors = doctors;
-
-        if (patientId.HasValue)
-        {
-            var patient = await _db.Patients.FindAsync(patientId.Value);
-            ViewBag.Patient = patient;
-        }
-
-        return View();
+        var model = await _views.GetAdmitFormAsync(patientId);
+        return View(model);
     }
 
-    // Nh?p vi?n - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Admit(int patientId, int bedId, int attendingDoctorId, string admissionReason, string? initialDiagnosis)
+    public async Task<IActionResult> Admit(int patientId, int bedId, int attendingDoctorId,
+        string admissionReason, string? initialDiagnosis, string? icd10Admission)
     {
+        using var tx = await _db.Database.BeginTransactionAsync();
         try
         {
-            // Ki?m tra gi??ng còn tr?ng không
             var bed = await _db.Beds.FindAsync(bedId);
             if (bed == null || bed.Status != BedStatus.Empty)
             {
-                TempData["Error"] = "Gi??ng b?nh không kh? d?ng!";
+                TempData["Error"] = "Gi??ng b?nh không kh? dung!";
                 return RedirectToAction(nameof(Admit), new { patientId });
             }
 
-            // T?o mã nh?p vi?n
             var admissionCode = $"ADM{DateTime.UtcNow:yyyyMMddHHmmss}";
 
             var admission = new Admission
@@ -153,27 +77,27 @@ public class HomeController : Controller
                 AdmittedAt = DateTime.UtcNow,
                 Status = AdmissionStatus.Active,
                 AdmissionReason = admissionReason,
-                InitialDiagnosis = initialDiagnosis
+                InitialDiagnosis = initialDiagnosis,
+                Icd10Admission = string.IsNullOrWhiteSpace(icd10Admission) ? null : icd10Admission.Trim().ToUpperInvariant()
             };
 
             _db.Admissions.Add(admission);
-
-            // C?p nh?t tr?ng thái gi??ng
             bed.Status = BedStatus.Occupied;
 
             await _db.SaveChangesAsync();
+            await tx.CommitAsync();
 
             TempData["Success"] = $"?ã nh?p vi?n thành công! Mã: {admissionCode}";
             return RedirectToAction(nameof(Detail), new { id = admission.AdmissionId });
         }
         catch (Exception ex)
         {
+            await tx.RollbackAsync();
             TempData["Error"] = $"L?i: {ex.Message}";
             return RedirectToAction(nameof(Admit), new { patientId });
         }
     }
 
-    // Xuat vien - GET
     public async Task<IActionResult> Discharge(int id)
     {
         var admission = await _db.Admissions
@@ -183,14 +107,11 @@ public class HomeController : Controller
             .FirstOrDefaultAsync(a => a.AdmissionId == id);
 
         if (admission == null || admission.Status != AdmissionStatus.Active)
-        {
             return NotFound();
-        }
 
         return View(admission);
     }
 
-    // Xuat vien - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Discharge(int id, string dischargeSummary, string? dischargeInstructions)
@@ -201,72 +122,68 @@ public class HomeController : Controller
 
         if (admission == null || admission.Status != AdmissionStatus.Active)
         {
-            TempData["Error"] = "Khong tim thay ho so hoac da xuat vien!";
+            TempData["Error"] = "Không tìm thay h? s? ho?c ?ã xu?t vi?n!";
             return RedirectToAction(nameof(Index));
         }
 
+        using var tx = await _db.Database.BeginTransactionAsync();
         try
         {
-            // Lay Staff ID
-            var doctorEmail = User.Identity!.Name;
-            var staff = await _db.Staffs.FirstOrDefaultAsync(s => s.FullName == doctorEmail);
-
+            var staffId = await _staffService.TryGetStaffIdAsync(User);
             admission.Status = AdmissionStatus.Discharged;
             admission.DischargedAt = DateTime.UtcNow;
             admission.DischargeSummary = dischargeSummary;
             admission.DischargeInstructions = dischargeInstructions;
-            admission.DischargedBy = staff?.StaffId;
+            admission.DischargedBy = staffId;
 
-            // Cap nhat trang thai giuong
             if (admission.Bed != null)
-            {
                 admission.Bed.Status = BedStatus.Cleaning;
+
+            var rep = await _db.Encounters
+                .FirstOrDefaultAsync(e => e.PatientId == admission.PatientId && e.Conclusion == $"Noi tru: {admission.AdmissionCode}");
+            if (rep != null)
+            {
+                rep.Status = EncounterStatus.Completed;
+                rep.EndAt = DateTime.UtcNow;
             }
 
             await _db.SaveChangesAsync();
+            await tx.CommitAsync();
 
-            TempData["Success"] = "Da xuat vien thanh cong!";
+            TempData["Success"] = "?ã xu?t vi?n thành công!";
             return RedirectToAction(nameof(Index));
         }
         catch (Exception ex)
         {
-            TempData["Error"] = $"Loi: {ex.Message}";
+            await tx.RollbackAsync();
+            TempData["Error"] = $"L?i: {ex.Message}";
             return RedirectToAction(nameof(Discharge), new { id });
         }
     }
 
-    // Ghi nhan sinh hieu - GET
     public async Task<IActionResult> AddVitalSign(int admissionId)
     {
-        var admission = await _db.Admissions
-            .Include(a => a.Patient)
-            .FirstOrDefaultAsync(a => a.AdmissionId == admissionId);
-
-        if (admission == null || admission.Status != AdmissionStatus.Active)
-        {
+        var model = await _views.GetVitalSignFormAsync(admissionId);
+        if (model == null)
             return NotFound();
-        }
-
-        ViewBag.Admission = admission;
-        return View();
+        return View(model);
     }
 
-    // Ghi nhan sinh hieu - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddVitalSign(int admissionId, decimal? temperature, int? heartRate, 
+    public async Task<IActionResult> AddVitalSign(int admissionId, decimal? temperature, int? heartRate,
         int? respiratoryRate, int? bpSystolic, int? bpDiastolic, decimal? oxygenSat, decimal? weight, decimal? height, string? note)
     {
         try
         {
-            var doctorEmail = User.Identity!.Name;
-            var staff = await _db.Staffs.FirstOrDefaultAsync(s => s.FullName == doctorEmail);
+            var admission = await _db.Admissions.FindAsync(admissionId);
+            var staffId = await _staffService.GetStaffIdAsync(User, admission?.AttendingDoctorId);
 
             var vitalSign = new VitalSign
             {
                 AdmissionId = admissionId,
                 RecordedAt = DateTime.UtcNow,
-                RecordedBy = staff?.StaffId ?? 0,
+                RecordedBy = staffId,
                 Temperature = temperature,
                 HeartRate = heartRate,
                 RespiratoryRate = respiratoryRate,
@@ -281,12 +198,12 @@ public class HomeController : Controller
             _db.VitalSigns.Add(vitalSign);
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = "Da ghi nhan sinh hieu!";
+            TempData["Success"] = "?ã ghi nh?n sinh hi?u!";
             return RedirectToAction(nameof(Detail), new { id = admissionId });
         }
         catch (Exception ex)
         {
-            TempData["Error"] = $"Loi: {ex.Message}";
+            TempData["Error"] = $"L?i: {ex.Message}";
             return RedirectToAction(nameof(AddVitalSign), new { admissionId });
         }
     }

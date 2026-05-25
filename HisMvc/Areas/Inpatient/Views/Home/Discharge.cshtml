@@ -8,33 +8,33 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="bi bi-box-arrow-right"></i> Xuat Vien</h2>
         <a asp-action="Detail" asp-route-id="@Model.AdmissionId" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Quay lai
+            <i class="bi bi-arrow-left"></i> Quay lại
         </a>
     </div>
 
-    <!-- Thong tin tam tat -->
+    <!-- Thông tin tam tat -->
     <div class="card mb-4 border-warning">
         <div class="card-header bg-warning">
-            <i class="bi bi-info-circle"></i> Thong Tin Nhap Vien
+            <i class="bi bi-info-circle"></i> Thông tin Nhập Vien
         </div>
         <div class="card-body">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="mb-2"><strong>Benh nhan:</strong> @Model.Patient?.FullName</p>
-                    <p class="mb-2"><strong>Ma nhap vien:</strong> @Model.AdmissionCode</p>
-                    <p class="mb-2"><strong>Ngay sinh:</strong> @Model.Patient?.Dob?.ToString("dd/MM/yyyy")</p>
+                    <p class="mb-2"><strong>Bệnh nhân:</strong> @Model.Patient?.FullName</p>
+                    <p class="mb-2"><strong>Mã nhập viện:</strong> @Model.AdmissionCode</p>
+                    <p class="mb-2"><strong>Ngày sinh:</strong> @Model.Patient?.Dob?.ToString("dd/MM/yyyy")</p>
                 </div>
                 <div class="col-md-6">
-                    <p class="mb-2"><strong>Buong:</strong> @Model.Bed?.Ward?.Name</p>
-                    <p class="mb-2"><strong>Giuong:</strong> @Model.Bed?.BedNumber</p>
-                    <p class="mb-2"><strong>Ngay nhap vien:</strong> @Model.AdmittedAt.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p class="mb-2"><strong>So ngay nam vien:</strong> <span class="badge bg-info">@daysInHospital ngay</span></p>
+                    <p class="mb-2"><strong>Buồng:</strong> @Model.Bed?.Ward?.Name</p>
+                    <p class="mb-2"><strong>Giường:</strong> @Model.Bed?.BedNumber</p>
+                    <p class="mb-2"><strong>Ngay nhập viện:</strong> @Model.AdmittedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-2"><strong>So ngày nam vien:</strong> <span class="badge bg-info">@daysInHospital ngày</span></p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Form xuat vien -->
+    <!-- Form xuất viện -->
     <form method="post" asp-action="Discharge" asp-route-id="@Model.AdmissionId">
         @Html.AntiForgeryToken()
 
@@ -46,15 +46,15 @@
                 <div class="mb-3">
                     <label class="form-label">Tam tat benh an <span class="text-danger">*</span></label>
                     <textarea name="dischargeSummary" class="form-control" rows="6" required 
-                              placeholder="Nhap tam tat benh an: Qua trinh dieu tri, cac xet nghiem, thuoc da dung, tinh trang hien tai...">@Model.DischargeSummary</textarea>
-                    <small class="text-muted">Bao gom: Chan doan xac dinh, qua trinh dieu tri, ket qua dieu tri</small>
+                              placeholder="Nhập tam tat benh an: Qua trinh dieu tri, cac xet nghiem, thuốc da dung, tinh trang hien tai...">@Model.DischargeSummary</textarea>
+                    <small class="text-muted">Bao gom: Chẩn đoán xac dinh, qua trinh dieu tri, ket qua dieu tri</small>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Huong dan sau xuat vien</label>
+                    <label class="form-label">Huong dan sau xuất viện</label>
                     <textarea name="dischargeInstructions" class="form-control" rows="4"
-                              placeholder="Huong dan cham soc tai nha, tai kham, dung thuoc...">@Model.DischargeInstructions</textarea>
-                    <small class="text-muted">Ve du: Uong thuoc theo don, tai kham sau 1 tuan, kieng do cay nong...</small>
+                              placeholder="Huong dan cham soc tai nha, tai kham, dung thuốc...">@Model.DischargeInstructions</textarea>
+                    <small class="text-muted">Ve du: Uong thuốc theo đơn, tai kham sau 1 tuan, kieng do cay nong...</small>
                 </div>
             </div>
         </div>
@@ -65,20 +65,20 @@
             </div>
             <div class="card-body">
                 <div class="alert alert-warning mb-3">
-                    <h6><i class="bi bi-exclamation-triangle"></i> Truoc khi xuat vien, hay kiem tra:</h6>
+                    <h6><i class="bi bi-exclamation-triangle"></i> Truoc khi xuất viện, hãy kiểm tra:</h6>
                     <ul class="mb-0">
-                        <li>Tat ca y lenh da hoan thanh</li>
-                        <li>Da cap don thuoc day du cho benh nhan</li>
-                        <li>Da thanh toan vien phi (hoac ghi nhan no)</li>
-                        <li>Benh nhan/nguoi nha da nhan huong dan sau xuat vien</li>
+                        <li>Tất cả y lenh da hoàn thành</li>
+                        <li>Đã cap đơn thuốc đầy đủ cho bệnh nhân</li>
+                        <li>Đã thanh toán viện phí (hoặc ghi nhận nợ)</li>
+                        <li>Bệnh nhân/nguoi nha da nhan huong dan sau xuất viện</li>
                     </ul>
                 </div>
 
                 <div class="alert alert-info mb-0">
                     <p class="mb-0">
-                        <strong>Sau khi xuat vien:</strong><br />
-                        - Giuong benh se chuyen sang trang thai "Cleaning" (dang dan dep)<br />
-                        - Ho so se duoc chuyen sang trang thai "Discharged"<br />
+                        <strong>Sau khi xuất viện:</strong><br />
+                        - Giường bệnh sẽ chuyển sang trạng thái "Cleaning" (dang dan dep)<br />
+                        - Ho so sẽ duoc chuyển sang trạng thái "Discharged"<br />
                         - Co the in giay ra vien va tam tat benh an
                     </p>
                 </div>
@@ -87,9 +87,9 @@
 
         <div class="d-flex justify-content-between">
             <a asp-action="Detail" asp-route-id="@Model.AdmissionId" class="btn btn-secondary btn-lg">
-                <i class="bi bi-x-circle"></i> Huy
+                <i class="bi bi-x-circle"></i> Hủy
             </a>
-            <button type="submit" class="btn btn-warning btn-lg" onclick="return confirm('Xac nhan xuat vien cho benh nhan @Model.Patient?.FullName?')">
+            <button type="submit" class="btn btn-warning btn-lg" onclick="return confirm('Xác nhận xuất viện cho bệnh nhân @Model.Patient?.FullName?')">
                 <i class="bi bi-check-circle"></i> Xac Nhan Xuat Vien
             </button>
         </div>

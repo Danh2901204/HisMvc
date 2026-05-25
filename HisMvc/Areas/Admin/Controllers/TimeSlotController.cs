@@ -1,3 +1,5 @@
+using HisMvc.Areas.Admin.Models;
+using HisMvc.Areas.Admin.Services;
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
@@ -12,22 +14,21 @@ namespace HisMvc.Areas.Admin.Controllers;
 public class TimeSlotController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly AdminViewService _views;
 
-    public TimeSlotController(AppDbContext db)
+    public TimeSlotController(AppDbContext db, AdminViewService views)
     {
         _db = db;
+        _views = views;
     }
 
     public async Task<IActionResult> Index()
     {
-        var slots = await _db.TimeSlots.OrderBy(x => x.Start).ToListAsync();
-        return View(slots);
+        var model = await _views.GetTimeSlotListAsync();
+        return View(model);
     }
 
-    public IActionResult Create()
-    {
-        return View();
-    }
+    public IActionResult Create() => View();
 
     [HttpPost]
     public async Task<IActionResult> Create(TimeSlot model)
@@ -37,7 +38,7 @@ public class TimeSlotController : Controller
 
         _db.TimeSlots.Add(model);
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Them khung gio thanh cong!";
+        TempData["Success"] = "Thêm khung giờ thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -57,7 +58,7 @@ public class TimeSlotController : Controller
 
         _db.TimeSlots.Update(model);
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Cap nhat khung gio thanh cong!";
+        TempData["Success"] = "Cập nhật khung giờ thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -72,11 +73,11 @@ public class TimeSlotController : Controller
         {
             _db.TimeSlots.Remove(slot);
             await _db.SaveChangesAsync();
-            TempData["Success"] = "Xoa khung gio thanh cong!";
+            TempData["Success"] = "Xoa khung giờ thành công!";
         }
         catch
         {
-            TempData["Error"] = "Khong the xoa vi co du lieu lien quan!";
+            TempData["Error"] = "Không thể xóa vi có dữ liệu liên quan!";
         }
 
         return RedirectToAction(nameof(Index));

@@ -1,13 +1,13 @@
 @model Medicine
 @{
-    ViewData["Title"] = "Th�m Thu?c M?i";
+    ViewData["Title"] = "Thêm thuốc mưới";
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-plus-circle"></i> Th�m Thu?c M?i</h2>
+        <h2><i class="bi bi-plus-circle"></i> Thêm thuốc mưới</h2>
         <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Quay l?i
+            <i class="bi bi-arrow-left"></i> Quay lại
         </a>
     </div>
 
@@ -16,20 +16,20 @@
 
         <div class="card mb-4">
             <div class="card-header bg-primary text-white">
-                <i class="bi bi-info-circle"></i> Th�ng Tin C? B?n
+                <i class="bi bi-info-circle"></i> Thông tin cơ bản
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label asp-for="Code" class="form-label">M� thu?c <span class="text-danger">*</span></label>
+                            <label asp-for="Code" class="form-label">Mã thuốc <span class="text-danger">*</span></label>
                             <input asp-for="Code" class="form-control" placeholder="VD: PAR500" required />
                             <span asp-validation-for="Code" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label asp-for="Name" class="form-label">T�n thu?c <span class="text-danger">*</span></label>
+                            <label asp-for="Name" class="form-label">Tên thuốc <span class="text-danger">*</span></label>
                             <input asp-for="Name" class="form-control" placeholder="VD: Paracetamol 500mg" required />
                             <span asp-validation-for="Name" class="text-danger"></span>
                         </div>
@@ -39,35 +39,35 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label asp-for="ActiveIngredient" class="form-label">Ho?t ch?t <span class="text-danger">*</span></label>
+                            <label asp-for="ActiveIngredient" class="form-label">Hoạt chất <span class="text-danger">*</span></label>
                             <input asp-for="ActiveIngredient" class="form-control" placeholder="VD: Paracetamol" required />
                             <span asp-validation-for="ActiveIngredient" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label asp-for="Unit" class="form-label">??n v? <span class="text-danger">*</span></label>
-                            <input asp-for="Unit" class="form-control" placeholder="VD: Vi�n, H?p, Chai, Tu�p" required />
+                            <label asp-for="Unit" class="form-label">Đơn vị <span class="text-danger">*</span></label>
+                            <input asp-for="Unit" class="form-control" placeholder="VD: Vien, Hop, Chai, Tuyp" required />
                             <span asp-validation-for="Unit" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Manufacturer" class="form-label">Nh� s?n xu?t</label>
+                    <label asp-for="Manufacturer" class="form-label">Nhà sản xuất</label>
                     <input asp-for="Manufacturer" class="form-control" placeholder="VD: DHG Pharma" />
                 </div>
 
                 <div class="mb-3">
-                    <label asp-for="Description" class="form-label">M� t?</label>
-                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="M� t? c�ng d?ng, c�ch d�ng..."></textarea>
+                    <label asp-for="Description" class="form-label">Mô tả</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mô tả công dụng, cách dùng..."></textarea>
                 </div>
             </div>
         </div>
 
         <div class="card mb-4">
             <div class="card-header">
-                <i class="bi bi-gear"></i> C?u H�nh
+                <i class="bi bi-gear"></i> Cấu hình
             </div>
             <div class="card-body">
                 <div class="row">
@@ -75,7 +75,7 @@
                         <div class="form-check mb-3">
                             <input asp-for="RequiresPrescription" class="form-check-input" type="checkbox" checked />
                             <label asp-for="RequiresPrescription" class="form-check-label">
-                                Y�u c?u ??n thu?c (thu?c k� ??n)
+                                Yêu cầu đơn thuốc (thuốc kê đơn)
                             </label>
                         </div>
                     </div>
@@ -83,7 +83,7 @@
                         <div class="form-check mb-3">
                             <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
                             <label asp-for="IsActive" class="form-check-label">
-                                ?ang s? d?ng
+                                Đang sử dụng
                             </label>
                         </div>
                     </div>
@@ -93,10 +93,10 @@
 
         <div class="d-flex justify-content-between">
             <a asp-action="Index" class="btn btn-secondary btn-lg">
-                <i class="bi bi-x-circle"></i> H?y
+                <i class="bi bi-x-circle"></i> Hủy
             </a>
             <button type="submit" class="btn btn-success btn-lg">
-                <i class="bi bi-save"></i> L?u Thu?c
+                <i class="bi bi-save"></i> Lưu thuốc
             </button>
         </div>
     </form>

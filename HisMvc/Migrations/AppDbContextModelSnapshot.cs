@@ -121,6 +121,9 @@ namespace HisMvc.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int?>("DischargeResult")
+                        .HasColumnType("int");
+
                     b.Property<string>("DischargeSummary")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -131,8 +134,17 @@ namespace HisMvc.Migrations
                     b.Property<int?>("DischargedBy")
                         .HasColumnType("int");
 
-                    b.Property<int?>("DischargedByStaffStaffId")
-                        .HasColumnType("int");
+                    b.Property<string>("Icd10Admission")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Icd10Discharge")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Icd10DischargeSecondary")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("InitialDiagnosis")
                         .HasMaxLength(1000)
@@ -153,7 +165,7 @@ namespace HisMvc.Migrations
 
                     b.HasIndex("BedId");
 
-                    b.HasIndex("DischargedByStaffStaffId");
+                    b.HasIndex("DischargedBy");
 
                     b.HasIndex("PatientId");
 
@@ -172,6 +184,9 @@ namespace HisMvc.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("AllergyType")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("IdentifiedDate")
                         .HasColumnType("datetime2");
@@ -207,6 +222,9 @@ namespace HisMvc.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
+
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -363,6 +381,9 @@ namespace HisMvc.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Diagnosis")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -370,11 +391,48 @@ namespace HisMvc.Migrations
                     b.Property<int>("DoctorId")
                         .HasColumnType("int");
 
+                    b.Property<string>("EncounterCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<DateTime>("EndAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateOnly?>("FollowUpDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Icd10Primary")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Icd10PrimaryName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Icd10Secondary")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<int>("PatientId")
                         .HasColumnType("int");
+
+                    b.Property<int?>("QueueNumber")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("QueuedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RoomNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -383,11 +441,44 @@ namespace HisMvc.Migrations
 
                     b.HasIndex("AppointmentId");
 
+                    b.HasIndex("DepartmentId");
+
                     b.HasIndex("DoctorId");
+
+                    b.HasIndex("EncounterCode")
+                        .IsUnique()
+                        .HasFilter("[EncounterCode] IS NOT NULL AND [EncounterCode] <> ''");
 
                     b.HasIndex("PatientId");
 
+                    b.HasIndex("Status");
+
                     b.ToTable("Encounters");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Icd10Catalog", b =>
+                {
+                    b.Property<string>("Code")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Chapter")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<bool>("IsCommon")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.HasKey("Code");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Icd10Catalogs");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.InsuranceClaim", b =>
@@ -405,9 +496,6 @@ namespace HisMvc.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int?>("ApprovedBy")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ApprovedByStaffStaffId")
                         .HasColumnType("int");
 
                     b.Property<string>("ClaimCode")
@@ -474,7 +562,7 @@ namespace HisMvc.Migrations
 
                     b.HasIndex("AdmissionId");
 
-                    b.HasIndex("ApprovedByStaffStaffId");
+                    b.HasIndex("ApprovedBy");
 
                     b.HasIndex("ClaimCode")
                         .IsUnique();
@@ -570,6 +658,9 @@ namespace HisMvc.Migrations
 
                     b.HasKey("InsuranceConfigId");
 
+                    b.HasIndex("InsuranceType")
+                        .IsUnique();
+
                     b.ToTable("InsuranceConfigs");
                 });
 
@@ -629,6 +720,13 @@ namespace HisMvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InvoiceId"));
 
+                    b.Property<int?>("AdmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("BedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -639,15 +737,23 @@ namespace HisMvc.Migrations
                     b.Property<DateTime?>("EInvoiceIssuedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("EncounterId")
+                    b.Property<int?>("EncounterId")
                         .HasColumnType("int");
 
-                    b.Property<bool>("HasInsurance")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("InsuranceAmount")
+                    b.Property<decimal>("ExamFeeAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("HasInsurance")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<decimal>("InsuranceAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<int?>("InsuranceClaimId")
                         .HasColumnType("int");
@@ -656,6 +762,13 @@ namespace HisMvc.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("InvoiceType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("MedicineAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -668,7 +781,21 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("PaidByStaffId")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("PatientAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<decimal>("ServicesAmount")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -685,12 +812,16 @@ namespace HisMvc.Migrations
 
                     b.HasKey("InvoiceId");
 
+                    b.HasIndex("AdmissionId");
+
                     b.HasIndex("EncounterId");
 
                     b.HasIndex("InsuranceClaimId");
 
                     b.HasIndex("InvoiceCode")
                         .IsUnique();
+
+                    b.HasIndex("PaidByStaffId");
 
                     b.ToTable("Invoices");
                 });
@@ -749,9 +880,6 @@ namespace HisMvc.Migrations
                     b.Property<int?>("ExecutedBy")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ExecutedByStaffStaffId")
-                        .HasColumnType("int");
-
                     b.Property<string>("ExecutionNote")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -792,7 +920,7 @@ namespace HisMvc.Migrations
 
                     b.HasIndex("AdmissionId");
 
-                    b.HasIndex("ExecutedByStaffStaffId");
+                    b.HasIndex("ExecutedBy");
 
                     b.HasIndex("OrderedBy");
 
@@ -814,6 +942,14 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("BhytCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("BhytPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -824,6 +960,9 @@ namespace HisMvc.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInBhytList")
                         .HasColumnType("bit");
 
                     b.Property<string>("Manufacturer")
@@ -888,7 +1027,8 @@ namespace HisMvc.Migrations
 
                     b.HasKey("MedicineBatchId");
 
-                    b.HasIndex("MedicineId");
+                    b.HasIndex("MedicineId", "BatchNumber")
+                        .IsUnique();
 
                     b.ToTable("MedicineBatches");
                 });
@@ -901,8 +1041,16 @@ namespace HisMvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderId"));
 
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("EncounterId")
                         .HasColumnType("int");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime>("OrderedAt")
                         .HasColumnType("datetime2");
@@ -912,8 +1060,17 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("OrderedByStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
                     b.Property<int>("ServiceId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -921,6 +1078,12 @@ namespace HisMvc.Migrations
                     b.HasKey("OrderId");
 
                     b.HasIndex("EncounterId");
+
+                    b.HasIndex("OrderCode")
+                        .IsUnique()
+                        .HasFilter("[OrderCode] IS NOT NULL AND [OrderCode] <> ''");
+
+                    b.HasIndex("OrderedByStaffId");
 
                     b.HasIndex("ServiceId");
 
@@ -934,6 +1097,10 @@ namespace HisMvc.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("OrderResultId"));
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -951,10 +1118,15 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int?>("ResultedByStaffId")
+                        .HasColumnType("int");
+
                     b.HasKey("OrderResultId");
 
                     b.HasIndex("OrderId")
                         .IsUnique();
+
+                    b.HasIndex("ResultedByStaffId");
 
                     b.ToTable("OrderResults");
                 });
@@ -971,8 +1143,15 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateOnly?>("Dob")
                         .HasColumnType("date");
+
+                    b.Property<string>("Ethnicity")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -987,8 +1166,10 @@ namespace HisMvc.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<decimal>("InsuranceCoveragePercent")
+                        .ValueGeneratedOnAdd()
                         .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime?>("InsuranceExpiry")
                         .HasColumnType("datetime2");
@@ -996,6 +1177,10 @@ namespace HisMvc.Migrations
                     b.Property<string>("InsuranceHospital")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("InsuranceHospitalCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("InsuranceNumber")
                         .HasMaxLength(15)
@@ -1005,12 +1190,35 @@ namespace HisMvc.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<DateTime?>("InsuranceValidFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Occupation")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PatientCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
                     b.HasKey("PatientId");
+
+                    b.HasIndex("IdentityNumber")
+                        .IsUnique()
+                        .HasFilter("[IdentityNumber] IS NOT NULL");
+
+                    b.HasIndex("PatientCode")
+                        .IsUnique()
+                        .HasFilter("[PatientCode] IS NOT NULL AND [PatientCode] <> ''");
 
                     b.HasIndex("Phone");
 
@@ -1055,12 +1263,15 @@ namespace HisMvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionId"));
 
+                    b.Property<int?>("AdmissionId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<int>("EncounterId")
+                    b.Property<int?>("EncounterId")
                         .HasColumnType("int");
 
                     b.Property<string>("Note")
@@ -1077,6 +1288,8 @@ namespace HisMvc.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("PrescriptionId");
+
+                    b.HasIndex("AdmissionId");
 
                     b.HasIndex("Code")
                         .IsUnique();
@@ -1102,7 +1315,9 @@ namespace HisMvc.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<int>("Duration")
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Instructions")
                         .HasMaxLength(500)
@@ -1134,6 +1349,29 @@ namespace HisMvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceId"));
 
+                    b.Property<string>("BhytCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal?>("BhytPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("DepartmentCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInBhytList")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1149,6 +1387,10 @@ namespace HisMvc.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("ServiceId");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL AND [Code] <> ''");
 
                     b.ToTable("Services");
                 });
@@ -1169,14 +1411,34 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("StaffCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<string>("StaffType")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("StaffId");
 
                     b.HasIndex("DepartmentId");
+
+                    b.HasIndex("StaffCode")
+                        .IsUnique()
+                        .HasFilter("[StaffCode] IS NOT NULL AND [StaffCode] <> ''");
 
                     b.ToTable("Staffs");
                 });
@@ -1316,10 +1578,10 @@ namespace HisMvc.Migrations
                     b.Property<int>("RecordedBy")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RecordedByStaffStaffId")
+                    b.Property<int?>("RespiratoryRate")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RespiratoryRate")
+                    b.Property<int>("Shift")
                         .HasColumnType("int");
 
                     b.Property<decimal?>("Temperature")
@@ -1334,7 +1596,7 @@ namespace HisMvc.Migrations
 
                     b.HasIndex("AdmissionId");
 
-                    b.HasIndex("RecordedByStaffStaffId");
+                    b.HasIndex("RecordedBy");
 
                     b.ToTable("VitalSigns");
                 });
@@ -1532,7 +1794,8 @@ namespace HisMvc.Migrations
 
                     b.HasOne("HisMvc.Entities.Staff", "DischargedByStaff")
                         .WithMany()
-                        .HasForeignKey("DischargedByStaffStaffId");
+                        .HasForeignKey("DischargedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HisMvc.Entities.Patient", "Patient")
                         .WithMany()
@@ -1554,7 +1817,7 @@ namespace HisMvc.Migrations
                     b.HasOne("HisMvc.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Patient");
@@ -1630,19 +1893,27 @@ namespace HisMvc.Migrations
                         .WithMany()
                         .HasForeignKey("AppointmentId");
 
+                    b.HasOne("HisMvc.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("HisMvc.Entities.Staff", "Doctor")
                         .WithMany()
                         .HasForeignKey("DoctorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("HisMvc.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Appointment");
+
+                    b.Navigation("Department");
 
                     b.Navigation("Doctor");
 
@@ -1657,7 +1928,8 @@ namespace HisMvc.Migrations
 
                     b.HasOne("HisMvc.Entities.Staff", "ApprovedByStaff")
                         .WithMany()
-                        .HasForeignKey("ApprovedByStaffStaffId");
+                        .HasForeignKey("ApprovedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HisMvc.Entities.Encounter", "Encounter")
                         .WithMany()
@@ -1699,7 +1971,8 @@ namespace HisMvc.Migrations
 
                     b.HasOne("HisMvc.Entities.Staff", "Staff")
                         .WithMany()
-                        .HasForeignKey("StaffId");
+                        .HasForeignKey("StaffId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("MedicineBatch");
 
@@ -1708,19 +1981,32 @@ namespace HisMvc.Migrations
 
             modelBuilder.Entity("HisMvc.Entities.Invoice", b =>
                 {
+                    b.HasOne("HisMvc.Entities.Admission", "Admission")
+                        .WithMany()
+                        .HasForeignKey("AdmissionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("HisMvc.Entities.Encounter", "Encounter")
                         .WithMany()
                         .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HisMvc.Entities.InsuranceClaim", "InsuranceClaim")
                         .WithMany()
                         .HasForeignKey("InsuranceClaimId");
 
+                    b.HasOne("HisMvc.Entities.Staff", "PaidByStaff")
+                        .WithMany()
+                        .HasForeignKey("PaidByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Admission");
+
                     b.Navigation("Encounter");
 
                     b.Navigation("InsuranceClaim");
+
+                    b.Navigation("PaidByStaff");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.MedicalHistory", b =>
@@ -1728,7 +2014,7 @@ namespace HisMvc.Migrations
                     b.HasOne("HisMvc.Entities.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Patient");
@@ -1744,7 +2030,8 @@ namespace HisMvc.Migrations
 
                     b.HasOne("HisMvc.Entities.Staff", "ExecutedByStaff")
                         .WithMany()
-                        .HasForeignKey("ExecutedByStaffStaffId");
+                        .HasForeignKey("ExecutedBy")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HisMvc.Entities.Staff", "OrderedByStaff")
                         .WithMany()
@@ -1781,8 +2068,13 @@ namespace HisMvc.Migrations
                     b.HasOne("HisMvc.Entities.Encounter", "Encounter")
                         .WithMany()
                         .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "OrderedByStaff")
+                        .WithMany()
+                        .HasForeignKey("OrderedByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HisMvc.Entities.Service", "Service")
                         .WithMany()
@@ -1791,6 +2083,8 @@ namespace HisMvc.Migrations
                         .IsRequired();
 
                     b.Navigation("Encounter");
+
+                    b.Navigation("OrderedByStaff");
 
                     b.Navigation("Service");
                 });
@@ -1803,7 +2097,14 @@ namespace HisMvc.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("HisMvc.Entities.Staff", "ResultedByStaff")
+                        .WithMany()
+                        .HasForeignKey("ResultedByStaffId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Order");
+
+                    b.Navigation("ResultedByStaff");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.PharmacyDispense", b =>
@@ -1827,17 +2128,23 @@ namespace HisMvc.Migrations
 
             modelBuilder.Entity("HisMvc.Entities.Prescription", b =>
                 {
+                    b.HasOne("HisMvc.Entities.Admission", "Admission")
+                        .WithMany()
+                        .HasForeignKey("AdmissionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("HisMvc.Entities.Encounter", "Encounter")
                         .WithMany()
                         .HasForeignKey("EncounterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HisMvc.Entities.Staff", "Doctor")
                         .WithMany()
                         .HasForeignKey("PrescribedBy")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Admission");
 
                     b.Navigation("Doctor");
 
@@ -1909,7 +2216,9 @@ namespace HisMvc.Migrations
 
                     b.HasOne("HisMvc.Entities.Staff", "RecordedByStaff")
                         .WithMany()
-                        .HasForeignKey("RecordedByStaffStaffId");
+                        .HasForeignKey("RecordedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Admission");
 

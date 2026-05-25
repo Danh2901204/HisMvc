@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace HisMvc.Entities;
 
-// 1. Giám ??nh BHYT cho l??t khám/nh?p vi?n
+// 1. GiÃ¡m Ä‘á»‹nh BHYT cho lÆ°á»£t khÃ¡m/nháº­p viá»‡n
 public class InsuranceClaim
 {
     public int InsuranceClaimId { get; set; }
@@ -10,7 +11,7 @@ public class InsuranceClaim
     [MaxLength(30)]
     public string ClaimCode { get; set; } = "";
     
-    // Link ??n Encounter ho?c Admission
+    // Link den Encounter hoáº·c Admission
     public int? EncounterId { get; set; }
     public Encounter? Encounter { get; set; }
     
@@ -20,7 +21,7 @@ public class InsuranceClaim
     public int PatientId { get; set; }
     public Patient? Patient { get; set; }
     
-    // Thông tin th? BHYT t?i th?i ?i?m khám
+    // ThÃ´ng tin the BHYT tai thoi diem kham
     [MaxLength(15)]
     public string InsuranceNumber { get; set; } = "";
     
@@ -29,25 +30,27 @@ public class InsuranceClaim
     [MaxLength(10)]
     public string InsuranceType { get; set; } = "";
     
-    public decimal CoveragePercent { get; set; } = 80; // % chi tr?
+    public decimal CoveragePercent { get; set; } = 80; // % chi tra
     
-    // Chi phí
-    public decimal TotalAmount { get; set; } // T?ng chi phí
+    // Chi phÃ­
+    public decimal TotalAmount { get; set; } // Tá»•ng chi phÃ­
     
-    public decimal InsuranceCovered { get; set; } // BHYT chi tr?
+    public decimal InsuranceCovered { get; set; } // BHYT chi tráº£
     
-    public decimal PatientPayment { get; set; } // B?nh nhân ??ng chi tr?
+    public decimal PatientPayment { get; set; } // Bá»‡nh nhÃ¢n Ä‘á»“ng chi tráº£
     
-    // Tr?ng thái giám ??nh
+    // Tráº¡ng thÃ¡i giam dinh
     public ClaimStatus Status { get; set; } = ClaimStatus.Pending;
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
-    public DateTime? SubmittedAt { get; set; } // Ngày g?i giám ??nh
+    public DateTime? SubmittedAt { get; set; } // Ngay gui giam dinh
     
-    public DateTime? ApprovedAt { get; set; } // Ngày duy?t
+    public DateTime? ApprovedAt { get; set; } // Ngay duyet
     
     public int? ApprovedBy { get; set; }
+
+    [ForeignKey(nameof(ApprovedBy))]
     public Staff? ApprovedByStaff { get; set; }
     
     [MaxLength(500)]
@@ -56,11 +59,11 @@ public class InsuranceClaim
     [MaxLength(500)]
     public string? RejectReason { get; set; }
     
-    // XML data theo chu?n B? Y t?
-    public string? XmlData { get; set; } // L?u XML ?? g?i lên c?ng BHYT
+    // XML data theo chuan Bo Y te
+    public string? XmlData { get; set; } // Luu XML de gui len cong BHYT
 }
 
-// 2. Chi ti?t chi phí BHYT (theo d?ch v?)
+// 2. Chi tiet chi phÃ­ BHYT (theo dá»‹ch vá»¥)
 public class InsuranceClaimItem
 {
     public int InsuranceClaimItemId { get; set; }
@@ -72,7 +75,7 @@ public class InsuranceClaimItem
     public string ServiceName { get; set; } = "";
     
     [MaxLength(50)]
-    public string ServiceCode { get; set; } = ""; // Mã d?ch v? theo BHYT
+    public string ServiceCode { get; set; } = ""; // MÃ£ dá»‹ch vá»¥ theo BHYT
     
     public int Quantity { get; set; } = 1;
     
@@ -80,17 +83,17 @@ public class InsuranceClaimItem
     
     public decimal TotalPrice { get; set; }
     
-    public decimal InsurancePaid { get; set; } // BHYT tr?
+    public decimal InsurancePaid { get; set; } // BHYT tra
     
-    public decimal PatientPaid { get; set; } // BN tr?
+    public decimal PatientPaid { get; set; } // BN tra
     
-    public bool IsInInsuranceList { get; set; } = true; // Có trong danh m?c BHYT không
+    public bool IsInInsuranceList { get; set; } = true; // Co trong danh muc BHYT khÃ´ng
     
     [MaxLength(500)]
     public string? Note { get; set; }
 }
 
-// 3. C?u hình t? l? BHYT theo lo?i th?
+// 3. Cáº¥u hÃ¬nh ty le BHYT theo loáº¡i tháº»
 public class InsuranceConfig
 {
     public int InsuranceConfigId { get; set; }
@@ -103,7 +106,7 @@ public class InsuranceConfig
     
     public decimal DefaultCoveragePercent { get; set; } = 80;
     
-    public bool RequireRegistration { get; set; } = true; // Yêu c?u ??ng ký n?i KCB
+    public bool RequireRegistration { get; set; } = true; // YÃªu cáº§u dang ky noi KCB
     
     public bool IsActive { get; set; } = true;
 }

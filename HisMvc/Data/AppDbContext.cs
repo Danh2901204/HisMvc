@@ -1,4 +1,4 @@
-﻿using HisMvc.Entities;
+using HisMvc.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,12 +43,16 @@ public class AppDbContext : IdentityDbContext<AppUser>
     public DbSet<InsuranceClaimItem> InsuranceClaimItems => Set<InsuranceClaimItem>();
     public DbSet<InsuranceConfig> InsuranceConfigs => Set<InsuranceConfig>();
 
+    public DbSet<Icd10Catalog> Icd10Catalogs => Set<Icd10Catalog>();
+
     protected override void OnModelCreating(ModelBuilder b)
     {
         base.OnModelCreating(b);
 
         b.Entity<Appointment>().HasIndex(x => x.Code).IsUnique();
         b.Entity<Patient>().HasIndex(x => x.Phone);
+        b.Entity<Patient>().HasIndex(x => x.IdentityNumber).IsUnique().HasFilter("[IdentityNumber] IS NOT NULL");
+        b.Entity<Patient>().HasIndex(x => x.PatientCode).IsUnique().HasFilter("[PatientCode] IS NOT NULL AND [PatientCode] <> ''");
 
         b.Entity<Staff>()
             .HasOne(x => x.Department)
@@ -56,21 +60,71 @@ public class AppDbContext : IdentityDbContext<AppUser>
             .HasForeignKey(x => x.DepartmentId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        b.Entity<Staff>().HasIndex(x => x.StaffCode).IsUnique().HasFilter("[StaffCode] IS NOT NULL AND [StaffCode] <> ''");
+
         b.Entity<Appointment>()
             .HasOne(x => x.Doctor)
             .WithMany()
             .HasForeignKey(x => x.DoctorId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
+        // Encounter: chuyển sang Restrict de bao toan HSBA (MoH yêu cầu luu tru lau dai)
+        b.Entity<Encounter>()
+            .HasOne(x => x.Patient)
+            .WithMany()
+            .HasForeignKey(x => x.PatientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Encounter>()
+            .HasOne(x => x.Doctor)
+            .WithMany()
+            .HasForeignKey(x => x.DoctorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Encounter>()
+            .HasOne(x => x.Department)
+            .WithMany()
+            .HasForeignKey(x => x.DepartmentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Encounter>()
+            .HasIndex(x => x.EncounterCode)
+            .IsUnique()
+            .HasFilter("[EncounterCode] IS NOT NULL AND [EncounterCode] <> ''");
+
+        b.Entity<Encounter>()
+            .HasIndex(x => x.Status);
+
+        // Order: chuyển sang Restrict de tranh mat HSBA
         b.Entity<Order>()
             .HasOne(x => x.Encounter)
             .WithMany()
             .HasForeignKey(x => x.EncounterId)
-            .OnDelete(DeleteBehavior.Cascade);
-        
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Order>()
+            .HasOne(x => x.OrderedByStaff)
+            .WithMany()
+            .HasForeignKey(x => x.OrderedByStaffId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Order>()
+            .HasIndex(x => x.OrderCode)
+            .IsUnique()
+            .HasFilter("[OrderCode] IS NOT NULL AND [OrderCode] <> ''");
+
         b.Entity<Service>()
             .Property(x => x.Price)
             .HasPrecision(18, 2);
+
+        b.Entity<Service>()
+            .Property(x => x.BhytPrice)
+            .HasPrecision(18, 2);
+
+        b.Entity<Service>()
+            .HasIndex(x => x.Code)
+            .IsUnique()
+            .HasFilter("[Code] IS NOT NULL AND [Code] <> ''");
 
         b.Entity<Order>()
           .HasOne(x => x.Service)
@@ -82,6 +136,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .HasIndex(x => x.OrderId)
           .IsUnique();
 
+        b.Entity<OrderResult>()
+          .HasOne(x => x.ResultedByStaff)
+          .WithMany()
+          .HasForeignKey(x => x.ResultedByStaffId)
+          .OnDelete(DeleteBehavior.Restrict);
+
         b.Entity<Invoice>()
           .HasOne(x => x.Encounter)
           .WithMany()
@@ -89,12 +149,47 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .OnDelete(DeleteBehavior.Restrict);
 
         b.Entity<Invoice>()
+          .HasOne(x => x.Admission)
+          .WithMany()
+          .HasForeignKey(x => x.AdmissionId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Invoice>()
+          .HasOne(x => x.PaidByStaff)
+          .WithMany()
+          .HasForeignKey(x => x.PaidByStaffId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Invoice>()
           .HasIndex(x => x.InvoiceCode)
           .IsUnique();
 
         b.Entity<Invoice>()
+          .Property(x => x.ExamFeeAmount).HasPrecision(18, 2);
+        b.Entity<Invoice>()
+          .Property(x => x.ServicesAmount).HasPrecision(18, 2);
+        b.Entity<Invoice>()
+          .Property(x => x.MedicineAmount).HasPrecision(18, 2);
+        b.Entity<Invoice>()
+          .Property(x => x.BedAmount).HasPrecision(18, 2);
+
+        b.Entity<Invoice>()
           .Property(x => x.TotalAmount)
           .HasPrecision(18, 2);
+
+        b.Entity<Invoice>()
+          .Property(x => x.HasInsurance)
+          .HasDefaultValue(false);
+
+        b.Entity<Invoice>()
+          .Property(x => x.InsuranceAmount)
+          .HasPrecision(18, 2)
+          .HasDefaultValue(0m);
+
+        b.Entity<Invoice>()
+          .Property(x => x.PatientAmount)
+          .HasPrecision(18, 2)
+          .HasDefaultValue(0m);
 
         // Pharmacy configurations
         b.Entity<Medicine>()
@@ -122,10 +217,30 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .OnDelete(DeleteBehavior.Restrict);
 
         b.Entity<Prescription>()
+          .HasOne(x => x.Admission)
+          .WithMany()
+          .HasForeignKey(x => x.AdmissionId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Prescription>()
           .HasOne(x => x.Doctor)
           .WithMany()
           .HasForeignKey(x => x.PrescribedBy)
           .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<MedicineBatch>()
+          .HasIndex(x => new { x.MedicineId, x.BatchNumber })
+          .IsUnique();
+
+        b.Entity<InsuranceConfig>()
+          .HasIndex(x => x.InsuranceType)
+          .IsUnique();
+
+        b.Entity<Icd10Catalog>().HasIndex(x => x.Name);
+
+        b.Entity<Medicine>()
+          .Property(x => x.BhytPrice)
+          .HasPrecision(18, 2);
 
         b.Entity<PrescriptionItem>()
           .HasOne(x => x.Prescription)
@@ -163,6 +278,18 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .HasOne(x => x.MedicineBatch)
           .WithMany()
           .HasForeignKey(x => x.MedicineBatchId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<InventoryTransaction>()
+          .HasOne(x => x.Staff)
+          .WithMany()
+          .HasForeignKey(x => x.StaffId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<Admission>()
+          .HasOne(x => x.DischargedByStaff)
+          .WithMany()
+          .HasForeignKey(x => x.DischargedBy)
           .OnDelete(DeleteBehavior.Restrict);
 
         // Inpatient configurations
@@ -220,6 +347,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .HasForeignKey(x => x.OrderedBy)
           .OnDelete(DeleteBehavior.Restrict);
 
+        b.Entity<MedicalOrder>()
+          .HasOne(x => x.ExecutedByStaff)
+          .WithMany()
+          .HasForeignKey(x => x.ExecutedBy)
+          .OnDelete(DeleteBehavior.Restrict);
+
         b.Entity<Surgery>()
           .HasIndex(x => x.SurgeryCode)
           .IsUnique();
@@ -243,6 +376,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .OnDelete(DeleteBehavior.Cascade);
 
         b.Entity<VitalSign>()
+          .HasOne(x => x.RecordedByStaff)
+          .WithMany()
+          .HasForeignKey(x => x.RecordedBy)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<VitalSign>()
           .Property(x => x.Temperature)
           .HasPrecision(4, 1);
 
@@ -262,13 +401,13 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .HasOne(x => x.Patient)
           .WithMany()
           .HasForeignKey(x => x.PatientId)
-          .OnDelete(DeleteBehavior.Cascade);
+          .OnDelete(DeleteBehavior.Restrict);
 
         b.Entity<MedicalHistory>()
           .HasOne(x => x.Patient)
           .WithMany()
           .HasForeignKey(x => x.PatientId)
-          .OnDelete(DeleteBehavior.Cascade);
+          .OnDelete(DeleteBehavior.Restrict);
 
         // Insurance configurations
         b.Entity<InsuranceClaim>()
@@ -279,6 +418,12 @@ public class AppDbContext : IdentityDbContext<AppUser>
           .HasOne(x => x.Patient)
           .WithMany()
           .HasForeignKey(x => x.PatientId)
+          .OnDelete(DeleteBehavior.Restrict);
+
+        b.Entity<InsuranceClaim>()
+          .HasOne(x => x.ApprovedByStaff)
+          .WithMany()
+          .HasForeignKey(x => x.ApprovedBy)
           .OnDelete(DeleteBehavior.Restrict);
 
         b.Entity<InsuranceClaim>()
@@ -325,14 +470,75 @@ public class AppDbContext : IdentityDbContext<AppUser>
 
         b.Entity<Patient>()
           .Property(x => x.InsuranceCoveragePercent)
-          .HasPrecision(5, 2);
+          .HasPrecision(5, 2)
+          .HasDefaultValue(0m);
 
-        b.Entity<Invoice>()
-          .Property(x => x.InsuranceAmount)
-          .HasPrecision(18, 2);
+        b.Entity<PrescriptionItem>()
+          .Property(x => x.Duration)
+          .HasDefaultValue(1);
+    }
 
-        b.Entity<Invoice>()
-          .Property(x => x.PatientAmount)
-          .HasPrecision(18, 2);
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        NormalizeEntities();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        NormalizeEntities();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void NormalizeEntities()
+    {
+        foreach (var entry in ChangeTracker.Entries<Patient>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+            {
+                entry.Entity.Phone = (entry.Entity.Phone ?? "").Trim();
+                entry.Entity.FullName = (entry.Entity.FullName ?? "").Trim();
+                if (entry.State == EntityState.Modified)
+                    entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        foreach (var entry in ChangeTracker.Entries<Medicine>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+            {
+                entry.Entity.ActiveIngredient = string.IsNullOrWhiteSpace(entry.Entity.ActiveIngredient)
+                    ? entry.Entity.Name
+                    : entry.Entity.ActiveIngredient.Trim();
+                entry.Entity.Unit = string.IsNullOrWhiteSpace(entry.Entity.Unit)
+                    ? "Vien"
+                    : entry.Entity.Unit.Trim();
+            }
+        }
+
+        // BO: không tu set EndAt = CheckInAt nua. EndAt chi set khi Completed.
+        foreach (var entry in ChangeTracker.Entries<Encounter>())
+        {
+            if (entry.State == EntityState.Added && entry.Entity.EndAt == default)
+                entry.Entity.EndAt = DateTime.UtcNow; // placeholder, sẽ overwrite khi Close
+        }
+
+        foreach (var entry in ChangeTracker.Entries<InventoryTransaction>())
+        {
+            if (entry.State is EntityState.Added or EntityState.Modified)
+            {
+                if (entry.Entity.StaffId.HasValue)
+                    entry.Entity.CreatedBy ??= entry.Entity.StaffId;
+                else if (entry.Entity.CreatedBy.HasValue)
+                    entry.Entity.StaffId ??= entry.Entity.CreatedBy;
+            }
+        }
+
+        // BO auto-fill PatientAmount - de service tinh chinh xac, tranh ghi de
+        foreach (var entry in ChangeTracker.Entries<MedicalOrder>())
+        {
+            if (entry.State == EntityState.Added && entry.Entity.ScheduledAt == default)
+                entry.Entity.ScheduledAt = entry.Entity.OrderedAt;
+        }
     }
 }

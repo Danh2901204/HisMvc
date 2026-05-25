@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Tao hoa don";
+    ViewData["Title"] = "Tạo hóa đơn";
     var encounter = (Encounter)ViewBag.Encounter;
     var orders = (List<Order>)ViewBag.Orders;
     var examFee = (decimal)ViewBag.ExamFee;
@@ -28,27 +28,27 @@
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 <div class="card-header bg-success text-white">
-                    <h4 class="mb-0"><i class="bi bi-receipt"></i> Tao hoa don - Encounter #@encounter.EncounterId</h4>
+                    <h4 class="mb-0"><i class="bi bi-receipt"></i> Tạo hóa đơn - Encounter #@encounter.EncounterId</h4>
                 </div>
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p class="mb-2">
-                                <strong><i class="bi bi-person-fill text-primary"></i> Benh nhan:</strong><br />
+                                <strong><i class="bi bi-person-fill text-primary"></i> Bệnh nhân:</strong><br />
                                 <span class="ms-4 fs-5">@encounter.Patient?.FullName</span>
                             </p>
                             <p class="mb-2">
-                                <strong><i class="bi bi-telephone-fill text-success"></i> Dien thoai:</strong><br />
+                                <strong><i class="bi bi-telephone-fill text-success"></i> Diện thoại:</strong><br />
                                 <span class="ms-4">@encounter.Patient?.Phone</span>
                             </p>
                         </div>
                         <div class="col-md-6">
                             <p class="mb-2">
-                                <strong><i class="bi bi-person-badge-fill text-info"></i> Bac si:</strong><br />
+                                <strong><i class="bi bi-person-badge-fill text-info"></i> Bác sĩ:</strong><br />
                                 <span class="ms-4">@encounter.Doctor?.FullName</span>
                             </p>
                             <p class="mb-2">
-                                <strong><i class="bi bi-clock"></i> Thoi gian:</strong><br />
+                                <strong><i class="bi bi-clock"></i> Thời gian:</strong><br />
                                 <span class="ms-4">@encounter.CheckInAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                             </p>
                         </div>
@@ -56,22 +56,22 @@
 
                     <hr />
 
-                    <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Chi tiet dich vu:</h5>
+                    <h5 class="mb-3"><i class="bi bi-clipboard-check"></i> Chi tiết dịch vụ:</h5>
 
                     <div class="table-responsive mb-3">
                         <table class="table table-bordered">
                             <thead class="table-light">
                                 <tr>
                                     <th>STT</th>
-                                    <th>Dich vu</th>
+                                    <th>Dịch vụ</th>
                                     <th>Loai</th>
-                                    <th class="text-end">Don gia</th>
+                                    <th class="text-end">Đơn giá</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>1</td>
-                                    <td><strong>Phi kham</strong></td>
+                                    <td><strong>Phí khám</strong></td>
                                     <td><span class="badge bg-primary">EXAM</span></td>
                                     <td class="text-end"><strong>@examFee.ToString("N0") VND</strong></td>
                                 </tr>
@@ -105,7 +105,7 @@
                             </tbody>
                             <tfoot>
                                 <tr class="table-light">
-                                    <td colspan="3" class="text-end"><strong>Tong cong:</strong></td>
+                                    <td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>
                                     <td class="text-end">
                                         <strong class="text-danger fs-5">@totalAmount.ToString("N0") VND</strong>
                                     </td>
@@ -116,55 +116,54 @@
 
                     <hr />
 
-                    <!-- Th�ng tin BHYT -->
                     @if (insuranceCalc.HasInsurance)
                     {
                         <div class="card mb-3 @(insuranceCalc.IsValid ? "border-success" : "border-danger")">
                             <div class="card-header @(insuranceCalc.IsValid ? "bg-success" : "bg-danger") text-white">
-                                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Th�ng Tin B?o Hi?m Y T?</h5>
+                                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Thông tin bão hiểm y tế</h5>
                             </div>
                             <div class="card-body">
                                 @if (insuranceCalc.IsExpired)
                                 {
                                     <div class="alert alert-danger">
-                                        <i class="bi bi-exclamation-triangle"></i> 
-                                        <strong>Th? BHYT ?� h?t h?n!</strong> Kh�ng th? s? d?ng BHYT.
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        <strong>Thẻ BHYT đã hết hạn!</strong> Không thể sử dụng BHYT.
                                     </div>
                                 }
                                 else if (insuranceCalc.IsValid)
                                 {
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <p class="mb-2"><strong>M� th? BHYT:</strong> @insuranceCalc.InsuranceNumber</p>
-                                            <p class="mb-2"><strong>Lo?i th?:</strong> @insuranceCalc.InsuranceType</p>
+                                            <p class="mb-2"><strong>Mã thẻ BHYT:</strong> @insuranceCalc.InsuranceNumber</p>
+                                            <p class="mb-2"><strong>Loại thẻ:</strong> @insuranceCalc.InsuranceType</p>
                                         </div>
                                         <div class="col-md-6">
-                                            <p class="mb-2"><strong>T? l? chi tr?:</strong> <span class="badge bg-info">@insuranceCalc.CoveragePercent%</span></p>
-                                            <p class="mb-2"><strong>Tr?ng th�i:</strong> <span class="badge bg-success">H?p l?</span></p>
+                                            <p class="mb-2"><strong>Tỷ lệ chi trả:</strong> <span class="badge bg-info">@insuranceCalc.CoveragePercent%</span></p>
+                                            <p class="mb-2"><strong>Trạng thái:</strong> <span class="badge bg-success">Hợp lệ</span></p>
                                         </div>
                                     </div>
-                                    
+
                                     <hr />
-                                    
-                                    <h6>Chi Ti?t Thanh To�n V?i BHYT:</h6>
+
+                                    <h6>Chi tiết thanh toán với BHYT:</h6>
                                     <table class="table table-sm table-bordered">
                                         <tr>
-                                            <td><strong>T?ng chi ph�:</strong></td>
+                                            <td><strong>Tổng chi phí:</strong></td>
                                             <td class="text-end">@insuranceCalc.TotalAmount.ToString("N0") VND</td>
                                         </tr>
                                         <tr class="table-success">
-                                            <td><strong>BHYT chi tr? (@insuranceCalc.CoveragePercent%):</strong></td>
+                                            <td><strong>BHYT chi trả (@insuranceCalc.CoveragePercent%):</strong></td>
                                             <td class="text-end"><strong class="text-success">@insuranceCalc.InsurancePays.ToString("N0") VND</strong></td>
                                         </tr>
                                         <tr class="table-warning">
-                                            <td><strong>B?nh nh�n ??ng chi tr?:</strong></td>
+                                            <td><strong>Bệnh nhân đồng chi trả:</strong></td>
                                             <td class="text-end"><strong class="text-danger">@insuranceCalc.PatientPays.ToString("N0") VND</strong></td>
                                         </tr>
                                     </table>
-                                    
+
                                     <div class="alert alert-info mb-0">
-                                        <i class="bi bi-info-circle"></i> 
-                                        B?nh nh�n ch? c?n thanh to�n <strong>@insuranceCalc.PatientPays.ToString("N0") VND</strong>
+                                        <i class="bi bi-info-circle"></i>
+                                        Bệnh nhân chỉ cần thanh toán <strong>@insuranceCalc.PatientPays.ToString("N0") VND</strong>
                                     </div>
                                 }
                             </div>
@@ -180,23 +179,23 @@
                             <div class="form-check mb-3">
                                 <input class="form-check-input" type="checkbox" name="useInsurance" id="useInsurance" value="true" checked />
                                 <label class="form-check-label" for="useInsurance">
-                                    <strong>S? d?ng BHYT cho h�a ??n n�y</strong>
+                                    <strong>Sử dụng BHYT cho hóa đơn này</strong>
                                 </label>
                             </div>
                         }
 
                         <div class="mb-3">
-                            <label class="form-label"><i class="bi bi-card-text"></i> Ghi chu:</label>
+                            <label class="form-label"><i class="bi bi-card-text"></i> Ghi chú:</label>
                             <textarea name="note" class="form-control" rows="3" 
-                                      placeholder="Nhap ghi chu neu co..."></textarea>
+                                      placeholder="Nhập ghi chú nếu có..."></textarea>
                         </div>
 
                         <div class="d-flex justify-content-between">
                             <a href="@Url.Action("Pending")" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Quay lai
+                                <i class="bi bi-arrow-left"></i> Quay lại
                             </a>
                             <button type="submit" class="btn btn-success btn-lg">
-                                <i class="bi bi-check-circle"></i> Tao hoa don
+                                <i class="bi bi-check-circle"></i> Tạo hóa đơn
                             </button>
                         </div>
                     </form>

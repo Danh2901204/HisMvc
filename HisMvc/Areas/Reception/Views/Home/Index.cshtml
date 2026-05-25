@@ -1,9 +1,9 @@
-﻿@model List<HisMvc.Entities.Appointment>
+@model AppointmentListViewModel
 @{
-    ViewData["Title"] = "Lich hen";
-    var d = (DateOnly)ViewBag.Date;
-    var checkedInIds = (List<int>)ViewBag.CheckedInAppointments;
-    var currentStatus = (string)ViewBag.CurrentStatus;
+    ViewData["Title"] = "Lịch hẹn";
+    var d = Model.SelectedDate;
+    var checkedInIds = Model.CheckedInAppointmentIds;
+    var currentStatus = Model.CurrentStatus;
 }
 
 <div class="container-fluid mt-4">
@@ -23,13 +23,13 @@
     }
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-calendar-check"></i> Lich hen ngay @d.ToString("dd/MM/yyyy")</h2>
+        <h2><i class="bi bi-calendar-check"></i> Lịch hẹn ngày @d.ToString("dd/MM/yyyy")</h2>
         <div>
             <a href="@Url.Action("Patients")" class="btn btn-info">
-                <i class="bi bi-people"></i> Quan ly BN
+                <i class="bi bi-people"></i> Quản lý BN
             </a>
             <a href="@Url.Action("Create")" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Tao lich hen
+                <i class="bi bi-plus-circle"></i> Tạo lịch hẹn
             </a>
         </div>
     </div>
@@ -38,22 +38,22 @@
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">Chon ngay:</label>
+                    <label class="form-label">Chọn ngày:</label>
                     <input type="date" name="date" class="form-control" value="@d.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Trang thai:</label>
+                    <label class="form-label">Trạng thái:</label>
                     <select name="status" class="form-select">
-                        <option value="">Tat ca</option>
-                        <option value="Booked" selected="@(currentStatus == "Booked")">Cho kham</option>
-                        <option value="CheckedIn" selected="@(currentStatus == "CheckedIn")">Da check-in</option>
-                        <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Da huy</option>
+                        <option value="">Tất cả</option>
+                        <option value="Booked" selected="@(currentStatus == "Booked")">Chờ kham</option>
+                        <option value="CheckedIn" selected="@(currentStatus == "CheckedIn")">Đã check-in</option>
+                        <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Đã huy</option>
                     </select>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">&nbsp;</label>
                     <button type="submit" class="btn btn-primary d-block w-100">
-                        <i class="bi bi-search"></i> Tim kiem
+                        <i class="bi bi-search"></i> Tìm kiếm
                     </button>
                 </div>
             </form>
@@ -62,10 +62,10 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Danh sach lich hen (@Model.Count)</h5>
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Danh sách lịch hẹn (@Model.Appointments.Count)</h5>
         </div>
         <div class="card-body p-0">
-            @if (Model.Any())
+            @if (Model.Appointments.Any())
             {
                 <div class="table-responsive">
                     <table class="table table-hover table-striped mb-0">
@@ -73,15 +73,15 @@
                             <tr>
                                 <th>Ma</th>
                                 <th><i class="bi bi-clock"></i> Gio</th>
-                                <th><i class="bi bi-person"></i> Benh nhan</th>
+                                <th><i class="bi bi-person"></i> Bệnh nhân</th>
                                 <th><i class="bi bi-hospital"></i> Khoa</th>
-                                <th><i class="bi bi-person-badge"></i> Bac si</th>
-                                <th><i class="bi bi-info-circle"></i> Trang thai</th>
-                                <th class="text-center">Thao tac</th>
+                                <th><i class="bi bi-person-badge"></i> Bác sĩ</th>
+                                <th><i class="bi bi-info-circle"></i> Trạng thái</th>
+                                <th class="text-center">Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var a in Model)
+                            @foreach (var a in Model.Appointments)
                             {
                                 var isCheckedIn = checkedInIds.Contains(a.AppointmentId);
                                 <tr class="@(isCheckedIn ? "table-success" : "")">
@@ -103,16 +103,16 @@
                                         @if (isCheckedIn)
                                         {
                                             <span class="badge bg-success">
-                                                <i class="bi bi-check-circle"></i> Da check-in
+                                                <i class="bi bi-check-circle"></i> Đã check-in
                                             </span>
                                         }
                                         else if (a.Status == HisMvc.Entities.AppointmentStatus.Booked)
                                         {
-                                            <span class="badge bg-warning text-dark">Cho kham</span>
+                                            <span class="badge bg-warning text-dark">Chờ kham</span>
                                         }
                                         else if (a.Status == HisMvc.Entities.AppointmentStatus.Cancelled)
                                         {
-                                            <span class="badge bg-danger">Da huy</span>
+                                            <span class="badge bg-danger">Đã huy</span>
                                         }
                                         else
                                         {
@@ -123,23 +123,25 @@
                                         @if (a.Status == HisMvc.Entities.AppointmentStatus.Booked && !isCheckedIn)
                                         {
                                             <form method="post" asp-action="CheckIn" style="display: inline;">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="appointmentId" value="@a.AppointmentId" />
-                                                <button type="submit" class="btn btn-sm btn-success" 
-                                                        onclick="return confirm('Xac nhan check-in cho @a.Patient?.FullName?')">
+                                                <button type="submit" class="btn btn-sm btn-success"
+                                                        onclick="return confirm('Xác nhận check-in cho @a.Patient?.FullName?')">
                                                     <i class="bi bi-check-circle"></i> Check-in
                                                 </button>
                                             </form>
                                             <form method="post" asp-action="Cancel" style="display: inline;">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="appointmentId" value="@a.AppointmentId" />
-                                                <button type="submit" class="btn btn-sm btn-danger" 
-                                                        onclick="return confirm('Xac nhan huy lich hen?')">
-                                                    <i class="bi bi-x-circle"></i> Huy
+                                                <button type="submit" class="btn btn-sm btn-danger"
+                                                        onclick="return confirm('Xác nhận huy lịch hẹn?')">
+                                                    <i class="bi bi-x-circle"></i> Hủy
                                                 </button>
                                             </form>
                                         }
                                         else if (isCheckedIn)
                                         {
-                                            <span class="badge bg-success">✓ Da vao kham</span>
+                                            <span class="badge bg-success">✓ Đã vào khám</span>
                                         }
                                         else
                                         {
@@ -156,7 +158,7 @@
             {
                 <div class="text-center py-5">
                     <i class="bi bi-calendar-x" style="font-size: 3rem; color: #ddd;"></i>
-                    <p class="text-muted mt-3">Khong co lich hen nao</p>
+                    <p class="text-muted mt-3">Không có lịch hẹn nao</p>
                 </div>
             }
         </div>
@@ -165,7 +167,7 @@
     <div class="mt-3 d-flex justify-content-between">
         <div>
             <a href="@Url.Action("Index", new { date = d.AddDays(-1).ToString("yyyy-MM-dd") })" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> Ngay truoc
+                <i class="bi bi-arrow-left"></i> Ngày trước
             </a>
             <a href="@Url.Action("Index", new { date = DateOnly.FromDateTime(DateTime.Today).ToString("yyyy-MM-dd") })" class="btn btn-outline-secondary">
                 <i class="bi bi-calendar-today"></i> Hom nay

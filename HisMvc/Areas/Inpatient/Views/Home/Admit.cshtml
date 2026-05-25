@@ -1,26 +1,27 @@
+@model AdmitFormViewModel
 @{
-    ViewData["Title"] = "Nhap Vien";
-    var availableBeds = (List<Bed>)ViewBag.AvailableBeds;
-    var doctors = (List<Staff>)ViewBag.Doctors;
-    var patient = (Patient?)ViewBag.Patient;
+    ViewData["Title"] = "Nhập Vien";
+    var availableBeds = Model.AvailableBeds;
+    var doctors = Model.Doctors;
+    var patient = Model.Patient;
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-plus-circle"></i> Nhap Vien Moi</h2>
+        <h2><i class="bi bi-plus-circle"></i> Nhập viện mới</h2>
         <a asp-action="Index" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Quay lai
+            <i class="bi bi-arrow-left"></i> Quay lại
         </a>
     </div>
 
     @if (availableBeds.Count == 0)
     {
         <div class="alert alert-danger">
-            <h5><i class="bi bi-exclamation-triangle"></i> Khong Co Giuong Trong</h5>
-            <p class="mb-0">Hien tai khong co giuong trong nao trong benh vien. Vui long kiem tra lai sau.</p>
+            <h5><i class="bi bi-exclamation-triangle"></i> Không Co Giường Trong</h5>
+            <p class="mb-0">Hien tai không có giường trong nao trong bệnh viện. Vui lòng kiem tra lai sau.</p>
         </div>
         <a asp-controller="Ward" asp-action="Index" class="btn btn-primary">
-            <i class="bi bi-door-open"></i> Quan Li Buong Benh
+            <i class="bi bi-door-open"></i> Quan Li Buồng Benh
         </a>
     }
     else
@@ -32,7 +33,7 @@
                 <div class="col-md-6">
                     <div class="card mb-4">
                         <div class="card-header bg-primary text-white">
-                            <i class="bi bi-person"></i> Thong Tin Benh Nhan
+                            <i class="bi bi-person"></i> Thông tin Benh Nhan
                         </div>
                         <div class="card-body">
                             @if (patient != null)
@@ -40,12 +41,12 @@
                                 <input type="hidden" name="patientId" value="@patient.PatientId" />
 
                                 <div class="mb-3">
-                                    <label class="form-label"><strong>Ho ten:</strong></label>
+                                    <label class="form-label"><strong>Họ tên:</strong></label>
                                     <p class="form-control-plaintext">@patient.FullName</p>
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label"><strong>Ngay sinh:</strong></label>
+                                    <label class="form-label"><strong>Ngày sinh:</strong></label>
                                     <p class="form-control-plaintext">@patient.Dob?.ToString("dd/MM/yyyy")</p>
                                 </div>
 
@@ -57,9 +58,9 @@
                             else
                             {
                                 <div class="mb-3">
-                                    <label class="form-label">Chon benh nhan <span class="text-danger">*</span></label>
-                                    <input type="number" name="patientId" class="form-control" placeholder="Nhap Patient ID" required />
-                                    <small class="text-muted">Hoac chon tu danh sach benh nhan da co</small>
+                                    <label class="form-label">Chọn bệnh nhân <span class="text-danger">*</span></label>
+                                    <input type="number" name="patientId" class="form-control" placeholder="Nhập Patient ID" required />
+                                    <small class="text-muted">Hoặc chọn từ danh sách bệnh nhân đã có</small>
                                 </div>
                             }
                         </div>
@@ -69,27 +70,27 @@
                 <div class="col-md-6">
                     <div class="card mb-4">
                         <div class="card-header bg-success text-white">
-                            <i class="bi bi-hospital"></i> Thong Tin Nhap Vien
+                            <i class="bi bi-hospital"></i> Thông tin Nhập Vien
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
-                                <label class="form-label">Chon giuong <span class="text-danger">*</span></label>
+                                <label class="form-label">Chọn giường <span class="text-danger">*</span></label>
                                 <select name="bedId" class="form-select" required>
-                                    <option value="">-- Chon giuong --</option>
+                                    <option value="">-- Chọn giường --</option>
                                     @foreach (var bed in availableBeds)
                                     {
                                         <option value="@bed.BedId">
-                                            @bed.Ward?.Name - Giuong @bed.BedNumber (@bed.Ward?.Type)
+                                            @bed.Ward?.Name - Giường @bed.BedNumber (@bed.Ward?.Type)
                                         </option>
                                     }
                                 </select>
-                                <small class="text-muted">So giuong trong: <strong>@availableBeds.Count</strong></small>
+                                <small class="text-muted">So giường trong: <strong>@availableBeds.Count</strong></small>
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Bac si dieu tri <span class="text-danger">*</span></label>
+                                <label class="form-label">Bác sĩ dieu tri <span class="text-danger">*</span></label>
                                 <select name="attendingDoctorId" class="form-select" required>
-                                    <option value="">-- Chon bac si --</option>
+                                    <option value="">-- Chọn bac si --</option>
                                     @foreach (var doctor in doctors)
                                     {
                                         <option value="@doctor.StaffId">
@@ -105,29 +106,29 @@
 
             <div class="card mb-4">
                 <div class="card-header">
-                    <i class="bi bi-clipboard-data"></i> Ly Do Nhap Vien & Chan Doan
+                    <i class="bi bi-clipboard-data"></i> Ly Do Nhập Vien & Chan Doan
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Ly do nhap vien <span class="text-danger">*</span></label>
+                        <label class="form-label">Ly do nhập viện <span class="text-danger">*</span></label>
                         <textarea name="admissionReason" class="form-control" rows="3" required 
-                                  placeholder="Mo ta ly do benh nhan can nhap vien..."></textarea>
+                                  placeholder="Mô tả ly do bệnh nhân can nhập viện..."></textarea>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Chon doan ban dau</label>
+                        <label class="form-label">Chọn doan ban đầu</label>
                         <textarea name="initialDiagnosis" class="form-control" rows="3" 
-                                  placeholder="Chan doan so bo khi nhap vien (khong bat buoc)"></textarea>
+                                  placeholder="Chẩn đoán so bo khi nhập viện (khong bat buoc)"></textarea>
                     </div>
                 </div>
             </div>
 
             <div class="d-flex justify-content-between">
                 <a asp-action="Index" class="btn btn-secondary btn-lg">
-                    <i class="bi bi-x-circle"></i> Huy
+                    <i class="bi bi-x-circle"></i> Hủy
                 </a>
                 <button type="submit" class="btn btn-success btn-lg">
-                    <i class="bi bi-check-circle"></i> Xac Nhan Nhap Vien
+                    <i class="bi bi-check-circle"></i> Xac Nhan Nhập Vien
                 </button>
             </div>
         </form>
@@ -137,7 +138,7 @@
 @section Scripts {
     <script>
         document.querySelector('form')?.addEventListener('submit', function(e) {
-            if (!confirm('Xac nhan nhap vien cho benh nhan nay?')) {
+            if (!confirm('Xác nhận nhập viện cho bệnh nhân nay?')) {
                 e.preventDefault();
             }
         });

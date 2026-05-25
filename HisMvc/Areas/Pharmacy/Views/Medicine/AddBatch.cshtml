@@ -1,57 +1,42 @@
 @model MedicineBatch
 @{
-    ViewData["Title"] = "Nh?p L� Thu?c";
+    ViewData["Title"] = "Nhập lô thuốc";
     var medicine = (Medicine)ViewBag.Medicine;
 }
 
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-box-seam"></i> Nh?p L� Thu?c M?i</h2>
-            <p class="text-muted mb-0">Thu?c: <strong>@medicine.Name</strong></p>
+            <h2><i class="bi bi-box-seam"></i> Nhập lô thuốc mưới</h2>
+            <p class="text-muted mb-0">Thuốc: <strong>@medicine.Name</strong></p>
         </div>
         <a asp-action="Stock" asp-route-id="@medicine.MedicineId" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Quay l?i
+            <i class="bi bi-arrow-left"></i> Quay lại
         </a>
     </div>
 
     <form method="post" asp-action="AddBatch">
         @Html.AntiForgeryToken()
-        <input type="hidden" name="medicineId" value="@medicine.MedicineId" />
+        <input type="hidden" asp-for="MedicineId" value="@medicine.MedicineId" />
 
         <div class="card mb-4">
             <div class="card-header bg-success text-white">
-                <i class="bi bi-info-circle"></i> Th�ng Tin L� Thu?c
+                <i class="bi bi-info-circle"></i> Thông tin lô thuốc
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">S? l� <span class="text-danger">*</span></label>
-                            <input name="batchNumber" class="form-control" placeholder="VD: LOT-001-2024" required autofocus />
-                            <small class="text-muted">S? l� c?a nh� s?n xu?t</small>
+                            <label asp-for="BatchNumber" class="form-label">Số lô <span class="text-danger">*</span></label>
+                            <input asp-for="BatchNumber" class="form-control" placeholder="VD: LOT-001-2024" required autofocus />
+                            <small class="text-muted">Số lô của nhà sản xuất</small>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">S? l??ng <span class="text-danger">*</span></label>
-                            <input name="quantityInStock" type="number" class="form-control" min="1" placeholder="1000" required />
-                            <small class="text-muted">??n v?: @medicine.Unit</small>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Ng�y s?n xu?t <span class="text-danger">*</span></label>
-                            <input name="manufactureDate" type="date" class="form-control" required />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">H?n d�ng <span class="text-danger">*</span></label>
-                            <input name="expiryDate" type="date" class="form-control" required />
+                            <label asp-for="QuantityInStock" class="form-label">Số lượng <span class="text-danger">*</span></label>
+                            <input asp-for="QuantityInStock" type="number" class="form-control" min="1" placeholder="1000" required />
+                            <small class="text-muted">Đơn vị: @medicine.Unit</small>
                         </div>
                     </div>
                 </div>
@@ -59,93 +44,49 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">??n gi� <span class="text-danger">*</span></label>
-                            <input name="unitPrice" type="number" class="form-control" min="0" step="100" placeholder="10000" required />
-                            <small class="text-muted">VN? / @medicine.Unit</small>
+                            <label asp-for="ManufactureDate" class="form-label">Ngày sản xuất <span class="text-danger">*</span></label>
+                            <input asp-for="ManufactureDate" type="date" class="form-control" required />
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label">M?c t?n t?i thi?u</label>
-                            <input name="minStockLevel" type="number" class="form-control" min="0" value="50" />
-                            <small class="text-muted">C?nh b�o khi t?n kho th?p h?n</small>
+                            <label asp-for="ExpiryDate" class="form-label">Hạn dùng <span class="text-danger">*</span></label>
+                            <input asp-for="ExpiryDate" type="date" class="form-control" required />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="UnitPrice" class="form-label">Đơn giá <span class="text-danger">*</span></label>
+                            <input asp-for="UnitPrice" type="number" class="form-control" min="0" step="100" placeholder="10000" required />
+                            <small class="text-muted">VNĐ / @medicine.Unit</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="MinStockLevel" class="form-label">Mức tồn tối thiểu</label>
+                            <input asp-for="MinStockLevel" type="number" class="form-control" min="0" value="50" />
+                            <small class="text-muted">Cảnh báo khi tồn kho thấp hơn</small>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-check mb-3">
-                    <input name="isActive" class="form-check-input" type="checkbox" value="true" checked />
-                    <label class="form-check-label">
-                        L� thu?c ?ang s? d?ng
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div class="card mb-4">
-            <div class="card-header bg-info text-white">
-                <i class="bi bi-calculator"></i> T?ng Gi� Tr?
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <p class="mb-1"><strong>S? l??ng:</strong> <span id="displayQty">0</span> @medicine.Unit</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="mb-1"><strong>??n gi�:</strong> <span id="displayPrice">0</span> ?</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="mb-1"><strong>T?ng gi� tr?:</strong> <span id="displayTotal" class="text-success fs-5">0 ?</span></p>
-                    </div>
+                    <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                    <label asp-for="IsActive" class="form-check-label">Lô thuốc đang sử dụng</label>
                 </div>
             </div>
         </div>
 
         <div class="d-flex justify-content-between">
             <a asp-action="Stock" asp-route-id="@medicine.MedicineId" class="btn btn-secondary btn-lg">
-                <i class="bi bi-x-circle"></i> H?y
+                <i class="bi bi-x-circle"></i> Hủy
             </a>
             <button type="submit" class="btn btn-success btn-lg">
-                <i class="bi bi-check-circle"></i> X�c Nh?n Nh?p Kho
+                <i class="bi bi-check-circle"></i> Xác nhận nhập kho
             </button>
         </div>
     </form>
 </div>
-
-@section Scripts {
-    <script>
-        // Auto calculate total
-        const qtyInput = document.querySelector('input[name="quantityInStock"]');
-        const priceInput = document.querySelector('input[name="unitPrice"]');
-
-        function updateTotal() {
-            const qty = parseInt(qtyInput.value) || 0;
-            const price = parseFloat(priceInput.value) || 0;
-            const total = qty * price;
-
-            document.getElementById('displayQty').textContent = qty.toLocaleString();
-            document.getElementById('displayPrice').textContent = price.toLocaleString();
-            document.getElementById('displayTotal').textContent = total.toLocaleString();
-        }
-
-        qtyInput?.addEventListener('input', updateTotal);
-        priceInput?.addEventListener('input', updateTotal);
-
-        // Validate expiry date
-        const expiryInput = document.querySelector('input[name="expiryDate"]');
-        const mfgInput = document.querySelector('input[name="manufactureDate"]');
-
-        expiryInput?.addEventListener('change', function() {
-            const expiry = new Date(this.value);
-            const mfg = new Date(mfgInput.value);
-            const today = new Date();
-
-            if (expiry <= today) {
-                alert('?? C?nh b�o: H?n d�ng ?� qu� ho?c s?p h?t!');
-            } else if (expiry <= mfg) {
-                alert('? L?i: H?n d�ng ph?i sau ng�y s?n xu?t!');
-                this.value = '';
-            }
-        });
-    </script>
-}

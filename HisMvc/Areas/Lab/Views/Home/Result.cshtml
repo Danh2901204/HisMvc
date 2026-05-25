@@ -1,7 +1,8 @@
-﻿@model HisMvc.Entities.Order
+﻿@model LabResultViewModel
 @{
     ViewData["Title"] = "Nhập kết quả";
-    var hasResult = Model.OrderResult != null;
+    var order = Model.Order;
+    var hasResult = order.OrderResult != null;
 }
 
 <div class="container mt-4">
@@ -25,7 +26,7 @@
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-success text-white">
                     <h4 class="mb-0">
-                        <i class="bi bi-clipboard-data"></i> Nhập kết quả - Order #@Model.OrderId
+                        <i class="bi bi-clipboard-data"></i> Nhập kết quả - Order #@order.OrderId
                         @if (hasResult)
                         {
                             <span class="badge bg-warning text-dark float-end">
@@ -39,19 +40,19 @@
                         <div class="col-md-6">
                             <p class="mb-2">
                                 <strong><i class="bi bi-person-fill text-primary"></i> Bệnh nhân:</strong><br />
-                                <span class="ms-4 fs-5">@Model.Encounter?.Patient?.FullName</span>
+                                <span class="ms-4 fs-5">@order.Encounter?.Patient?.FullName</span>
                             </p>
                             <p class="mb-2">
                                 <strong><i class="bi bi-telephone-fill text-success"></i> Điện thoại:</strong><br />
-                                <span class="ms-4">@Model.Encounter?.Patient?.Phone</span>
+                                <span class="ms-4">@order.Encounter?.Patient?.Phone</span>
                             </p>
-                            @if (Model.Encounter?.Patient?.Dob != null)
+                            @if (order.Encounter?.Patient?.Dob != null)
                             {
                                 <p class="mb-2">
                                     <strong><i class="bi bi-calendar"></i> Ngày sinh:</strong><br />
                                     <span class="ms-4">
-                                        @Model.Encounter.Patient.Dob.Value.ToString("dd/MM/yyyy")
-                                        (@((DateTime.Today.Year - Model.Encounter.Patient.Dob.Value.Year)) tuổi)
+                                        @order.Encounter.Patient.Dob.Value.ToString("dd/MM/yyyy")
+                                        (@((DateTime.Today.Year - order.Encounter.Patient.Dob.Value.Year)) tuổi)
                                     </span>
                                 </p>
                             }
@@ -60,35 +61,35 @@
                             <p class="mb-2">
                                 <strong><i class="bi bi-clipboard-check-fill text-info"></i> Dịch vụ:</strong><br />
                                 <span class="ms-4">
-                                    @if (Model.Service?.Type == "LAB")
+                                    @if (order.Service?.Type == "LAB")
                                     {
                                         <span class="badge bg-info text-dark"><i class="bi bi-flask"></i> LAB</span>
                                     }
-                                    else if (Model.Service?.Type == "IMAGING")
+                                    else if (order.Service?.Type == "IMAGING")
                                     {
                                         <span class="badge bg-warning text-dark"><i class="bi bi-camera"></i> IMAGING</span>
                                     }
-                                    @Model.Service?.Name
+                                    @order.Service?.Name
                                 </span>
                             </p>
                             <p class="mb-2">
                                 <strong><i class="bi bi-person-badge"></i> BS chỉ định:</strong><br />
-                                <span class="ms-4">@Model.Encounter?.Doctor?.FullName</span>
+                                <span class="ms-4">@order.Encounter?.Doctor?.FullName</span>
                             </p>
                             <p class="mb-2">
                                 <strong><i class="bi bi-clock"></i> Thời gian chỉ định:</strong><br />
-                                <span class="ms-4">@Model.OrderedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                                <span class="ms-4">@order.OrderedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                             </p>
                             <p class="mb-2">
                                 <strong><i class="bi bi-info-circle-fill text-warning"></i> Trạng thái:</strong><br />
                                 <span class="ms-4">
-                                    @if (Model.Status == HisMvc.Entities.OrderStatus.Requested)
+                                    @if (order.Status == HisMvc.Entities.OrderStatus.Requested)
                                     {
                                         <span class="badge bg-warning text-dark">
                                             <i class="bi bi-hourglass-split"></i> Chờ xử lý
                                         </span>
                                     }
-                                    else if (Model.Status == HisMvc.Entities.OrderStatus.Resulted)
+                                    else if (order.Status == HisMvc.Entities.OrderStatus.Resulted)
                                     {
                                         <span class="badge bg-success">
                                             <i class="bi bi-check-circle"></i> Đã có kết quả
@@ -96,7 +97,7 @@
                                     }
                                     else
                                     {
-                                        <span class="badge bg-secondary">@Model.Status</span>
+                                        <span class="badge bg-secondary">@order.Status</span>
                                     }
                                 </span>
                             </p>
@@ -108,8 +109,8 @@
                         <div class="alert alert-info">
                             <strong><i class="bi bi-clock-history"></i> Kết quả đã nhập:</strong><br />
                             <small>
-                                Thời gian: @Model.OrderResult!.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")<br />
-                                Người nhập: <strong>@Model.OrderResult.ResultedBy</strong>
+                                Thời gian: @order.OrderResult!.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")<br />
+                                Người nhập: <strong>@order.OrderResult.ResultedBy</strong>
                             </small>
                         </div>
                     }
@@ -118,7 +119,7 @@
 
                     <form method="post" asp-action="SaveResult">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="orderId" value="@Model.OrderId" />
+                        <input type="hidden" name="orderId" value="@order.OrderId" />
                         
                         <div class="mb-3">
                             <label class="form-label">
@@ -129,7 +130,7 @@
                                       rows="10" 
                                       class="form-control" 
                                       placeholder="Nhập kết quả xét nghiệm chi tiết..."
-                                      required>@(Model.OrderResult?.ResultText)</textarea>
+                                      required>@(order.OrderResult?.ResultText)</textarea>
                             <small class="form-text text-muted">
                                 <i class="bi bi-info-circle"></i> 
                                 Nhập đầy đủ thông tin kết quả xét nghiệm/chẩn đoán hình ảnh
@@ -167,7 +168,7 @@
                     {
                         <form id="clearForm" method="post" asp-action="ClearResult" style="display:none;">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="orderId" value="@Model.OrderId" />
+                            <input type="hidden" name="orderId" value="@order.OrderId" />
                         </form>
                     }
                 </div>
@@ -182,11 +183,11 @@
                     <div class="card-body">
                         <div class="alert alert-success mb-0">
                             <strong><i class="bi bi-check-circle"></i> Kết quả:</strong>
-                            <pre class="mb-0 mt-2">@Model.OrderResult!.ResultText</pre>
+                            <pre class="mb-0 mt-2">@order.OrderResult!.ResultText</pre>
                             <hr />
                             <small class="text-muted">
-                                <i class="bi bi-clock"></i> Nhập lúc: @Model.OrderResult.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")<br />
-                                <i class="bi bi-person"></i> Người nhập: <strong>@Model.OrderResult.ResultedBy</strong>
+                                <i class="bi bi-clock"></i> Nhập lúc: @order.OrderResult.ResultedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm:ss")<br />
+                                <i class="bi bi-person"></i> Người nhập: <strong>@order.OrderResult.ResultedBy</strong>
                             </small>
                         </div>
                     </div>

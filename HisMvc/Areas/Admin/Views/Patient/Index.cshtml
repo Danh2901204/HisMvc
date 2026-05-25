@@ -1,0 +1,175 @@
+@model PatientListViewModel
+@{
+    ViewData["Title"] = "Quản lý bệnh nhân";
+    var search = Model.Search;
+}
+
+<div class="container-fluid mt-4 pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-person-hearts"></i> Quản lý bệnh nhân
+            </h2>
+            <p class="text-muted mb-0">Thêm và cập nhật hồ sơ — không ho tro xóa bệnh nhân</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </a>
+            <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Về Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-9">
+                    <label class="form-label text-muted small">Tìm kiếm</label>
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Ten, so dien thoai, CCCD, ma BHYT..."
+                           value="@search" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header text-white" style="background: linear-gradient(90deg, #fa709a 0%, #fee140 100%);">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Danh sách bệnh nhân (@Model.Patients.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Patients.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Họ tên</th>
+                                <th>SDT</th>
+                                <th>Ngày sinh</th>
+                                <th>Giới tính</th>
+                                <th>BHYT</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Patients)
+                            {
+                                var hasInsurance = !string.IsNullOrWhiteSpace(p.InsuranceNumber);
+                                var insuranceExpired = p.InsuranceExpiry.HasValue && p.InsuranceExpiry.Value.Date < DateTime.Today;
+                                <tr>
+                                    <td><strong>@p.PatientId</strong></td>
+                                    <td>
+                                        <strong>@p.FullName</strong>
+                                        @if (!string.IsNullOrWhiteSpace(p.IdentityNumber))
+                                        {
+                                            <br /><small class="text-muted">CCCD: @p.IdentityNumber</small>
+                                        }
+                                    </td>
+                                    <td>@p.Phone</td>
+                                    <td>
+                                        @if (p.Dob.HasValue)
+                                        {
+                                            @p.Dob.Value.ToString("dd/MM/yyyy")
+                                            <small class="text-muted">(@(DateTime.Today.Year - p.Dob.Value.Year) tuổi)</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (p.Gender)
+                                        {
+                                            case Gender.Male:
+                                                <span class="badge bg-primary"><i class="bi bi-gender-male"></i> Nam</span>
+                                                break;
+                                            case Gender.Female:
+                                                <span class="badge bg-danger"><i class="bi bi-gender-female"></i> Nữ</span>
+                                                break;
+                                            case Gender.Other:
+                                                <span class="badge bg-secondary">Khác</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-light text-dark">Chưa rõ</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (hasInsurance)
+                                        {
+                                            if (insuranceExpired)
+                                            {
+                                                <span class="badge bg-warning text-dark" title="@p.InsuranceNumber">
+                                                    <i class="bi bi-exclamation-triangle"></i> Hết hạn
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success" title="@p.InsuranceNumber">
+                                                    <i class="bi bi-shield-check"></i> @p.InsuranceCoveragePercent%
+                                                </span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Không có</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Details" asp-route-id="@p.PatientId" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Ho so
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@p.PatientId" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i> Sua
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-person-hearts" style="font-size: 3rem; color: #ddd;"></i>
+                    <p class="text-muted mt-3 mb-0">
+                        @(string.IsNullOrEmpty(search) ? "Chưa có bệnh nhân nao trong he thong." : $"Không tìm thay bệnh nhân với từ khóa \"{search}\".")
+                    </p>
+                    <a asp-action="Create" class="btn btn-success mt-3">
+                        <i class="bi bi-plus-circle"></i> Thêm bệnh nhân dau tien
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="alert alert-light border mt-3 mb-0">
+        <i class="bi bi-info-circle text-primary"></i>
+        <strong>Chinh sach:</strong> Bệnh nhân chi duoc them moi hoặc cập nhật. Không có quyen xóa de bao toan lich su kham va hóa đơn.
+    </div>
+</div>

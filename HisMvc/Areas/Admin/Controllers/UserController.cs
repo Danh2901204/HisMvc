@@ -1,9 +1,10 @@
+using HisMvc.Areas.Admin.Models;
+using HisMvc.Areas.Admin.Services;
 using HisMvc.Data;
 using HisMvc.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace HisMvc.Areas.Admin.Controllers;
@@ -13,35 +14,24 @@ namespace HisMvc.Areas.Admin.Controllers;
 public class UserController : Controller
 {
     private readonly UserManager<AppUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
-    private readonly AppDbContext _db;
+    private readonly AdminViewService _views;
 
-    public UserController(UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager, AppDbContext db)
+    public UserController(UserManager<AppUser> userManager, AdminViewService views)
     {
         _userManager = userManager;
-        _roleManager = roleManager;
-        _db = db;
+        _views = views;
     }
 
     public async Task<IActionResult> Index()
     {
-        var users = await _userManager.Users.ToListAsync();
-        var userRoles = new List<(AppUser User, string Roles)>();
-
-        foreach (var user in users)
-        {
-            var roles = await _userManager.GetRolesAsync(user);
-            userRoles.Add((user, string.Join(", ", roles)));
-        }
-
-        return View(userRoles);
+        var model = await _views.GetUserListAsync();
+        return View(model);
     }
 
     public async Task<IActionResult> Create()
     {
-        ViewBag.Roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
-        ViewBag.Staffs = new SelectList(await _db.Staffs.ToListAsync(), "StaffId", "FullName");
-        return View();
+        var model = await _views.GetUserCreateFormAsync();
+        return View(model);
     }
 
     [HttpPost]
@@ -60,29 +50,23 @@ public class UserController : Controller
             foreach (var error in result.Errors)
                 ModelState.AddModelError("", error.Description);
 
-            ViewBag.Roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
-            ViewBag.Staffs = new SelectList(await _db.Staffs.ToListAsync(), "StaffId", "FullName", staffId);
-            return View();
+            var form = await _views.GetUserCreateFormAsync();
+            return View(form);
         }
 
         if (!string.IsNullOrEmpty(role))
             await _userManager.AddToRoleAsync(user, role);
 
-        TempData["Success"] = "Tao tai khoan thanh cong!";
+        TempData["Success"] = "Tạo tài khoản thành công!";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null)
+        var model = await _views.GetUserEditFormAsync(id);
+        if (model == null)
             return NotFound();
-
-        var roles = await _userManager.GetRolesAsync(user);
-        ViewBag.CurrentRole = roles.FirstOrDefault();
-        ViewBag.Roles = await _roleManager.Roles.Select(x => x.Name).ToListAsync();
-        ViewBag.Staffs = new SelectList(await _db.Staffs.ToListAsync(), "StaffId", "FullName", user.StaffId);
-        return View(user);
+        return View(model);
     }
 
     [HttpPost]
@@ -102,7 +86,7 @@ public class UserController : Controller
         if (!string.IsNullOrEmpty(role))
             await _userManager.AddToRoleAsync(user, role);
 
-        TempData["Success"] = "Cap nhat tai khoan thanh cong!";
+        TempData["Success"] = "Cập nhật tài khoản thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -114,7 +98,7 @@ public class UserController : Controller
             return NotFound();
 
         await _userManager.DeleteAsync(user);
-        TempData["Success"] = "Xoa tai khoan thanh cong!";
+        TempData["Success"] = "Xoa tài khoản thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -144,7 +128,7 @@ public class UserController : Controller
             return View(user);
         }
 
-        TempData["Success"] = "Dat lai mat khau thanh cong!";
+        TempData["Success"] = "Dat lai mat khau thành công!";
         return RedirectToAction(nameof(Index));
     }
 }

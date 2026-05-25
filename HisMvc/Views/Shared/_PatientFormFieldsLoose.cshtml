@@ -3,32 +3,32 @@
 <div class="row">
     <div class="col-md-6 mb-3">
         <label class="form-label">Ho va ten <span class="text-danger">*</span></label>
-        <input id="fullName" name="fullName" class="form-control" placeholder="Nhap ho ten benh nhan" required />
+        <input id="fullName" name="fullName" class="form-control" placeholder="Nhập họ tên bệnh nhân" required />
     </div>
     <div class="col-md-6 mb-3">
         <label class="form-label">So dien thoai <span class="text-danger">*</span></label>
         <div class="input-group">
-            <input id="phone" name="phone" type="tel" class="form-control" placeholder="Nhap SDT de tim kiem" required />
+            <input id="phone" name="phone" type="tel" class="form-control" placeholder="Nhập SDT de tim kiem" required />
             <button type="button" class="btn btn-info" onclick="searchPatient()">
                 <i class="bi bi-search"></i> Tim
             </button>
         </div>
-        <small class="text-muted">Nhap SDT va click Tim de tu dong dien thong tin BN cu</small>
+        <small class="text-muted">Nhập SDT va click Tim de tự động dien thông tin BN cu</small>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-4 mb-3">
-        <label class="form-label">Ngay sinh</label>
+        <label class="form-label">Ngày sinh</label>
         <input id="dob" name="dob" type="date" class="form-control" />
     </div>
     <div class="col-md-4 mb-3">
-        <label class="form-label">Gioi tinh</label>
+        <label class="form-label">Giới tính</label>
         <select id="gender" name="gender" class="form-select">
-            <option value="0">Chua ro</option>
+            <option value="0">Chưa rõ</option>
             <option value="1">Nam</option>
-            <option value="2">Nu</option>
-            <option value="3">Khac</option>
+            <option value="2">Nữ</option>
+            <option value="3">Khác</option>
         </select>
     </div>
     <div class="col-md-4 mb-3">
@@ -38,22 +38,22 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label">Dia chi</label>
-    <input id="address" name="address" class="form-control" placeholder="Dia chi thuong tru" />
+    <label class="form-label">Địa chỉ</label>
+    <input id="address" name="address" class="form-control" placeholder="Địa chỉ thuong tru" />
 </div>
 
 <hr class="my-3" />
-<h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Thong tin BHYT (tuy chon)</h6>
+<h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Thông tin BHYT (tuy chon)</h6>
 
 <div class="row">
     <div class="col-md-6 mb-3">
-        <label class="form-label">Ma the BHYT</label>
+        <label class="form-label">Mã thẻ BHYT</label>
         <input id="insuranceNumber" name="insuranceNumber" class="form-control" maxlength="15" placeholder="15 ky tu" />
     </div>
     <div class="col-md-6 mb-3">
-        <label class="form-label">Loai the</label>
+        <label class="form-label">Loại thẻ</label>
         <select id="insuranceType" name="insuranceType" class="form-select">
-            <option value="">-- Chon loai the --</option>
+            <option value="">-- Chọn loại the --</option>
             <option value="QN">QN - Quan nhan</option>
             <option value="KC">KC - Kham chua benh</option>
             <option value="GD">GD - Gia dinh</option>
@@ -74,7 +74,7 @@
         <small class="text-muted">VD: 80, 95, 100</small>
     </div>
     <div class="col-md-4 mb-3">
-        <label class="form-label">Noi DK KCB ban dau</label>
-        <input id="insuranceHospital" name="insuranceHospital" class="form-control" placeholder="Ten benh vien" />
+        <label class="form-label">Nơi ĐK KCB ban đầu</label>
+        <input id="insuranceHospital" name="insuranceHospital" class="form-control" placeholder="Tên bệnh viện" />
     </div>
 </div>

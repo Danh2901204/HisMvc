@@ -1,17 +1,17 @@
-@model List<Department>
+@model DepartmentListViewModel
 @{
-    ViewData["Title"] = "Quan Ly Khoa/Phong Ban";
+    ViewData["Title"] = "Quản lý Khoa/Phong Ban";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-building"></i> Quan Ly Khoa/Phong Ban</h2>
+        <h2><i class="bi bi-building"></i> Quản lý Khoa/Phong Ban</h2>
         <div>
             <a href="@Url.Action("Create")" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Them Moi
+                <i class="bi bi-plus-circle"></i> Thêm mới
             </a>
             <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Ve Dashboard
+                <i class="bi bi-arrow-left"></i> Về Dashboard
             </a>
         </div>
     </div>
@@ -33,7 +33,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sach Khoa/Phong Ban (@Model.Count)</h5>
+            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sách Khoa/Phong Ban (@Model.Departments.Count)</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -42,12 +42,12 @@
                         <tr>
                             <th>ID</th>
                             <th>Ma</th>
-                            <th>Ten Khoa/Phong Ban</th>
-                            <th class="text-center">Thao Tac</th>
+                            <th>Tên Khoa/Phong Ban</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var dept in Model)
+                        @foreach (var dept in Model.Departments)
                         {
                             <tr>
                                 <td><strong>@dept.DepartmentId</strong></td>
@@ -57,7 +57,7 @@
                                     <a href="@Url.Action("Edit", new { id = dept.DepartmentId })" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Sua
                                     </a>
-                                    <form asp-action="Delete" asp-route-id="@dept.DepartmentId" method="post" style="display:inline;" onsubmit="return confirm('Ban co chac muon xoa?')">
+                                    <form asp-action="Delete" asp-route-id="@dept.DepartmentId" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa?')">
                                         <button type="submit" class="btn btn-sm btn-danger">
                                             <i class="bi bi-trash"></i> Xoa
                                         </button>

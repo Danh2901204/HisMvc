@@ -1,9 +1,12 @@
-﻿using HisMvc.Data;
+using HisMvc.Areas.Doctor.Models;
+using HisMvc.Areas.Doctor.Services;
+using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services;
+using HisMvc.Services.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace HisMvc.Areas.Doctor.Controllers;
@@ -13,153 +16,151 @@ namespace HisMvc.Areas.Doctor.Controllers;
 public class HomeController : Controller
 {
     private readonly AppDbContext _db;
-    public HomeController(AppDbContext db) => _db = db;
+    private readonly DoctorViewService _views;
+    private readonly CurrentStaffService _staffService;
+    private readonly OutpatientWorkflowService _workflow;
+    private readonly Icd10Service _icd10;
 
-    // Danh sách lượt khám (Encounter) với filter
+    public HomeController(AppDbContext db, DoctorViewService views, CurrentStaffService staffService,
+        OutpatientWorkflowService workflow, Icd10Service icd10)
+    {
+        _db = db;
+        _views = views;
+        _staffService = staffService;
+        _workflow = workflow;
+        _icd10 = icd10;
+    }
+
+    public async Task<IActionResult> Dashboard()
+    {
+        var model = await _views.BuildDashboardAsync();
+        return View(model);
+    }
+
     public async Task<IActionResult> Index(string status = "")
     {
-        var query = _db.Encounters
-            .Include(x => x.Patient)
-            .Include(x => x.Doctor)
-            .Include(x => x.Appointment)
-            .AsQueryable();
-
-        // Filter theo status
-        if (!string.IsNullOrEmpty(status))
-        {
-            if (status == "CheckedIn")
-                query = query.Where(x => x.Status == EncounterStatus.CheckedIn);
-            else if (status == "InService")
-                query = query.Where(x => x.Status == EncounterStatus.InService);
-            else if (status == "Completed")
-                query = query.Where(x => x.Status == EncounterStatus.Completed);
-        }
-
-        var items = await query
-            .OrderByDescending(x => x.CheckInAt)
-            .ToListAsync();
-
-        ViewBag.CurrentStatus = status;
-        return View(items);
+        var model = await _views.GetEncounterListAsync(status);
+        return View(model);
     }
 
-    // Màn hình khám chi tiết
     public async Task<IActionResult> Examine(int id)
     {
-        var enc = await _db.Encounters
-            .Include(x => x.Patient)
-            .Include(x => x.Doctor)
-            .Include(x => x.Appointment)
-            .FirstOrDefaultAsync(x => x.EncounterId == id);
-
-        if (enc == null)
+        var model = await _views.GetExamineAsync(id);
+        if (model == null)
             return NotFound();
-
-        // Lấy danh sách Orders
-        var orders = await _db.Orders
-            .Include(o => o.Service)
-            .Include(o => o.OrderResult)
-            .Where(o => o.EncounterId == id)
-            .OrderByDescending(o => o.OrderedAt)
-            .ToListAsync();
-
-        ViewBag.Orders = orders;
-        ViewBag.Services = new SelectList(
-            await _db.Services.OrderBy(s => s.Type).ThenBy(s => s.Name).ToListAsync(),
-            "ServiceId",
-            "Name"
-        );
-
-        // Lấy đơn thuốc nếu có
-        var prescription = await _db.Prescriptions
-            .Include(p => p.Items).ThenInclude(i => i.Medicine)
-            .FirstOrDefaultAsync(p => p.EncounterId == id);
-
-        ViewBag.Prescription = prescription;
-        
-        // Danh sách thuốc để kê đơn
-        ViewBag.Medicines = new SelectList(
-            await _db.Medicines.Where(m => m.IsActive).OrderBy(m => m.Name).ToListAsync(),
-            "MedicineId",
-            "Name"
-        );
-
-        return View(enc);
+        return View(model);
     }
 
-    // Lưu chẩn đoán/kết luận
+    [HttpGet]
+    public async Task<IActionResult> SearchIcd10(string q)
+    {
+        var items = await _icd10.SearchAsync(q, 20);
+        return Json(items.Select(x => new { code = x.Code, name = x.Name, chapter = x.Chapter }));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ParseIcd10(string diagnosis)
+    {
+        var parsed = await _icd10.ParseDiagnosisAsync(diagnosis);
+        return Json(new
+        {
+            primaryCode = parsed.PrimaryCode,
+            primaryName = parsed.PrimaryName,
+            secondaryCodes = parsed.SecondaryCodes
+        });
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Save(int id, string? diagnosis, string? conclusion)
+    public async Task<IActionResult> CallPatient(int id, string? roomNumber)
+    {
+        var result = await _workflow.CallPatientAsync(id, roomNumber);
+        TempData[result.Success ? "Success" : "Error"] = result.Message;
+        return RedirectToAction(result.Success ? nameof(Examine) : nameof(Dashboard), new { id });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Save(int id, string? diagnosis, string? conclusion,
+        string? icd10Primary, string? icd10PrimaryName, string? icd10Secondary,
+        string? instructions, DateOnly? followUpDate)
     {
         var enc = await _db.Encounters.FirstOrDefaultAsync(x => x.EncounterId == id);
         if (enc == null)
         {
-            TempData["Error"] = "Khong tim thay luot kham!";
+            TempData["Error"] = "Không tìm thay lượt khám!";
             return RedirectToAction(nameof(Index));
         }
 
-        if (enc.Status == EncounterStatus.Completed)
+        if (enc.Status == EncounterStatus.Completed || enc.Status == EncounterStatus.Cancelled)
         {
-            TempData["Error"] = "Luot kham da chot, khong the sua!";
+            TempData["Error"] = "Lượt khám đã chốt/huy, không thể sua!";
+            return RedirectToAction(nameof(Examine), new { id });
+        }
+
+        if (enc.Status == EncounterStatus.WaitingExam || enc.Status == EncounterStatus.CheckedIn)
+        {
+            TempData["Error"] = "BN chưa được gọi vào phòng khám. Vui lòng bấm 'Gọi BN' trước.";
             return RedirectToAction(nameof(Examine), new { id });
         }
 
         enc.Diagnosis = (diagnosis ?? "").Trim();
         enc.Conclusion = (conclusion ?? "").Trim();
-        
-        // Chuyển sang trạng thái InService khi bắt đầu nhập thông tin
-        if (enc.Status == EncounterStatus.CheckedIn)
-            enc.Status = EncounterStatus.InService;
+        enc.Icd10Primary = string.IsNullOrWhiteSpace(icd10Primary) ? null : icd10Primary.Trim().ToUpperInvariant();
+        enc.Icd10PrimaryName = string.IsNullOrWhiteSpace(icd10PrimaryName) ? null : icd10PrimaryName.Trim();
+        enc.Icd10Secondary = string.IsNullOrWhiteSpace(icd10Secondary) ? null : icd10Secondary.Trim().ToUpperInvariant();
+        enc.Instructions = string.IsNullOrWhiteSpace(instructions) ? null : instructions.Trim();
+        enc.FollowUpDate = followUpDate;
+
+        // Tu dong tach ma ICD-10 từ ô chẩn đoán nếu BS chưa chọn ma
+        await _icd10.ApplyParsedToEncounterAsync(enc);
 
         await _db.SaveChangesAsync();
-        
-        TempData["Success"] = "Da luu thong tin kham!";
+
+        TempData["Success"] = "Đã lưu thông tin khám!";
         return RedirectToAction(nameof(Examine), new { id });
     }
 
-    // Chỉ định dịch vụ (tạo Order)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> AddOrder(int encounterId, int serviceId)
+    public async Task<IActionResult> AddOrder(int encounterId, int serviceId, int quantity = 1)
     {
         var enc = await _db.Encounters.FirstOrDefaultAsync(x => x.EncounterId == encounterId);
-        if (enc == null)
-        {
-            TempData["Error"] = "Khong tim thay luot kham!";
-            return RedirectToAction(nameof(Index));
-        }
+        if (enc == null) { TempData["Error"] = "Không tìm thay lượt khám!"; return RedirectToAction(nameof(Index)); }
 
-        if (enc.Status == EncounterStatus.Completed)
+        if (enc.Status != EncounterStatus.InService && enc.Status != EncounterStatus.WaitingResult)
         {
-            TempData["Error"] = "Luot kham da chot, khong the chi dinh!";
+            TempData["Error"] = "Không thể chi dinh CLS o trạng thái nay.";
             return RedirectToAction(nameof(Examine), new { id = encounterId });
         }
 
         var service = await _db.Services.FindAsync(serviceId);
-        if (service == null)
-        {
-            TempData["Error"] = "Khong tim thay dich vu!";
-            return RedirectToAction(nameof(Examine), new { id = encounterId });
-        }
+        if (service == null) { TempData["Error"] = "Không tìm thay dịch vụ!"; return RedirectToAction(nameof(Examine), new { id = encounterId }); }
+
+        var staffId = await _staffService.TryGetStaffIdAsync(User);
 
         var order = new Order
         {
+            OrderCode = $"OR{DateTime.Now:yyyyMMddHHmmss}",
             EncounterId = encounterId,
             ServiceId = serviceId,
+            Quantity = Math.Max(1, quantity),
             Status = OrderStatus.Requested,
             OrderedBy = User.Identity?.Name ?? "doctor",
+            OrderedByStaffId = staffId,
             OrderedAt = DateTime.UtcNow
         };
-
         _db.Orders.Add(order);
+
+        if (enc.Status == EncounterStatus.InService)
+            enc.Status = EncounterStatus.WaitingResult;
+
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = $"Da chi dinh: {service.Name}";
+        TempData["Success"] = $"Đã chi dinh: {service.Name} (x{order.Quantity})";
         return RedirectToAction(nameof(Examine), new { id = encounterId });
     }
 
-    // Hủy chỉ định (chỉ khi chưa có kết quả)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelOrder(int orderId, int encounterId)
@@ -170,116 +171,32 @@ public class HomeController : Controller
 
         if (order == null)
         {
-            TempData["Error"] = "Khong tim thay chi dinh!";
+            TempData["Error"] = "Không tìm thay chi dinh!";
             return RedirectToAction(nameof(Examine), new { id = encounterId });
         }
 
-        if (order.Status != OrderStatus.Requested)
+        if (order.Status != OrderStatus.Requested && order.Status != OrderStatus.InProgress)
         {
-            TempData["Error"] = "Chi dinh da co ket quả, khong the huy!";
+            TempData["Error"] = "Chỉ định da có kết quả, không thể huy!";
             return RedirectToAction(nameof(Examine), new { id = encounterId });
         }
 
         order.Status = OrderStatus.Cancelled;
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Da huy chi dinh!";
+        TempData["Success"] = "Đã huy chi dinh!";
         return RedirectToAction(nameof(Examine), new { id = encounterId });
     }
 
-    // Chốt lượt khám
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Close(int id)
     {
-        var enc = await _db.Encounters.FirstOrDefaultAsync(x => x.EncounterId == id);
-        if (enc == null)
-        {
-            TempData["Error"] = "Khong tim thay luot kham!";
-            return RedirectToAction(nameof(Index));
-        }
-
-        if (enc.Status == EncounterStatus.Completed)
-        {
-            TempData["Error"] = "Luot kham da duoc chot!";
-            return RedirectToAction(nameof(Examine), new { id });
-        }
-
-        // Kiểm tra chẩn đoán
-        if (string.IsNullOrWhiteSpace(enc.Diagnosis))
-        {
-            TempData["Error"] = "Chua co chan doan! Vui long nhap chan doan truoc khi chot.";
-            return RedirectToAction(nameof(Examine), new { id });
-        }
-
-        // Kiểm tra còn order Requested không
-        var pendingOrders = await _db.Orders
-            .Where(o => o.EncounterId == id && o.Status == OrderStatus.Requested)
-            .ToListAsync();
-
-        if (pendingOrders.Any())
-        {
-            TempData["Error"] = $"Con {pendingOrders.Count} chi dinh chua co ket qua! Khong the chot luot kham.";
-            return RedirectToAction(nameof(Examine), new { id });
-        }
-
-        // Chốt lượt khám
-        enc.Status = EncounterStatus.Completed;
-        enc.EndAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync();
-
-        // Tự động tạo hóa đơn
-        await CreateInvoiceForEncounter(id);
-
-        TempData["Success"] = "Da chot luot kham va tao hoa don thanh cong! Benh nhan co the thanh toan.";
-        return RedirectToAction(nameof(Index));
+        var result = await _workflow.CloseEncounterAsync(id);
+        TempData[result.Success ? "Success" : "Error"] = result.Message;
+        return RedirectToAction(result.Success ? nameof(Index) : nameof(Examine), new { id });
     }
 
-    // Helper method để tạo hóa đơn
-    private async Task CreateInvoiceForEncounter(int encounterId)
-    {
-        // Kiểm tra đã có hóa đơn chưa
-        var existingInvoice = await _db.Invoices
-            .FirstOrDefaultAsync(x => x.EncounterId == encounterId);
-
-        if (existingInvoice != null)
-            return; // Đã có hóa đơn rồi
-
-        // Lấy danh sách dịch vụ
-        var orders = await _db.Orders
-            .Include(x => x.Service)
-            .Where(x => x.EncounterId == encounterId)
-            .ToListAsync();
-
-        // Tính tổng tiền
-        decimal examFee = HisConstants.EXAM_FEE;
-        decimal totalOrderPrice = orders.Sum(x => x.Service?.Price ?? 0);
-        decimal totalAmount = examFee + totalOrderPrice;
-
-        // Tạo mã hóa đơn
-        var invoiceCode = $"INV{DateTime.Now:yyyyMMddHHmmss}";
-
-        // Tạo hóa đơn (không tự động tính BHYT ở đây, để thu ngân xử lý)
-        var invoice = new Invoice
-        {
-            EncounterId = encounterId,
-            InvoiceCode = invoiceCode,
-            TotalAmount = totalAmount,
-            PatientAmount = totalAmount, // Mặc định bệnh nhân trả toàn bộ
-            HasInsurance = false,
-            Status = InvoiceStatus.Unpaid,
-            CreatedAt = DateTime.UtcNow,
-            Note = "Tu dong tao khi chot luot kham"
-        };
-
-        _db.Invoices.Add(invoice);
-        await _db.SaveChangesAsync();
-    }
-
-    // ========== KÊ ĐƠN THUỐC ==========
-
-    // Kê đơn thuốc mới
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreatePrescription(int encounterId)
@@ -287,33 +204,30 @@ public class HomeController : Controller
         var enc = await _db.Encounters.FirstOrDefaultAsync(x => x.EncounterId == encounterId);
         if (enc == null)
         {
-            TempData["Error"] = "Không tìm thấy lượt khám!";
+            TempData["Error"] = "Không tìm thay lượt khám!";
             return RedirectToAction(nameof(Index));
         }
 
-        if (enc.Status == EncounterStatus.Completed)
+        if (enc.Status != EncounterStatus.InService && enc.Status != EncounterStatus.WaitingResult)
         {
-            TempData["Error"] = "Lượt khám đã chốt, không thể kê đơn!";
+            TempData["Error"] = "Chi co the ke don khi Đang khám (InService/WaitingResult)!";
             return RedirectToAction(nameof(Examine), new { id = encounterId });
         }
 
-        // Kiểm tra đã có đơn thuốc chưa
         var existing = await _db.Prescriptions.FirstOrDefaultAsync(p => p.EncounterId == encounterId);
         if (existing != null)
         {
-            TempData["Error"] = "Đã có đơn thuốc cho lượt khám này!";
+            TempData["Error"] = "Đã co đơn thuốc cho lượt khám nay!";
             return RedirectToAction(nameof(Examine), new { id = encounterId });
         }
 
-        // Lấy StaffId của bác sĩ
-        var doctorEmail = User.Identity!.Name;
-        var staff = await _db.Staffs.FirstOrDefaultAsync(s => s.FullName == doctorEmail);
+        var prescribedBy = await _staffService.GetStaffIdAsync(User, enc.DoctorId);
 
         var prescription = new Prescription
         {
             Code = $"PRE{DateTime.UtcNow:yyyyMMddHHmmss}",
             EncounterId = encounterId,
-            PrescribedBy = staff?.StaffId ?? enc.DoctorId,
+            PrescribedBy = prescribedBy,
             PrescribedAt = DateTime.UtcNow,
             Status = PrescriptionStatus.Pending
         };
@@ -321,11 +235,10 @@ public class HomeController : Controller
         _db.Prescriptions.Add(prescription);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Đã tạo đơn thuốc!";
+        TempData["Success"] = "Đã tao đơn thuốc!";
         return RedirectToAction(nameof(Examine), new { id = encounterId });
     }
 
-    // Thêm thuốc vào đơn
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddMedicine(int prescriptionId, int medicineId, int quantity, string dosage, string? instructions, int duration = 1)
@@ -336,20 +249,19 @@ public class HomeController : Controller
 
         if (prescription == null)
         {
-            TempData["Error"] = "Không tìm thấy đơn thuốc!";
+            TempData["Error"] = "Không tìm thay đơn thuốc!";
             return RedirectToAction(nameof(Index));
         }
 
         if (prescription.Status != PrescriptionStatus.Pending)
         {
-            TempData["Error"] = "Đơn thuốc đã cấp phát, không thể sửa!";
+            TempData["Error"] = "Don thuốc đã cấp phát, không thể sua!";
             return RedirectToAction(nameof(Examine), new { id = prescription.EncounterId });
         }
 
-        // Kiểm tra thuốc đã có trong đơn chưa
         if (prescription.Items.Any(i => i.MedicineId == medicineId))
         {
-            TempData["Error"] = "Thuốc đã có trong đơn!";
+            TempData["Error"] = "Thuốc đã có trong don!";
             return RedirectToAction(nameof(Examine), new { id = prescription.EncounterId });
         }
 
@@ -366,11 +278,10 @@ public class HomeController : Controller
         _db.PrescriptionItems.Add(item);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Đã thêm thuốc vào đơn!";
+        TempData["Success"] = "Đã them thuốc vào đơn!";
         return RedirectToAction(nameof(Examine), new { id = prescription.EncounterId });
     }
 
-    // Xóa thuốc khỏi đơn
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RemoveMedicine(int itemId, int encounterId)
@@ -392,31 +303,31 @@ public class HomeController : Controller
         return RedirectToAction(nameof(Examine), new { id = encounterId });
     }
 
-    // ========== END KÊ ĐƠN THUỐC ==========
-
-    // Mở lại lượt khám (nếu cần)
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reopen(int id)
     {
         var enc = await _db.Encounters.FirstOrDefaultAsync(x => x.EncounterId == id);
-        if (enc == null)
+        if (enc == null) { TempData["Error"] = "Không tìm thay lượt khám!"; return RedirectToAction(nameof(Index)); }
+
+        if (enc.Status != EncounterStatus.WaitingFinalPayment)
         {
-            TempData["Error"] = "Khong tim thay luot kham!";
-            return RedirectToAction(nameof(Index));
+            TempData["Error"] = "Chi co the mở lại khi Đang chờ thu chi phí phát sinh.";
+            return RedirectToAction(nameof(Examine), new { id });
         }
 
-        if (enc.Status != EncounterStatus.Completed)
+        var paidFinal = await _db.Invoices.AnyAsync(i =>
+            i.EncounterId == id && i.InvoiceType == InvoiceType.Final && i.Status == InvoiceStatus.Paid);
+        if (paidFinal)
         {
-            TempData["Error"] = "Luot kham chua duoc chot!";
+            TempData["Error"] = "Hoa don tong hop da thanh toán, không thể mở lại.";
             return RedirectToAction(nameof(Examine), new { id });
         }
 
         enc.Status = EncounterStatus.InService;
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Da mo lai luot kham!";
+        TempData["Success"] = "Đã mở lại lượt khám!";
         return RedirectToAction(nameof(Examine), new { id });
     }
 }
-

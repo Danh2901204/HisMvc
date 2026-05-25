@@ -1,9 +1,10 @@
+using HisMvc.Areas.Admin.Models;
+using HisMvc.Areas.Admin.Services;
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace HisMvc.Areas.Admin.Controllers;
@@ -13,61 +14,63 @@ namespace HisMvc.Areas.Admin.Controllers;
 public class StaffController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly AdminViewService _views;
 
-    public StaffController(AppDbContext db)
+    public StaffController(AppDbContext db, AdminViewService views)
     {
         _db = db;
+        _views = views;
     }
 
     public async Task<IActionResult> Index()
     {
-        var staffs = await _db.Staffs.Include(x => x.Department).OrderBy(x => x.FullName).ToListAsync();
-        return View(staffs);
+        var model = await _views.GetStaffListAsync();
+        return View(model);
     }
 
     public async Task<IActionResult> Create()
     {
-        ViewBag.Departments = new SelectList(await _db.Departments.ToListAsync(), "DepartmentId", "Name");
-        return View();
+        var model = await _views.GetStaffFormAsync();
+        return View(model!);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(Staff model)
+    public async Task<IActionResult> Create([Bind(Prefix = "Staff")] Staff model)
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Departments = new SelectList(await _db.Departments.ToListAsync(), "DepartmentId", "Name");
-            return View(model);
+            var form = await _views.GetStaffFormAsync();
+            form.Staff = model;
+            return View(form);
         }
 
         _db.Staffs.Add(model);
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Them nhan vien thanh cong!";
+        TempData["Success"] = "Thêm nhân viên thành công!";
         return RedirectToAction(nameof(Index));
     }
 
     public async Task<IActionResult> Edit(int id)
     {
-        var staff = await _db.Staffs.FindAsync(id);
-        if (staff == null)
+        var model = await _views.GetStaffFormAsync(id);
+        if (model == null)
             return NotFound();
-
-        ViewBag.Departments = new SelectList(await _db.Departments.ToListAsync(), "DepartmentId", "Name", staff.DepartmentId);
-        return View(staff);
+        return View(model);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Edit(Staff model)
+    public async Task<IActionResult> Edit([Bind(Prefix = "Staff")] Staff model)
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Departments = new SelectList(await _db.Departments.ToListAsync(), "DepartmentId", "Name", model.DepartmentId);
-            return View(model);
+            var form = await _views.GetStaffFormAsync(model.StaffId);
+            form.Staff = model;
+            return View(form);
         }
 
         _db.Staffs.Update(model);
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Cap nhat nhan vien thanh cong!";
+        TempData["Success"] = "Cập nhật nhân viên thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -82,11 +85,11 @@ public class StaffController : Controller
         {
             _db.Staffs.Remove(staff);
             await _db.SaveChangesAsync();
-            TempData["Success"] = "Xoa nhan vien thanh cong!";
+            TempData["Success"] = "Xoa nhân viên thành công!";
         }
         catch
         {
-            TempData["Error"] = "Khong the xoa vi co du lieu lien quan!";
+            TempData["Error"] = "Không thể xóa vi có dữ liệu liên quan!";
         }
 
         return RedirectToAction(nameof(Index));

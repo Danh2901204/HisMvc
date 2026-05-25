@@ -1,0 +1,73 @@
+@model DispenseHistoryViewModel
+@{
+    ViewData["Title"] = "Lich Su Cap Phat Thuốc";
+    var fromDate = Model.FromDate;
+    var toDate = Model.ToDate;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history"></i> Lich Su Cap Phat Thuốc</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Don Chờ Cap
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Tu ngày</label>
+                    <input type="date" name="fromDate" class="form-control" value="@fromDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Den ngày</label>
+                    <input type="date" name="toDate" class="form-control" value="@toDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Loc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (!Model.Dispenses.Any())
+    {
+        <div class="alert alert-info">Không có phieu cấp phát nao trong khoang thoi gian nay.</div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Cap luc</th>
+                            <th>Don thuốc</th>
+                            <th>Bệnh nhân</th>
+                            <th>Duoc si</th>
+                            <th class="text-end">Tổng tien</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model.Dispenses)
+                        {
+                            decimal total = d.Items?.Sum(x => x.TotalPrice) ?? 0;
+                            <tr>
+                                <td>@d.DispensedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    <a asp-action="Detail" asp-route-id="@d.PrescriptionId">@d.Prescription?.Code</a>
+                                </td>
+                                <td>@d.Prescription?.Encounter?.Patient?.FullName</td>
+                                <td>@d.Pharmacist?.FullName</td>
+                                <td class="text-end">@total.ToString("N0") VND</td>
+                                <td class="text-muted small">@d.Note</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>

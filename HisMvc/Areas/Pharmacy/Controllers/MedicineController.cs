@@ -1,6 +1,9 @@
+using HisMvc.Areas.Pharmacy.Models;
+using HisMvc.Areas.Pharmacy.Services;
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,75 +15,53 @@ namespace HisMvc.Areas.Pharmacy.Controllers;
 public class MedicineController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly PharmacyViewService _views;
+    private readonly CurrentStaffService _staffService;
 
-    public MedicineController(AppDbContext db)
+    public MedicineController(AppDbContext db, PharmacyViewService views, CurrentStaffService staffService)
     {
         _db = db;
+        _views = views;
+        _staffService = staffService;
     }
 
-    // Danh sách thu?c
     public async Task<IActionResult> Index(string? search, bool? active)
     {
-        var query = _db.Medicines.AsQueryable();
-
-        if (!string.IsNullOrEmpty(search))
-        {
-            query = query.Where(m => m.Name.Contains(search) || m.Code.Contains(search));
-        }
-
-        if (active.HasValue)
-        {
-            query = query.Where(m => m.IsActive == active.Value);
-        }
-
-        var medicines = await query.OrderBy(m => m.Name).ToListAsync();
-
-        ViewBag.Search = search;
-        ViewBag.Active = active;
-
-        return View(medicines);
+        var model = await _views.GetMedicineListAsync(search, active);
+        return View(model);
     }
 
-    // Thêm thu?c m?i - GET
-    public IActionResult Create()
-    {
-        return View();
-    }
+    public IActionResult Create() => View();
 
-    // Thêm thu?c m?i - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Medicine medicine)
     {
         if (ModelState.IsValid)
         {
-            // Ki?m tra trùng mã
             if (await _db.Medicines.AnyAsync(m => m.Code == medicine.Code))
             {
-                ModelState.AddModelError("Code", "Mã thu?c ?ã t?n t?i!");
+                ModelState.AddModelError("Code", "MÃ£ thuá»‘c Ä‘Ã£ tá»“n táº¡i!");
                 return View(medicine);
             }
 
             _db.Medicines.Add(medicine);
             await _db.SaveChangesAsync();
 
-            TempData["Success"] = "Thêm thu?c thành công!";
+            TempData["Success"] = "ThÃªm thuá»‘c thÃ nh cÃ´ng!";
             return RedirectToAction(nameof(Index));
         }
 
         return View(medicine);
     }
 
-    // S?a thông tin thu?c - GET
     public async Task<IActionResult> Edit(int id)
     {
         var medicine = await _db.Medicines.FindAsync(id);
         if (medicine == null) return NotFound();
-
         return View(medicine);
     }
 
-    // S?a thông tin thu?c - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(int id, Medicine medicine)
@@ -89,10 +70,9 @@ public class MedicineController : Controller
 
         if (ModelState.IsValid)
         {
-            // Ki?m tra trùng mã (tr? chính nó)
             if (await _db.Medicines.AnyAsync(m => m.Code == medicine.Code && m.MedicineId != id))
             {
-                ModelState.AddModelError("Code", "Mã thu?c ?ã t?n t?i!");
+                ModelState.AddModelError("Code", "MÃ£ thuá»‘c Ä‘Ã£ tá»“n táº¡i!");
                 return View(medicine);
             }
 
@@ -101,7 +81,7 @@ public class MedicineController : Controller
                 _db.Update(medicine);
                 await _db.SaveChangesAsync();
 
-                TempData["Success"] = "C?p nh?t thu?c thành công!";
+                TempData["Success"] = "Cáº­p nháº­t thuá»‘c thÃ nh cÃ´ng!";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
@@ -115,7 +95,6 @@ public class MedicineController : Controller
         return View(medicine);
     }
 
-    // Xem ton kho theo thuoc
     public async Task<IActionResult> Stock(int id)
     {
         var medicine = await _db.Medicines.FindAsync(id);
@@ -132,7 +111,6 @@ public class MedicineController : Controller
         return View(batches);
     }
 
-    // Them lo thuoc moi - GET
     public async Task<IActionResult> AddBatch(int medicineId)
     {
         var medicine = await _db.Medicines.FindAsync(medicineId);
@@ -150,7 +128,6 @@ public class MedicineController : Controller
         return View(batch);
     }
 
-    // Thêm lô thu?c m?i - POST
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddBatch(MedicineBatch batch)
@@ -159,14 +136,11 @@ public class MedicineController : Controller
         {
             try
             {
-                // L?y thông tin Staff
-                var pharmacistEmail = User.Identity!.Name;
-                var staff = await _db.Staffs.FirstOrDefaultAsync(s => s.FullName == pharmacistEmail);
+                var staffId = await _staffService.TryGetStaffIdAsync(User);
 
                 _db.MedicineBatches.Add(batch);
                 await _db.SaveChangesAsync();
 
-                // Ghi log nh?p kho
                 _db.InventoryTransactions.Add(new InventoryTransaction
                 {
                     TransactionCode = $"IN-{DateTime.UtcNow:yyyyMMddHHmmss}",
@@ -174,18 +148,19 @@ public class MedicineController : Controller
                     Type = TransactionType.Import,
                     Quantity = batch.QuantityInStock,
                     TransactionDate = DateTime.UtcNow,
-                    CreatedBy = staff?.StaffId,
-                    Note = $"Nh?p lô thu?c m?i: {batch.BatchNumber}"
+                    CreatedBy = staffId,
+                    StaffId = staffId,
+                    Note = $"Nháº­p lÃ´ thuá»‘c má»›i: {batch.BatchNumber}"
                 });
 
                 await _db.SaveChangesAsync();
 
-                TempData["Success"] = "Thêm lô thu?c thành công!";
+                TempData["Success"] = "ThÃªm lÃ´ thuá»‘c thÃ nh cÃ´ng!";
                 return RedirectToAction(nameof(Stock), new { id = batch.MedicineId });
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"L?i: {ex.Message}");
+                ModelState.AddModelError("", $"Lá»—i: {ex.Message}");
             }
         }
 
@@ -195,7 +170,6 @@ public class MedicineController : Controller
         return View(batch);
     }
 
-    // C?nh báo t?n kho th?p
     public async Task<IActionResult> LowStock()
     {
         var lowStockItems = await _db.MedicineBatches
@@ -207,14 +181,13 @@ public class MedicineController : Controller
         return View(lowStockItems);
     }
 
-    // C?nh báo s?p h?t h?n
     public async Task<IActionResult> Expiring()
     {
         var expiringBatches = await _db.MedicineBatches
             .Include(b => b.Medicine)
-            .Where(b => b.IsActive 
-                     && b.ExpiryDate > DateTime.Today 
-                     && b.ExpiryDate <= DateTime.Today.AddMonths(3)) // S?p h?t h?n trong 3 tháng
+            .Where(b => b.IsActive
+                     && b.ExpiryDate > DateTime.Today
+                     && b.ExpiryDate <= DateTime.Today.AddMonths(3))
             .OrderBy(b => b.ExpiryDate)
             .ToListAsync();
 

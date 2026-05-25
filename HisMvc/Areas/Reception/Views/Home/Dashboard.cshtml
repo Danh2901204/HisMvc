@@ -1,0 +1,116 @@
+@model ReceptionDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - Le Tan";
+}
+
+<div data-auto-refresh="1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0 fw-bold text-primary"><i class="bi bi-calendar-event"></i> Dashboard lễ tân</h2>
+            <small class="text-muted">
+                <span class="live-indicator"></span>
+                Tự động cập nhật moi 30 giay · @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+            </small>
+        </div>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Tạo lịch hẹn
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Lịch hẹn hôm nay</div>
+                    <div class="kpi-value">@Model.Kpi.BookedToday</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-calendar-check"></i> Chờ kham</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-success">
+                <div>
+                    <div class="kpi-label">Đã Check-in</div>
+                    <div class="kpi-value">@Model.Kpi.CheckedInToday</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-box-arrow-in-right"></i> Hom nay</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-danger">
+                <div>
+                    <div class="kpi-label">Lich Đã Hủy</div>
+                    <div class="kpi-value">@Model.Kpi.CancelledToday</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-x-circle"></i> Hom nay</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-info">
+                <div>
+                    <div class="kpi-label">7 Ngay Toi</div>
+                    <div class="kpi-value">@Model.Kpi.BookedNext7</div>
+                </div>
+                <div class="kpi-sub">lịch hẹn da dat</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><span class="live-indicator"></span> Hoat Dong Gan Day</h5>
+                </div>
+                <div class="card-body">
+                    <partial name="_ActivityFeed" model="@Model.Activities" />
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Lich Hen Sap Toi Hom Nay</h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.UpcomingToday.Any())
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var a in Model.UpcomingToday)
+                            {
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <div>
+                                        <strong>@a.TimeSlot?.Start.ToString("HH:mm")</strong>
+                                        — @a.Patient?.FullName
+                                        <br />
+                                        <small class="text-muted">BS @a.Doctor?.FullName</small>
+                                    </div>
+                                    <form asp-action="CheckIn" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="appointmentId" value="@a.AppointmentId" />
+                                        <button class="btn btn-sm btn-success" title="Check-in">
+                                            <i class="bi bi-check2"></i>
+                                        </button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-3 mb-0">Không cón lịch hẹn hom nay</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,39 +6,39 @@ namespace HisMvc.Models;
 public static class HisConstants
 {
     /// <summary>
-    /// PhÌ kh·m c? ??nh
+    /// Ph√≠ kh√°m co dinh
     /// </summary>
     public const decimal EXAM_FEE = 100000;
     
     /// <summary>
-    /// T? l? BHYT chi tr? m?c ??nh
+    /// T·ª∑ l·ªá BHYT chi tr·∫£ m·∫∑c ƒë·ªãnh
     /// </summary>
     public const decimal DEFAULT_INSURANCE_COVERAGE = 80;
     
     /// <summary>
-    /// S? th·ng c?nh b·o thu?c s?p h?t h?n
+    /// So th√°ng canh bao thu·ªëc s·∫Øp h·∫øt h·∫°n
     /// </summary>
     public const int MEDICINE_EXPIRY_WARNING_MONTHS = 3;
     
     /// <summary>
-    /// S? th·ng t?i thi?u cÚn h?n khi c?p ph·t thu?c
+    /// So th√°ng toi thieu c√≤n h·∫°n khi c·∫•p ph√°t thu·ªëc
     /// </summary>
     public const int MEDICINE_MIN_EXPIRY_MONTHS = 1;
     
     /// <summary>
-    /// ?? d‡i m„ th? BHYT
+    /// Do dai ma the BHYT
     /// </summary>
     public const int INSURANCE_NUMBER_LENGTH = 15;
     
     /// <summary>
-    /// C·c lo?i th? BHYT
+    /// Cac lo·∫°i th·∫ª BHYT
     /// </summary>
     public static class InsuranceTypes
     {
-        public const string KC = "KC"; // Kh·m ch?a b?nh
-        public const string QN = "QN"; // Qu‚n nh‚n
-        public const string TE = "TE"; // Tr? em d??i 6 tu?i
-        public const string CB = "CB"; // CÙng ch?c viÍn ch?c
-        public const string NN = "NN"; // NÙng d‚n
+        public const string KC = "KC"; // Kham chua benh
+        public const string QN = "QN"; // Quan nhan
+        public const string TE = "TE"; // Tre em duoi 6 tu·ªïi
+        public const string CB = "CB"; // Cong chuc vien chuc
+        public const string NN = "NN"; // Nong dan
     }
 }

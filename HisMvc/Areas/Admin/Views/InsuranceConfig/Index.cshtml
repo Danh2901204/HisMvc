@@ -1,0 +1,88 @@
+@model InsuranceConfigListViewModel
+@{
+    ViewData["Title"] = "Cấu hình BHYT";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-shield-check"></i> Cấu hình BHYT</h2>
+        <div>
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Thêm mới
+            </a>
+            <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Về Dashboard
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-list"></i> Ty Le Chi Tra Theo Loai The (@Model.Configs.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Loai The</th>
+                            <th>Mo Ta</th>
+                            <th>Ty Le (%)</th>
+                            <th>Đang Ky KCB</th>
+                            <th>Trạng thái</th>
+                            <th class="text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in Model.Configs)
+                        {
+                            <tr>
+                                <td><strong>@c.InsuranceType</strong></td>
+                                <td>@c.Description</td>
+                                <td><span class="badge bg-success">@c.DefaultCoveragePercent%</span></td>
+                                <td>
+                                    @if (c.RequireRegistration)
+                                    {
+                                        <span class="text-success"><i class="bi bi-check-circle"></i> Bắt buộc</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Không bat buoc</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (c.IsActive)
+                                    {
+                                        <span class="badge bg-success">Hoạt động</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Tam ngung</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="Edit" asp-route-id="@c.InsuranceConfigId" class="btn btn-sm btn-warning">
+                                        <i class="bi bi-pencil"></i> Sua
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info mt-3 mb-0">
+        <i class="bi bi-info-circle"></i>
+        Bang <strong>InsuranceConfigs</strong> theo schema Book1 — dung mặc định khi tao hồ sơ bệnh nhân có BHYT.
+    </div>
+</div>

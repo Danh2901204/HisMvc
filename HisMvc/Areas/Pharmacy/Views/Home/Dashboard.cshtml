@@ -1,0 +1,128 @@
+@model PharmacyDashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard - Duoc";
+}
+
+<div data-auto-refresh="1">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-0 fw-bold text-primary"><i class="bi bi-capsule"></i> Dashboard dược</h2>
+            <small class="text-muted">
+                <span class="live-indicator"></span>
+                Tự động cập nhật moi 30 giay
+            </small>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-warning">
+                <div><div class="kpi-label">Đơn chờ cấp phát</div><div class="kpi-value">@Model.Kpi.Pending</div></div>
+                <div class="kpi-sub"><i class="bi bi-9-circle"></i> Bước 9 — đã thu chi phí cuoi</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-success">
+                <div><div class="kpi-label">Đã Cap Hom Nay</div><div class="kpi-value">@Model.Kpi.DispensedToday</div></div>
+                <div class="kpi-sub"><i class="bi bi-check-circle"></i> Hoàn thành</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-danger">
+                <div><div class="kpi-label">Lo Sap Het</div><div class="kpi-value">@Model.Kpi.LowStock</div></div>
+                <div class="kpi-sub"><i class="bi bi-exclamation-triangle"></i> Tồn kho thap</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card kpi-info">
+                <div><div class="kpi-label">Thuốc Hoat Dong</div><div class="kpi-value">@Model.Kpi.TotalMedicines</div></div>
+                <div class="kpi-sub"><i class="bi bi-box-seam"></i> Danh muc</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning text-dark d-flex justify-content-between">
+                    <h5 class="mb-0"><i class="bi bi-hourglass-split"></i> Đơn chờ cấp phát</h5>
+                    <span class="badge bg-light text-dark">@Model.PendingPrescriptions.Count</span>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.PendingPrescriptions.Any())
+                    {
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr><th>Mã don</th><th>Bệnh nhân</th><th>So thuốc</th><th>Gio ke</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.PendingPrescriptions)
+                                {
+                                    <tr>
+                                        <td><strong>@p.Code</strong></td>
+                                        <td>@p.Encounter?.Patient?.FullName</td>
+                                        <td>@p.Items.Count</td>
+                                        <td><small>@p.PrescribedAt.ToLocalTime().ToString("dd/MM HH:mm")</small></td>
+                                        <td>
+                                            @if (p.Encounter?.Status == EncounterStatus.WaitingMedicine)
+                                            {
+                                                <a asp-action="Dispense" asp-route-id="@p.PrescriptionId" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-box-seam"></i> Cap
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-action="Detail" asp-route-id="@p.PrescriptionId" class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-4 mb-0">
+                            <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                            Không có don cho cấp phát
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><span class="live-indicator"></span> Hoat Dong Gan Day</h5>
+                </div>
+                <div class="card-body">
+                    <partial name="_ActivityFeed" model="@Model.Activities" />
+                </div>
+            </div>
+
+            @if (Model.LowStockBatches.Any())
+            {
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Canh Bao Ton Kho Thap</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var b in Model.LowStockBatches)
+                        {
+                            <li class="list-group-item d-flex justify-content-between">
+                                <div>
+                                    <strong>@b.Medicine?.Name</strong>
+                                    <br /><small class="text-muted">Lo @b.BatchNumber · HSD @b.ExpiryDate:dd/MM/yyyy</small>
+                                </div>
+                                <span class="badge bg-danger fs-6">@b.QuantityInStock / @b.MinStockLevel</span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+    </div>
+</div>

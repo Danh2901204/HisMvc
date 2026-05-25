@@ -1,3 +1,5 @@
+using HisMvc.Areas.Admin.Models;
+using HisMvc.Areas.Admin.Services;
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
@@ -12,22 +14,21 @@ namespace HisMvc.Areas.Admin.Controllers;
 public class ServiceController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly AdminViewService _views;
 
-    public ServiceController(AppDbContext db)
+    public ServiceController(AppDbContext db, AdminViewService views)
     {
         _db = db;
+        _views = views;
     }
 
     public async Task<IActionResult> Index()
     {
-        var services = await _db.Services.OrderBy(x => x.Type).ThenBy(x => x.Name).ToListAsync();
-        return View(services);
+        var model = await _views.GetServiceListAsync();
+        return View(model);
     }
 
-    public IActionResult Create()
-    {
-        return View();
-    }
+    public IActionResult Create() => View();
 
     [HttpPost]
     public async Task<IActionResult> Create(Service model)
@@ -37,7 +38,7 @@ public class ServiceController : Controller
 
         _db.Services.Add(model);
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Them dich vu thanh cong!";
+        TempData["Success"] = "Thêm dịch vụ thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -57,7 +58,7 @@ public class ServiceController : Controller
 
         _db.Services.Update(model);
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Cap nhat dich vu thanh cong!";
+        TempData["Success"] = "Cập nhật dịch vụ thành công!";
         return RedirectToAction(nameof(Index));
     }
 
@@ -72,11 +73,11 @@ public class ServiceController : Controller
         {
             _db.Services.Remove(service);
             await _db.SaveChangesAsync();
-            TempData["Success"] = "Xoa dich vu thanh cong!";
+            TempData["Success"] = "Xoa dịch vụ thành công!";
         }
         catch
         {
-            TempData["Error"] = "Khong the xoa vi co du lieu lien quan!";
+            TempData["Error"] = "Không thể xóa vi có dữ liệu liên quan!";
         }
 
         return RedirectToAction(nameof(Index));

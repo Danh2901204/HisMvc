@@ -1,17 +1,17 @@
-@model List<Service>
+@model ServiceListViewModel
 @{
-    ViewData["Title"] = "Quan Ly Dich Vu";
+    ViewData["Title"] = "Quản lý dịch vụ";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-heart-pulse"></i> Quan Ly Dich Vu</h2>
+        <h2><i class="bi bi-heart-pulse"></i> Quản lý dịch vụ</h2>
         <div>
             <a href="@Url.Action("Create")" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Them Moi
+                <i class="bi bi-plus-circle"></i> Thêm mới
             </a>
             <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Ve Dashboard
+                <i class="bi bi-arrow-left"></i> Về Dashboard
             </a>
         </div>
     </div>
@@ -33,7 +33,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sach Dich Vu (@Model.Count)</h5>
+            <h5 class="mb-0"><i class="bi bi-list"></i> Danh sách dịch vụ (@Model.Services.Count)</h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -41,14 +41,14 @@
                     <thead class="table-light">
                         <tr>
                             <th>ID</th>
-                            <th>Ten Dich Vu</th>
+                            <th>Tên dịch vụ</th>
                             <th>Loai</th>
                             <th>Gia</th>
-                            <th class="text-center">Thao Tac</th>
+                            <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var service in Model)
+                        @foreach (var service in Model.Services)
                         {
                             <tr>
                                 <td><strong>@service.ServiceId</strong></td>
@@ -63,7 +63,7 @@
                                     else if (service.Type == "IMAGING")
                                     {
                                         <span class="badge bg-warning text-dark">
-                                            <i class="bi bi-x-ray"></i> Chan doan hinh anh
+                                            <i class="bi bi-x-ray"></i> Chẩn đoán hinh anh
                                         </span>
                                     }
                                     else if (service.Type == "EXAM")
@@ -84,7 +84,7 @@
                                     <a href="@Url.Action("Edit", new { id = service.ServiceId })" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Sua
                                     </a>
-                                    <form asp-action="Delete" asp-route-id="@service.ServiceId" method="post" style="display:inline;" onsubmit="return confirm('Ban co chac muon xoa dich vu nay?')">
+                                    <form asp-action="Delete" asp-route-id="@service.ServiceId" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa dịch vụ nay?')">
                                         <button type="submit" class="btn btn-sm btn-danger">
                                             <i class="bi bi-trash"></i> Xoa
                                         </button>
@@ -101,16 +101,16 @@
     <div class="mt-3">
         <div class="card">
             <div class="card-body">
-                <h6>Chu thich Loai Dich Vu:</h6>
+                <h6>Chú thích Loại dịch vụ:</h6>
                 <div class="d-flex gap-3 flex-wrap">
                     <div>
-                        <span class="badge bg-info"><i class="bi bi-flask"></i> Xet nghiem</span> - Dich vu xet nghiem
+                        <span class="badge bg-info"><i class="bi bi-flask"></i> Xet nghiem</span> - Dịch vụ xet nghiem
                     </div>
                     <div>
-                        <span class="badge bg-warning text-dark"><i class="bi bi-x-ray"></i> Chan doan hinh anh</span> - X-quang, CT, MRI, Sieu am
+                        <span class="badge bg-warning text-dark"><i class="bi bi-x-ray"></i> Chẩn đoán hinh anh</span> - X-quang, CT, MRI, Sieu am
                     </div>
                     <div>
-                        <span class="badge bg-primary"><i class="bi bi-stethoscope"></i> Kham</span> - Dich vu kham benh
+                        <span class="badge bg-primary"><i class="bi bi-stethoscope"></i> Kham</span> - Dịch vụ kham benh
                     </div>
                 </div>
             </div>

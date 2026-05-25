@@ -1,0 +1,264 @@
+@model InsuranceClaimDetailViewModel
+@{
+    ViewData["Title"] = $"Ho So Giam Dinh {Model.Claim.ClaimCode}";
+    var claim = Model.Claim;
+    var items = Model.Items;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-shield-fill-check"></i> @claim.ClaimCode</h2>
+            <p class="text-muted mb-0">Ho so giam dinh BHYT — chuan QD 130/QD-BHXH</p>
+        </div>
+        <div>
+            @if (claim.Status == ClaimStatus.Submitted || claim.Status == ClaimStatus.Approved || claim.Status == ClaimStatus.PartiallyApproved || claim.Status == ClaimStatus.Rejected)
+            {
+                <a asp-action="ExportXml" asp-route-id="@claim.InsuranceClaimId" class="btn btn-outline-success">
+                    <i class="bi bi-file-earmark-code"></i> Tai XML giam dinh
+                </a>
+            }
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Danh sách
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person-vcard"></i> Thông tin bệnh nhân & BHYT
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Họ tên</dt>
+                        <dd class="col-sm-8"><strong>@claim.Patient?.FullName</strong></dd>
+                        <dt class="col-sm-4">Ngày sinh</dt>
+                        <dd class="col-sm-8">@(claim.Patient?.Dob?.ToString("dd/MM/yyyy") ?? "-")</dd>
+                        <dt class="col-sm-4">Diện thoại</dt>
+                        <dd class="col-sm-8">@claim.Patient?.Phone</dd>
+                        <dt class="col-sm-4">Mã thẻ BHYT</dt>
+                        <dd class="col-sm-8"><strong>@claim.InsuranceNumber</strong> (@claim.InsuranceType)</dd>
+                        <dt class="col-sm-4">Hết hạn</dt>
+                        <dd class="col-sm-8">@claim.InsuranceExpiry.ToString("dd/MM/yyyy")</dd>
+                        <dt class="col-sm-4">Tỷ lệ chi trả</dt>
+                        <dd class="col-sm-8"><span class="badge bg-success">@claim.CoveragePercent%</span></dd>
+                        @if (claim.Encounter != null)
+                        {
+                            <dt class="col-sm-4">Lượt khám</dt>
+                            <dd class="col-sm-8">
+                                #@claim.EncounterId — BS @claim.Encounter.Doctor?.FullName
+                                <br /><small class="text-muted">Chẩn đoán: @claim.Encounter.Diagnosis</small>
+                            </dd>
+                        }
+                        @if (claim.AdmissionId.HasValue)
+                        {
+                            <dt class="col-sm-4">Nhập viện</dt>
+                            <dd class="col-sm-8">#@claim.AdmissionId</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-list-check"></i> Chi tiết dịch vụ (XML 2 - Chỉ định DVKT)
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-bordered mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã DV</th>
+                                <th>Tên dịch vụ</th>
+                                <th class="text-center">SL</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thanh tien</th>
+                                <th class="text-end">BHYT tra</th>
+                                <th class="text-end">BN tra</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var it in items)
+                            {
+                                <tr>
+                                    <td><code>@it.ServiceCode</code></td>
+                                    <td>@it.ServiceName</td>
+                                    <td class="text-center">@it.Quantity</td>
+                                    <td class="text-end">@it.UnitPrice.ToString("N0")</td>
+                                    <td class="text-end">@it.TotalPrice.ToString("N0")</td>
+                                    <td class="text-end text-success">@it.InsurancePaid.ToString("N0")</td>
+                                    <td class="text-end text-danger">@it.PatientPaid.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="4" class="text-end">Tong</th>
+                                <th class="text-end">@claim.TotalAmount.ToString("N0")</th>
+                                <th class="text-end text-success">@claim.InsuranceCovered.ToString("N0")</th>
+                                <th class="text-end text-danger">@claim.PatientPayment.ToString("N0")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <i class="bi bi-clipboard-data"></i> Trạng thái
+                </div>
+                <div class="card-body">
+                    <p>
+                        @switch (claim.Status)
+                        {
+                            case ClaimStatus.Pending:
+                                <span class="badge bg-warning text-dark fs-6">Chờ nop hồ sơ</span>
+                                break;
+                            case ClaimStatus.Submitted:
+                                <span class="badge bg-info fs-6">Đã nop - Chờ co quan BHYT duyet</span>
+                                break;
+                            case ClaimStatus.Approved:
+                                <span class="badge bg-success fs-6">Đã duyet</span>
+                                break;
+                            case ClaimStatus.PartiallyApproved:
+                                <span class="badge bg-primary fs-6">Duyet 1 phan</span>
+                                break;
+                            case ClaimStatus.Rejected:
+                                <span class="badge bg-danger fs-6">Bi tu choi</span>
+                                break;
+                        }
+                    </p>
+                    <p class="small mb-1"><strong>Tạo luc:</strong> @claim.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                    @if (claim.SubmittedAt.HasValue)
+                    {
+                        <p class="small mb-1"><strong>Nop luc:</strong> @claim.SubmittedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                    }
+                    @if (claim.ApprovedAt.HasValue)
+                    {
+                        <p class="small mb-1"><strong>Duyet/TC luc:</strong> @claim.ApprovedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                        <p class="small mb-1"><strong>Boi:</strong> @claim.ApprovedByStaff?.FullName</p>
+                    }
+                    @if (!string.IsNullOrEmpty(claim.RejectReason))
+                    {
+                        <div class="alert alert-danger small mb-0 mt-2">
+                            <strong>Ly do tu choi:</strong><br />@claim.RejectReason
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(claim.Note))
+                    {
+                        <div class="alert alert-info small mb-0 mt-2">
+                            <strong>Ghi chú:</strong><br />@claim.Note
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    <i class="bi bi-tools"></i> Thao tác
+                </div>
+                <div class="card-body">
+                    @if (claim.Status == ClaimStatus.Pending)
+                    {
+                        <form asp-action="Submit" method="post" class="mb-2">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@claim.InsuranceClaimId" />
+                            <button class="btn btn-info w-100" onclick="return confirm('Nop hồ sơ giam dinh len co quan BHYT?')">
+                                <i class="bi bi-send"></i> Nop giam dinh
+                            </button>
+                        </form>
+                    }
+                    @if (claim.Status == ClaimStatus.Submitted)
+                    {
+                        <button class="btn btn-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#approveModal">
+                            <i class="bi bi-check2-circle"></i> Duyet
+                        </button>
+                        <button class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejectModal">
+                            <i class="bi bi-x-circle"></i> Tu choi
+                        </button>
+                    }
+                    @if (claim.Status != ClaimStatus.Pending && !string.IsNullOrEmpty(claim.XmlData))
+                    {
+                        <a asp-action="ExportXml" asp-route-id="@claim.InsuranceClaimId" class="btn btn-outline-success w-100 mt-2">
+                            <i class="bi bi-download"></i> Tai XML giam dinh
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approve modal -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Approve" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@claim.InsuranceClaimId" />
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check2-circle"></i> Duyet hồ sơ giam dinh</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted">
+                    Mac dinh duyet toan bo <strong>@claim.InsuranceCovered.ToString("N0") VND</strong>.
+                    De duyet 1 phan, nhập so tien BHYT thuc te chap nhan.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label">So tien BHYT duyet (de trong = duyet toan bo)</label>
+                    <input type="number" name="approvedAmount" class="form-control" step="1000" min="0"
+                        max="@claim.InsuranceCovered" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ghi chú</label>
+                    <textarea name="note" class="form-control" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bo qua</button>
+                <button type="submit" class="btn btn-success">Xác nhận duyet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reject modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form asp-action="Reject" method="post" class="modal-content">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@claim.InsuranceClaimId" />
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-x-octagon"></i> Tu choi hồ sơ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label">Ly do tu choi <span class="text-danger">*</span></label>
+                <textarea name="reason" class="form-control" rows="4" required
+                    placeholder="VD: The BHYT chua dang ky noi KCB ban đầu; DV không nam trong DM BHYT..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bo qua</button>
+                <button type="submit" class="btn btn-danger">Tu choi</button>
+            </div>
+        </form>
+    </div>
+</div>

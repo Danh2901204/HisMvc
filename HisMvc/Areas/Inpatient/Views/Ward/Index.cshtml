@@ -1,18 +1,18 @@
-@model List<Ward>
+@model WardListViewModel
 @{
-    ViewData["Title"] = "Quan Li Buong Benh";
-    var bedCounts = (Dictionary<int, int>)ViewBag.BedCounts;
+    ViewData["Title"] = "Quan Li Buồng Benh";
+    var bedCounts = Model.BedCounts;
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-door-open"></i> Quan Li Buong Benh</h2>
+        <h2><i class="bi bi-door-open"></i> Quan Li Buồng Benh</h2>
         <div class="btn-group">
             <a asp-area="Inpatient" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Ve Danh Sach Noi Tru
+                <i class="bi bi-arrow-left"></i> Ve Danh sách Nội trú
             </a>
             <a asp-action="Create" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Them Buong Moi
+                <i class="bi bi-plus-circle"></i> Thêm Buồng Moi
             </a>
         </div>
     </div>
@@ -25,20 +25,20 @@
         </div>
     }
 
-    @if (Model.Count == 0)
+    @if (Model.Wards.Count == 0)
     {
         <div class="card">
             <div class="card-body text-center py-5">
                 <i class="bi bi-inbox fs-1 text-muted"></i>
-                <h5 class="mt-3">Chua co buong benh nao</h5>
-                <p class="text-muted">Nhan nut "Them Buong Moi" de bat dau</p>
+                <h5 class="mt-3">Chưa có buong benh nao</h5>
+                <p class="text-muted">Nhan nut "Thêm Buồng Moi" de bat dau</p>
             </div>
         </div>
     }
     else
     {
         <div class="row">
-            @foreach (var ward in Model)
+            @foreach (var ward in Model.Wards)
             {
                 var bedCount = bedCounts.ContainsKey(ward.WardId) ? bedCounts[ward.WardId] : 0;
                 var bgClass = ward.Type switch
@@ -57,7 +57,7 @@
                             </h5>
                         </div>
                         <div class="card-body">
-                            <p class="mb-2"><strong>Ma:</strong> @ward.Code</p>
+                            <p class="mb-2"><strong>Mã:</strong> @ward.Code</p>
                             <p class="mb-2"><strong>Khoa:</strong> @ward.Department?.Name</p>
                             <p class="mb-2">
                                 <strong>Loai:</strong> 
@@ -79,14 +79,14 @@
                                 }
                             </p>
                             <p class="mb-2">
-                                <strong>So giuong:</strong> 
+                                <strong>So giường:</strong> 
                                 <span class="badge bg-info">@bedCount</span>
                             </p>
                             <p class="mb-2">
-                                <strong>Trang thai:</strong> 
+                                <strong>Trạng thái:</strong> 
                                 @if (ward.IsActive)
                                 {
-                                    <span class="badge bg-success">Hoat dong</span>
+                                    <span class="badge bg-success">Hoạt động</span>
                                 }
                                 else
                                 {
@@ -102,7 +102,7 @@
                         <div class="card-footer bg-transparent">
                             <div class="btn-group w-100">
                                 <a asp-action="BedMap" asp-route-id="@ward.WardId" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-grid-3x3"></i> So do giuong
+                                    <i class="bi bi-grid-3x3"></i> So do giường
                                 </a>
                                 <a asp-action="Edit" asp-route-id="@ward.WardId" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-pencil"></i> Sua
@@ -116,8 +116,8 @@
 
         <div class="mt-3">
             <small class="text-muted">
-                Tong so: <strong>@Model.Count</strong> buong benh | 
-                Tong so giuong: <strong>@bedCounts.Values.Sum()</strong>
+                Tổng sô: <strong>@Model.Wards.Count</strong> buong benh |
+                Tổng sô giường: <strong>@bedCounts.Values.Sum()</strong>
             </small>
         </div>
     }
