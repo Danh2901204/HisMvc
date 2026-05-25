@@ -1,0 +1,171 @@
+@model Prescription
+@{
+    ViewData["Title"] = "Chi Ti?t ??n Thu?c";
+    var stocks = (Dictionary<int, int>)ViewBag.Stocks;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-file-earmark-medical"></i> Chi Ti?t ??n Thu?c</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Quay l?i
+        </a>
+    </div>
+
+    <!-- Thông tin chung -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person"></i> Thông Tin B?nh Nhân
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td width="150"><strong>H? tên:</strong></td>
+                            <td>@Model.Encounter?.Patient?.FullName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ngày sinh:</strong></td>
+                            <td>@Model.Encounter?.Patient?.Dob?.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>S? ?i?n tho?i:</strong></td>
+                            <td>@Model.Encounter?.Patient?.Phone</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gi?i tính:</strong></td>
+                            <td>@Model.Encounter?.Patient?.Gender</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-receipt"></i> Thông Tin ??n Thu?c
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td width="150"><strong>Mã ??n:</strong></td>
+                            <td><span class="badge bg-dark">@Model.Code</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bác s? kê ??n:</strong></td>
+                            <td>@Model.Doctor?.FullName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Th?i gian:</strong></td>
+                            <td>@Model.PrescribedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Tr?ng thái:</strong></td>
+                            <td>
+                                @if (Model.Status == PrescriptionStatus.Pending)
+                                {
+                                    <span class="badge bg-warning">Ch? c?p phát</span>
+                                }
+                                else if (Model.Status == PrescriptionStatus.Dispensed)
+                                {
+                                    <span class="badge bg-success">?ã c?p phát</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">?ã h?y</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách thu?c -->
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-capsule"></i> Danh Sách Thu?c Trong ??n
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên thu?c</th>
+                            <th>Li?u dùng</th>
+                            <th>S? l??ng</th>
+                            <th>S? ngày</th>
+                            <th>H??ng d?n</th>
+                            <th>T?n kho</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int stt = 1; }
+                        @foreach (var item in Model.Items)
+                        {
+                            var stock = stocks.ContainsKey(item.MedicineId) ? stocks[item.MedicineId] : 0;
+                            var hasEnoughStock = stock >= item.Quantity;
+
+                            <tr class="@(!hasEnoughStock ? "table-danger" : "")">
+                                <td class="text-center">@(stt++)</td>
+                                <td>
+                                    <strong>@item.Medicine?.Name</strong><br />
+                                    <small class="text-muted">@item.Medicine?.ActiveIngredient</small>
+                                </td>
+                                <td>@item.Dosage</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary">@item.Quantity @item.Medicine?.Unit</span>
+                                </td>
+                                <td class="text-center">@item.Duration ngày</td>
+                                <td>@(item.Instructions ?? "-")</td>
+                                <td class="text-center">
+                                    @if (hasEnoughStock)
+                                    {
+                                        <span class="badge bg-success">@stock @item.Medicine?.Unit</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">@stock @item.Medicine?.Unit (Thi?u)</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.Items.Any(item => !stocks.ContainsKey(item.MedicineId) || stocks[item.MedicineId] < item.Quantity))
+            {
+                <div class="alert alert-danger mt-3">
+                    <i class="bi bi-exclamation-triangle"></i> 
+                    <strong>C?nh báo:</strong> M?t s? thu?c không ?? t?n kho ?? c?p phát!
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Note))
+    {
+        <div class="card mt-3">
+            <div class="card-header">
+                <i class="bi bi-sticky"></i> Ghi chú
+            </div>
+            <div class="card-body">
+                @Model.Note
+            </div>
+        </div>
+    }
+
+    @if (Model.Status == PrescriptionStatus.Pending)
+    {
+        <div class="mt-4">
+            <a asp-action="Dispense" asp-route-id="@Model.PrescriptionId" class="btn btn-success btn-lg">
+                <i class="bi bi-box-seam"></i> Ti?n Hành C?p Phát
+            </a>
+        </div>
+    }
+</div>

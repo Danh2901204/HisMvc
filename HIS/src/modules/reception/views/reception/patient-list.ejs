@@ -1,0 +1,53 @@
+<%- include("../../../views/layouts/main", {
+  title,
+  body: `
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="h1">Danh sách bệnh nhân</div>
+          <div class="muted">Tra cứu nhanh hồ sơ bệnh nhân đã tiếp nhận.</div>
+          <div style="height:12px"></div>
+
+          <div class="actions">
+            <a class="btn" href="/reception/patients/new">+ Tạo hồ sơ</a>
+            <a class="btn secondary" href="/reception/visits/new">Đăng ký lượt khám</a>
+          </div>
+
+          <div style="height:14px"></div>
+
+          <form action="/reception/patients" method="GET" class="form-inline mb-3">
+            <input type="text" name="search" class="form-control mr-sm-2" placeholder="Search by name or ID" value="<%= searchTerm %>">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </form>
+
+          <span class="badge">Tổng: ${patients.length}</span>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Mã BN</th>
+                <th>Họ tên</th>
+                <th>Ngày sinh</th>
+                <th>SĐT</th>
+                <th>CCCD</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                patients.map(p => `
+                  <tr>
+                    <td>${p.patientId}</td>
+                    <td>${p.name}</td>
+                    <td>${p.dob ? new Date(p.dob).toLocaleDateString() : ""}</td>
+                    <td>${p.phone || ""}</td>
+                    <td>${p.cccd || ""}</td>
+                  </tr>
+                `).join("")
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `
+}) %>

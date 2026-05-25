@@ -1,0 +1,51 @@
+<div class="container">
+    <h2>Edit User</h2>
+
+    <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+
+    <form action="/admin/users/edit/<%= user._id %>" method="POST">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" class="form-control" value="<%= user.username %>" required>
+        </div>
+        <div class="form-group">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" name="firstName" class="form-control" value="<%= user.staff ? user.staff.firstName : '' %>" required>
+        </div>
+        <div class="form-group">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" name="lastName" class="form-control" value="<%= user.staff ? user.staff.lastName : '' %>" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" class="form-control" value="<%= user.staff ? user.staff.email : '' %>" required>
+        </div>
+        <div class="form-group">
+            <label for="specialty">Specialty</label>
+            <select id="specialty" name="specialty" class="form-control">
+                <% departments.forEach(department => { %>
+                    <option value="<%= department.deptName %>" <%= (user.staff && user.staff.specialty === department.deptName) ? 'selected' : '' %>><%= department.deptName %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="role">Role</label>
+            <select id="role" name="role" class="form-control" required>
+                <% roles.forEach(role => { %>
+                    <option value="<%= role %>" <%= user.role === role ? 'selected' : '' %>><%= role %></option>
+                <% }) %>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="password">New Password (optional)</label>
+            <input type="password" id="password" name="password" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary">Update User</button>
+        <a href="/admin/users" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

@@ -1,0 +1,16 @@
+// ... existing code ...
+                    <a href="/admin/beds">Giường</a>
+                    <a href="/admin/drugs">Thuốc</a>
+                </div>
+            </div>
+        <% } else if (user.role === 'reception') { %>
+            <a href="/reception/patients">Bệnh nhân</a>
+            <a href="/reception/patients/new">Tạo hồ sơ</a>
+            <a href="/reception/visits/new">Đăng ký khám</a>
+            <a href="/reception/invoices">Hóa đơn</a>
+        <% } else if (user.role === 'doctor') { %>
+            <a href="/doctor/dashboard">Dashboard</a>
+        <% } else { %>
+            <a href="/reception/patients">Bệnh nhân</a>
+            <a href="/reception/patients/new">Tạo hồ sơ</a>
+// ... existing code ...

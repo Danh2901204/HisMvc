@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visit Details</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../../partials/header') %>
+  <div class="container">
+    <h1>Visit Details</h1>
+    <div class="card">
+      <h2>Visit Information</h2>
+      <p><strong>Date:</strong> <%= new Date(visit.date).toLocaleString() %></p>
+      <p><strong>Patient:</strong> <%= patient.name %></p>
+      <p><strong>Doctor:</strong> <%= visit.doctor %></p>
+      <p><strong>Department:</strong> <%= visit.department %></p>
+    </div>
+
+    <div class="card">
+      <h2>Clinical Notes</h2>
+      <form action="/doctor/visits/<%= visit.id %>/notes" method="POST">
+        <div class="form-group">
+          <label for="symptoms">Symptoms</label>
+          <textarea id="symptoms" name="symptoms" rows="4"><%= visit.notes.symptoms %></textarea>
+        </div>
+        <div class="form-group">
+          <label for="diagnosis">Diagnosis</label>
+          <textarea id="diagnosis" name="diagnosis" rows="4"><%= visit.notes.diagnosis %></textarea>
+        </div>
+        <button type="submit" class="btn">Save Notes</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Prescriptions</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Drug</th>
+            <th>Dosage</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (prescriptions && prescriptions.length > 0) { %>
+            <% prescriptions.forEach(prescription => { %>
+              <tr>
+                <td><%= prescription.drugId.name %></td>
+                <td><%= prescription.dosage %></td>
+                <td>
+                  <form action="/doctor/prescriptions/<%= prescription.id %>?_method=DELETE" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="3">No prescriptions for this visit.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+      <form action="/doctor/visits/<%= visit.id %>/prescriptions" method="POST" class="mt-3">
+        <div class="form-group">
+          <label for="drug">Drug</label>
+          <select id="drug" name="drugId">
+            <% drugs.forEach(drug => { %>
+              <option value="<%= drug.id %>"><%= drug.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dosage">Dosage</label>
+          <input type="text" id="dosage" name="dosage" required>
+        </div>
+        <button type="submit" class="btn">Add Prescription</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Lab Orders</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Status</th>
+            <th>Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (labOrders && labOrders.length > 0) { %>
+            <% labOrders.forEach(order => { %>
+              <tr>
+                <td><%= order.labTestId.name %></td>
+                <td><%= order.status %></td>
+                <td><%= order.result || 'N/A' %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="3">No lab orders for this visit.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+      <form action="/doctor/visits/<%= visit.id %>/lab-orders" method="POST" class="mt-3">
+        <div class="form-group">
+          <label for="labTest">Lab Test</label>
+          <select id="labTest" name="labTestId">
+            <% labTests.forEach(test => { %>
+              <option value="<%= test.id %>"><%= test.name %></option>
+            <% }) %>
+          </select>
+        </div>
+        <button type="submit" class="btn">Order Test</button>
+      </form>
+    </div>
+
+  </div>
+  <%- include('../../partials/footer') %>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<div class="container-fluid">
+    <h1 class="mt-4">Patient Details</h1>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            Patient Information
+        </div>
+        <div class="card-body">
+            <p><strong>Patient ID:</strong> <%= patient.patientCode %></p>
+            <p><strong>Name:</strong> <%= patient.fullName %></p>
+            <p><strong>Date of Birth:</strong> <%= patient.dateOfBirth.toLocaleDateString() %></p>
+            <p><strong>Gender:</strong> <%= patient.gender %></p>
+            <p><strong>Address:</strong> <%= patient.address %></p>
+            <p><strong>Phone:</strong> <%= patient.phone %></p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-history mr-1"></i>
+            Visit History
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Visit ID</th>
+                            <th>Date</th>
+                            <th>Reason</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% visits.forEach(visit => { %>
+                            <tr>
+                                <td><%= visit.visitCode %></td>
+                                <td><%= visit.visitDate.toLocaleDateString() %></td>
+                                <td><%= visit.reason %></td>
+                                <td><%= visit.department %></td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,6 +1,7 @@
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,13 @@ namespace HisMvc.Areas.Cashier.Controllers;
 public class HomeController : Controller
 {
     private readonly AppDbContext _db;
-    public HomeController(AppDbContext db) => _db = db;
+    private readonly InsuranceService _insuranceService;
+    
+    public HomeController(AppDbContext db, InsuranceService insuranceService)
+    {
+        _db = db;
+        _insuranceService = insuranceService;
+    }
 
     public async Task<IActionResult> Index(string status = "", DateOnly? date = null)
     {
@@ -106,22 +113,26 @@ public class HomeController : Controller
             .Where(x => x.EncounterId == encounterId)
             .ToListAsync();
 
-        decimal examFee = 100000;
+        decimal examFee = HisConstants.EXAM_FEE;
         decimal totalOrderPrice = orders.Sum(x => x.Service?.Price ?? 0);
         decimal totalAmount = examFee + totalOrderPrice;
+
+        // Tính toán BHYT
+        var insuranceCalc = await _insuranceService.CalculateInsuranceForEncounter(encounterId);
 
         ViewBag.Encounter = encounter;
         ViewBag.Orders = orders;
         ViewBag.ExamFee = examFee;
         ViewBag.TotalOrderPrice = totalOrderPrice;
         ViewBag.TotalAmount = totalAmount;
+        ViewBag.InsuranceCalculation = insuranceCalc;
 
         return View();
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateInvoice(int encounterId, string? note)
+    public async Task<IActionResult> CreateInvoice(int encounterId, string? note, bool useInsurance = false)
     {
         var encounter = await _db.Encounters.FindAsync(encounterId);
         if (encounter == null)
@@ -147,17 +158,40 @@ public class HomeController : Controller
             .Where(x => x.EncounterId == encounterId)
             .ToListAsync();
 
-        decimal examFee = 100000;
+        decimal examFee = HisConstants.EXAM_FEE;
         decimal totalOrderPrice = orders.Sum(x => x.Service?.Price ?? 0);
         decimal totalAmount = examFee + totalOrderPrice;
 
         var invoiceCode = $"INV{DateTime.Now:yyyyMMddHHmmss}";
+
+        // Tính toán BHYT n?u có
+        decimal insuranceAmount = 0;
+        decimal patientAmount = totalAmount;
+        int? claimId = null;
+
+        if (useInsurance)
+        {
+            var insuranceCalc = await _insuranceService.CalculateInsuranceForEncounter(encounterId);
+            
+            if (insuranceCalc.IsValid)
+            {
+                // T?o giám ??nh BHYT
+                var claim = await _insuranceService.CreateInsuranceClaim(encounterId, insuranceCalc);
+                claimId = claim.InsuranceClaimId;
+                insuranceAmount = insuranceCalc.InsurancePays;
+                patientAmount = insuranceCalc.PatientPays;
+            }
+        }
 
         var invoice = new Invoice
         {
             EncounterId = encounterId,
             InvoiceCode = invoiceCode,
             TotalAmount = totalAmount,
+            InsuranceAmount = insuranceAmount,
+            PatientAmount = patientAmount,
+            HasInsurance = useInsurance,
+            InsuranceClaimId = claimId,
             Status = InvoiceStatus.Unpaid,
             Note = note
         };
@@ -188,7 +222,7 @@ public class HomeController : Controller
             .ToListAsync();
 
         ViewBag.Orders = orders;
-        ViewBag.ExamFee = 100000m;
+        ViewBag.ExamFee = HisConstants.EXAM_FEE;
 
         return View(invoice);
     }

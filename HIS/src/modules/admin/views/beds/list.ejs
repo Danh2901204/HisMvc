@@ -1,0 +1,33 @@
+<%- include('../../../partials/header') %>
+
+<div class="container mt-4">
+  <h2>Manage Beds</h2>
+  <a href="/admin/beds/new" class="btn btn-primary mb-3">Add Bed</a>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Bed Number</th>
+        <th>Room</th>
+        <th>Occupied</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% beds.forEach(bed => { %>
+        <tr>
+          <td><%= bed.bedNumber %></td>
+          <td><%= bed.room.roomNumber %></td>
+          <td><%= bed.isOccupied ? 'Yes' : 'No' %></td>
+          <td>
+            <a href="/admin/beds/<%= bed._id %>/edit" class="btn btn-sm btn-warning">Edit</a>
+            <form action="/admin/beds/<%= bed._id %>/delete" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../../../partials/footer') %>

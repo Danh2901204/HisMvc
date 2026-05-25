@@ -1,0 +1,33 @@
+<%- include('../../../partials/header') %>
+
+<div class="container mt-4">
+  <h2>Manage Rooms</h2>
+  <a href="/admin/rooms/new" class="btn btn-primary mb-3">Add Room</a>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Room Number</th>
+        <th>Department</th>
+        <th>Type</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rooms.forEach(room => { %>
+        <tr>
+          <td><%= room.roomNumber %></td>
+          <td><%= room.department.name %></td>
+          <td><%= room.roomType %></td>
+          <td>
+            <a href="/admin/rooms/<%= room._id %>/edit" class="btn btn-sm btn-warning">Edit</a>
+            <form action="/admin/rooms/<%= room._id %>/delete" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../../../partials/footer') %>

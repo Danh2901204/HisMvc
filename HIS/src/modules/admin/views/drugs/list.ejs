@@ -1,0 +1,35 @@
+<%- include('../../../partials/header') %>
+
+<div class="container mt-4">
+  <h2>Manage Drugs</h2>
+  <a href="/admin/drugs/new" class="btn btn-primary mb-3">Add Drug</a>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% drugs.forEach(drug => { %>
+        <tr>
+          <td><%= drug.name %></td>
+          <td><%= drug.description %></td>
+          <td><%= drug.price %></td>
+          <td><%= drug.quantityInStock %></td>
+          <td>
+            <a href="/admin/drugs/<%= drug._id %>/edit" class="btn btn-sm btn-warning">Edit</a>
+            <form action="/admin/drugs/<%= drug._id %>/delete" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('../../../partials/footer') %>

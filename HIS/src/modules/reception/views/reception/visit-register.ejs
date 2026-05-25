@@ -1,0 +1,56 @@
+<%- include("../../../views/layouts/main", {
+  title,
+  body: `
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="h1">Đăng ký lượt khám</div>
+          <div class="muted">Tạo lượt khám (LK) và đưa bệnh nhân vào hàng đợi.</div>
+          <div style="height:14px"></div>
+
+          <form class="form" method="POST" action="/reception/visits">
+            <div class="field">
+              <label>Chọn bệnh nhân</label>
+              <select name="patientId" required>
+                <option value="">-- Chọn --</option>
+                ${
+                  patients.map(p => `<option value="${p._id}">${p.patientId} - ${p.name}</option>`).join("")
+                }
+              </select>
+            </div>
+
+            <div class="row">
+              <div class="col field">
+                <label>Khoa</label>
+                <input name="dept" placeholder="VD: Nội tổng hợp" required />
+              </div>
+              <div class="col field">
+                <label>Phòng</label>
+                <input name="room" placeholder="VD: P.102" required />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Lý do khám</label>
+              <textarea name="reason" rows="3" placeholder="VD: Sốt 2 ngày, ho..." required></textarea>
+            </div>
+
+            <div class="field">
+              <label>Mức ưu tiên</label>
+              <select name="priority">
+                <option value="low">Thường</option>
+                <option value="medium">Ưu tiên</option>
+                <option value="high">Cấp cứu</option>
+              </select>
+            </div>
+
+            <div class="actions">
+              <button class="btn" type="submit">Tạo lượt khám</button>
+              <a class="btn secondary" href="/reception/patients">Quay lại</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `
+}) %>

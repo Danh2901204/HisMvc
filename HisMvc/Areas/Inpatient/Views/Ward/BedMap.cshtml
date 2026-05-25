@@ -1,0 +1,237 @@
+@{
+    ViewData["Title"] = "So do Giuong";
+    var ward = (Ward)ViewBag.Ward;
+    var beds = (List<Bed>)ViewBag.Beds;
+    var admissions = (Dictionary<int, Admission>)ViewBag.Admissions;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-grid-3x3"></i> So do Giuong: @ward.Name</h2>
+            <p class="text-muted mb-0">Ma: @ward.Code | Loai: @ward.Type</p>
+        </div>
+        <div class="btn-group">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lai
+            </a>
+            <a asp-action="AddBed" asp-route-wardId="@ward.WardId" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Them Giuong
+            </a>
+        </div>
+    </div>
+
+    <!-- Chu thich trang thai -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="mb-3"><i class="bi bi-info-circle"></i> Chu Thich Trang Thai:</h6>
+            <div class="row">
+                <div class="col-auto">
+                    <span class="badge bg-success p-2"><i class="bi bi-check-circle"></i> Trong</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-danger p-2"><i class="bi bi-person-fill"></i> Co benh nhan</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-warning p-2"><i class="bi bi-brush"></i> Dang dan dep</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-secondary p-2"><i class="bi bi-tools"></i> Bao tri</span>
+                </div>
+                <div class="col-auto">
+                    <span class="badge bg-info p-2"><i class="bi bi-bookmark"></i> Da dat</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (beds.Count == 0)
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <h5 class="mt-3">Chua co giuong nao</h5>
+                <a asp-action="AddBed" asp-route-wardId="@ward.WardId" class="btn btn-success mt-3">
+                    <i class="bi bi-plus-circle"></i> Them Giuong Dau Tien
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- So do giuong -->
+        <div class="row g-3">
+            @foreach (var bed in beds)
+            {
+                var bgClass = bed.Status switch
+                {
+                    BedStatus.Empty => "border-success bg-success bg-opacity-10",
+                    BedStatus.Occupied => "border-danger bg-danger bg-opacity-10",
+                    BedStatus.Cleaning => "border-warning bg-warning bg-opacity-10",
+                    BedStatus.Maintenance => "border-secondary bg-secondary bg-opacity-10",
+                    BedStatus.Reserved => "border-info bg-info bg-opacity-10",
+                    _ => "border-light"
+                };
+
+                var statusIcon = bed.Status switch
+                {
+                    BedStatus.Empty => "bi-check-circle text-success",
+                    BedStatus.Occupied => "bi-person-fill text-danger",
+                    BedStatus.Cleaning => "bi-brush text-warning",
+                    BedStatus.Maintenance => "bi-tools text-secondary",
+                    BedStatus.Reserved => "bi-bookmark text-info",
+                    _ => "bi-question-circle"
+                };
+
+                var admission = admissions.ContainsKey(bed.BedId) ? admissions[bed.BedId] : null;
+
+                <div class="col-md-4 col-lg-3">
+                    <div class="card @bgClass border-2 h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h4 class="mb-0">
+                                    <i class="bi bi-hospital"></i> @bed.BedNumber
+                                </h4>
+                                <i class="bi @statusIcon fs-4"></i>
+                            </div>
+
+                            <hr />
+
+                            @if (admission != null)
+                            {
+                                <div class="patient-info">
+                                    <p class="mb-1"><strong>@admission.Patient?.FullName</strong></p>
+                                    <p class="mb-1 small text-muted">@admission.Patient?.Gender | @admission.Patient?.Dob?.ToString("dd/MM/yyyy")</p>
+                                    <p class="mb-1 small">
+                                        <i class="bi bi-calendar-check"></i> 
+                                        Nhap: @admission.AdmittedAt.ToString("dd/MM/yyyy")
+                                    </p>
+                                    <p class="mb-1 small">
+                                        <i class="bi bi-person-badge"></i> 
+                                        BS: @admission.AttendingDoctor?.FullName
+                                    </p>
+                                    <div class="mt-2">
+                                        <a asp-area="Inpatient" asp-controller="Home" asp-action="Detail" 
+                                           asp-route-id="@admission.AdmissionId" 
+                                           class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="bi bi-eye"></i> Xem ho so
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-center py-3">
+                                    <p class="text-muted mb-2">
+                                        <strong>@bed.Status switch
+                                        {
+                                            BedStatus.Empty => "Giuong trong",
+                                            BedStatus.Cleaning => "Dang dan dep",
+                                            BedStatus.Maintenance => "Dang bao tri",
+                                            BedStatus.Reserved => "Da dat truoc",
+                                            _ => "Khong ro"
+                                        }</strong>
+                                    </p>
+
+                                    @if (bed.Status == BedStatus.Cleaning)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-success" onclick="updateBedStatus(@bed.BedId, @((int)BedStatus.Empty))">
+                                            <i class="bi bi-check"></i> Da dan xong
+                                        </button>
+                                    }
+                                    else if (bed.Status == BedStatus.Maintenance)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-success" onclick="updateBedStatus(@bed.BedId, @((int)BedStatus.Empty))">
+                                            <i class="bi bi-check"></i> Hoan tat bao tri
+                                        </button>
+                                    }
+                                    else if (bed.Status == BedStatus.Empty)
+                                    {
+                                        <div class="btn-group-vertical w-100">
+                                            <button type="button" class="btn btn-sm btn-warning" onclick="updateBedStatus(@bed.BedId, @((int)BedStatus.Cleaning))">
+                                                <i class="bi bi-brush"></i> Chuyen sang dan dep
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="updateBedStatus(@bed.BedId, @((int)BedStatus.Maintenance))">
+                                                <i class="bi bi-tools"></i> Chuyen sang bao tri
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(bed.Note))
+                            {
+                                <hr />
+                                <p class="mb-0 small text-muted">
+                                    <i class="bi bi-sticky"></i> @bed.Note
+                                </p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="mb-3">Thong Ke:</h6>
+                    <div class="row text-center">
+                        <div class="col">
+                            <h4 class="text-success">@beds.Count(b => b.Status == BedStatus.Empty)</h4>
+                            <small class="text-muted">Trong</small>
+                        </div>
+                        <div class="col">
+                            <h4 class="text-danger">@beds.Count(b => b.Status == BedStatus.Occupied)</h4>
+                            <small class="text-muted">Co benh nhan</small>
+                        </div>
+                        <div class="col">
+                            <h4 class="text-warning">@beds.Count(b => b.Status == BedStatus.Cleaning)</h4>
+                            <small class="text-muted">Dang dan</small>
+                        </div>
+                        <div class="col">
+                            <h4 class="text-secondary">@beds.Count(b => b.Status == BedStatus.Maintenance)</h4>
+                            <small class="text-muted">Bao tri</small>
+                        </div>
+                        <div class="col">
+                            <h4 class="text-primary">@beds.Count</h4>
+                            <small class="text-muted">Tong so</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function updateBedStatus(bedId, status) {
+            if (confirm('Xac nhan thay doi trang thai giuong?')) {
+                const formData = new FormData();
+                formData.append('bedId', bedId);
+                formData.append('status', status);
+                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value || '');
+
+                fetch('@Url.Action("UpdateBedStatus", "Ward", new { area = "Inpatient" })', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert('Loi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Loi ket noi: ' + error);
+                });
+            }
+        }
+    </script>
+}
+
+@Html.AntiForgeryToken()

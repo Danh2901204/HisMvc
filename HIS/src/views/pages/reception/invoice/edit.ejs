@@ -1,0 +1,83 @@
+<div class="container mt-4">
+    <h2>Chỉnh sửa hóa đơn</h2>
+    <form action="/reception/invoices/edit/<%= invoice._id %>" method="POST">
+        <div class="form-group">
+            <label for="invoiceCode">Mã hóa đơn</label>
+            <input type="text" class="form-control" id="invoiceCode" name="invoiceCode" value="<%= invoice.invoiceCode %>" required>
+        </div>
+        <div class="form-group">
+            <label for="visitCode">Mã lượt khám</label>
+            <input type="text" class="form-control" id="visitCode" name="visitCode" value="<%= invoice.visitCode %>" required>
+        </div>
+        <div class="form-group">
+            <label for="patientCode">Mã bệnh nhân</label>
+            <input type="text" class="form-control" id="patientCode" name="patientCode" value="<%= invoice.patientCode %>" required>
+        </div>
+
+        <h4>Các mục trong hóa đơn</h4>
+        <div id="items-container">
+            <% invoice.items.forEach((item, index) => { %>
+                <div class="row mb-2">
+                    <div class="col">
+                        <input type="text" class="form-control" name="items[<%= index %>][name]" placeholder="Tên mục" value="<%= item.name %>" required>
+                    </div>
+                    <div class="col">
+                        <input type="number" class="form-control" name="items[<%= index %>][quantity]" placeholder="Số lượng" value="<%= item.quantity %>" required onchange="updateTotal()">
+                    </div>
+                    <div class="col">
+                        <input type="number" class="form-control" name="items[<%= index %>][price]" placeholder="Đơn giá" value="<%= item.price %>" required onchange="updateTotal()">
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+        <button type="button" class="btn btn-secondary mb-3" onclick="addItem()">Thêm mục</button>
+
+        <div class="form-group">
+            <label for="total">Tổng tiền</label>
+            <input type="number" class="form-control" id="total" name="total" value="<%= invoice.total %>" required>
+        </div>
+        <div class="form-group">
+            <label for="status">Trạng thái</label>
+            <select class="form-control" id="status" name="status">
+                <option value="UNPAID" <%= invoice.status === 'UNPAID' ? 'selected' : '' %>>Chưa thanh toán</option>
+                <option value="PAID" <%= invoice.status === 'PAID' ? 'selected' : '' %>>Đã thanh toán</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Cập nhật hóa đơn</button>
+    </form>
+</div>
+
+<script>
+    let itemIndex = parseInt('<%= invoice.items.length %>');
+    function addItem() {
+        const container = document.getElementById('items-container');
+        const itemHtml = `
+            <div class="row mb-2">
+                <div class="col">
+                    <input type="text" class="form-control" name="items[${itemIndex}][name]" placeholder="Tên mục" required>
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control" name="items[${itemIndex}][quantity]" placeholder="Số lượng" required onchange="updateTotal()">
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control" name="items[${itemIndex}][price]" placeholder="Đơn giá" required onchange="updateTotal()">
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', itemHtml);
+        itemIndex++;
+    }
+
+    function updateTotal() {
+        let total = 0;
+        const items = document.querySelectorAll('#items-container .row');
+        items.forEach(item => {
+            const quantity = item.querySelector('input[name*="[quantity]"]').value;
+            const price = item.querySelector('input[name*="[price]"]').value;
+            if (quantity && price) {
+                total += parseInt(quantity) * parseInt(price);
+            }
+        });
+        document.getElementById('total').value = total;
+    }
+</script>

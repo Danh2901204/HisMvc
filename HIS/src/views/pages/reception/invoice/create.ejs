@@ -1,0 +1,81 @@
+<div class="container mt-4">
+    <h2>Tạo hóa đơn mới</h2>
+    <form action="/reception/invoices/create" method="POST">
+        <div class="form-group">
+            <label for="invoiceCode">Mã hóa đơn</label>
+            <input type="text" class="form-control" id="invoiceCode" name="invoiceCode" required>
+        </div>
+        <div class="form-group">
+            <label for="visitCode">Mã lượt khám</label>
+            <select class="form-control" id="visitCode" name="visitCode" required>
+                <option value="">Chọn mã lượt khám</option>
+                <% visits.forEach(visit => { %>
+                    <option value="<%= visit.visitCode %>"><%= visit.visitCode %> - <%= visit.patientCode %></option>
+                <% }); %>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="patientCode">Mã bệnh nhân</label>
+            <select class="form-control" id="patientCode" name="patientCode" required>
+                <option value="">Chọn mã bệnh nhân</option>
+                <% patients.forEach(patient => { %>
+                    <option value="<%= patient.patientCode %>"><%= patient.patientCode %> - <%= patient.fullName %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <h4>Các mục trong hóa đơn</h4>
+        <div id="items-container">
+            <!-- Các mục sẽ được thêm vào đây bằng JavaScript -->
+        </div>
+        <button type="button" class="btn btn-secondary mb-3" onclick="addItem()">Thêm mục</button>
+
+        <div class="form-group">
+            <label for="total">Tổng tiền</label>
+            <input type="number" class="form-control" id="total" name="total" required>
+        </div>
+        <div class="form-group">
+            <label for="status">Trạng thái</label>
+            <select class="form-control" id="status" name="status">
+                <option value="UNPAID" selected>Chưa thanh toán</option>
+                <option value="PAID">Đã thanh toán</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Tạo hóa đơn</button>
+    </form>
+</div>
+
+<script>
+    let itemIndex = 0;
+    function addItem() {
+        const container = document.getElementById('items-container');
+        const itemHtml = `
+            <div class="row mb-2">
+                <div class="col">
+                    <input type="text" class="form-control" name="items[${itemIndex}][name]" placeholder="Tên mục" required>
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control" name="items[${itemIndex}][quantity]" placeholder="Số lượng" required onchange="updateTotal()">
+                </div>
+                <div class="col">
+                    <input type="number" class="form-control" name="items[${itemIndex}][price]" placeholder="Đơn giá" required onchange="updateTotal()">
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', itemHtml);
+        itemIndex++;
+    }
+
+    function updateTotal() {
+        let total = 0;
+        const items = document.querySelectorAll('#items-container .row');
+        items.forEach(item => {
+            const quantity = item.querySelector('input[name*="[quantity]"]').value;
+            const price = item.querySelector('input[name*="[price]"]').value;
+            if (quantity && price) {
+                total += parseInt(quantity) * parseInt(price);
+            }
+        });
+        document.getElementById('total').value = total;
+    }
+</script>

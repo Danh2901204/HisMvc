@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace HisMvc.Entities;
 
@@ -25,6 +26,26 @@ public class Patient
     public DateOnly? Dob { get; set; }
     public Gender Gender { get; set; } = Gender.Unknown;
     [MaxLength(20)] public string Phone { get; set; } = "";
+
+    // Thông tin BHYT
+    [MaxLength(15)] 
+    public string? InsuranceNumber { get; set; } // Mã thẻ BHYT (15 ký tự)
+
+    public DateTime? InsuranceExpiry { get; set; } // Ngày hết hạn thẻ
+
+    [MaxLength(10)] 
+    public string? InsuranceType { get; set; } // Loại thẻ: QN (Quân nhân), KC (Khám chữa bệnh)...
+
+    public decimal InsuranceCoveragePercent { get; set; } = 0; // % chi trả (80%, 95%, 100%)
+
+    [MaxLength(200)] 
+    public string? InsuranceHospital { get; set; } // Nơi đăng ký KCB ban đầu
+
+    [MaxLength(200)]
+    public string? Address { get; set; } // Địa chỉ (cần cho BHYT)
+
+    [MaxLength(20)]
+    public string? IdentityNumber { get; set; } // CMND/CCCD
 }
 
 public class TimeSlot

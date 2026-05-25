@@ -1,0 +1,142 @@
+@model List<Medicine>
+@{
+    ViewData["Title"] = "Qu?n Lý Thu?c";
+    var search = (string?)ViewBag.Search;
+    var active = (bool?)ViewBag.Active;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-capsule-pill"></i> Qu?n Lý Thu?c</h2>
+        <div class="btn-group">
+            <a asp-area="Pharmacy" asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> V? D??c
+            </a>
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Thêm Thu?c M?i
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">Tìm ki?m</label>
+                    <input type="text" name="search" class="form-control" value="@search" placeholder="Tên thu?c ho?c mã thu?c...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tr?ng thái</label>
+                    <select name="active" class="form-select">
+                        <option value="">-- T?t c? --</option>
+                        <option value="true" selected="@(active == true)">?ang s? d?ng</option>
+                        <option value="false" selected="@(active == false)">Ng?ng s? d?ng</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Tìm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Danh sách thu?c -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã</th>
+                            <th>Tên thu?c</th>
+                            <th>Ho?t ch?t</th>
+                            <th>??n v?</th>
+                            <th>Nhà s?n xu?t</th>
+                            <th>Kê ??n</th>
+                            <th>Tr?ng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1"></i><br />
+                                    Không tìm th?y thu?c nào
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var med in Model)
+                            {
+                                <tr class="@(!med.IsActive ? "table-secondary" : "")">
+                                    <td><span class="badge bg-dark">@med.Code</span></td>
+                                    <td>
+                                        <strong>@med.Name</strong>
+                                        @if (!string.IsNullOrEmpty(med.Description))
+                                        {
+                                            <br/><small class="text-muted">@med.Description</small>
+                                        }
+                                    </td>
+                                    <td>@med.ActiveIngredient</td>
+                                    <td><span class="badge bg-info">@med.Unit</span></td>
+                                    <td>@med.Manufacturer</td>
+                                    <td>
+                                        @if (med.RequiresPrescription)
+                                        {
+                                            <span class="badge bg-danger">C?n ??n</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Không c?n</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (med.IsActive)
+                                        {
+                                            <span class="badge bg-success">Ho?t ??ng</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Ng?ng</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Stock" asp-route-id="@med.MedicineId" class="btn btn-outline-primary" title="Xem t?n kho">
+                                                <i class="bi bi-box-seam"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@med.MedicineId" class="btn btn-outline-secondary" title="S?a">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <small class="text-muted">
+            T?ng s?: <strong>@Model.Count</strong> thu?c
+        </small>
+    </div>
+</div>

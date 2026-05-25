@@ -90,6 +90,116 @@ namespace HisMvc.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.Admission", b =>
+                {
+                    b.Property<int>("AdmissionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AdmissionId"));
+
+                    b.Property<string>("AdmissionCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("AdmissionReason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("AdmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("AttendingDoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("BedId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DischargeInstructions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DischargeSummary")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("DischargedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DischargedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DischargedByStaffStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("InitialDiagnosis")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("AdmissionId");
+
+                    b.HasIndex("AdmissionCode")
+                        .IsUnique();
+
+                    b.HasIndex("AttendingDoctorId");
+
+                    b.HasIndex("BedId");
+
+                    b.HasIndex("DischargedByStaffStaffId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Admissions");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Allergy", b =>
+                {
+                    b.Property<int>("AllergyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AllergyId"));
+
+                    b.Property<string>("Allergen")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("IdentifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reaction")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
+                    b.HasKey("AllergyId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("Allergies");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Appointment", b =>
                 {
                     b.Property<int>("AppointmentId")
@@ -144,6 +254,40 @@ namespace HisMvc.Migrations
                     b.ToTable("Appointments");
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.Bed", b =>
+                {
+                    b.Property<int>("BedId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BedId"));
+
+                    b.Property<string>("BedNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("WardId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BedId");
+
+                    b.HasIndex("WardId", "BedNumber")
+                        .IsUnique();
+
+                    b.ToTable("Beds");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Department", b =>
                 {
                     b.Property<int>("DepartmentId")
@@ -165,6 +309,40 @@ namespace HisMvc.Migrations
                     b.HasKey("DepartmentId");
 
                     b.ToTable("Departments");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.DispenseItem", b =>
+                {
+                    b.Property<int>("DispenseItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DispenseItemId"));
+
+                    b.Property<int>("MedicineBatchId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PharmacyDispenseId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("DispenseItemId");
+
+                    b.HasIndex("MedicineBatchId");
+
+                    b.HasIndex("PharmacyDispenseId");
+
+                    b.ToTable("DispenseItems");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.Encounter", b =>
@@ -212,6 +390,237 @@ namespace HisMvc.Migrations
                     b.ToTable("Encounters");
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.InsuranceClaim", b =>
+                {
+                    b.Property<int>("InsuranceClaimId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InsuranceClaimId"));
+
+                    b.Property<int?>("AdmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ApprovedByStaffStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClaimCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<decimal>("CoveragePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("EncounterId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("InsuranceCovered")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("InsuranceExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InsuranceNumber")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<string>("InsuranceType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PatientPayment")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("RejectReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("XmlData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("InsuranceClaimId");
+
+                    b.HasIndex("AdmissionId");
+
+                    b.HasIndex("ApprovedByStaffStaffId");
+
+                    b.HasIndex("ClaimCode")
+                        .IsUnique();
+
+                    b.HasIndex("EncounterId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("InsuranceClaims");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.InsuranceClaimItem", b =>
+                {
+                    b.Property<int>("InsuranceClaimItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InsuranceClaimItemId"));
+
+                    b.Property<int>("InsuranceClaimId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("InsurancePaid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsInInsuranceList")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("PatientPaid")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ServiceCode")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ServiceName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("InsuranceClaimItemId");
+
+                    b.HasIndex("InsuranceClaimId");
+
+                    b.ToTable("InsuranceClaimItems");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.InsuranceConfig", b =>
+                {
+                    b.Property<int>("InsuranceConfigId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InsuranceConfigId"));
+
+                    b.Property<decimal>("DefaultCoveragePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("InsuranceType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("RequireRegistration")
+                        .HasColumnType("bit");
+
+                    b.HasKey("InsuranceConfigId");
+
+                    b.ToTable("InsuranceConfigs");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.InventoryTransaction", b =>
+                {
+                    b.Property<int>("InventoryTransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("InventoryTransactionId"));
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MedicineBatchId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReferenceCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int?>("StaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("TransactionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("InventoryTransactionId");
+
+                    b.HasIndex("MedicineBatchId");
+
+                    b.HasIndex("StaffId");
+
+                    b.ToTable("InventoryTransactions");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Invoice", b =>
                 {
                     b.Property<int>("InvoiceId")
@@ -223,7 +632,24 @@ namespace HisMvc.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("EInvoiceCode")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("EInvoiceIssuedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("EncounterId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("HasInsurance")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("InsuranceAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("InsuranceClaimId")
                         .HasColumnType("int");
 
                     b.Property<string>("InvoiceCode")
@@ -242,8 +668,16 @@ namespace HisMvc.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<decimal>("PatientAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("TaxCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasPrecision(18, 2)
@@ -253,10 +687,210 @@ namespace HisMvc.Migrations
 
                     b.HasIndex("EncounterId");
 
+                    b.HasIndex("InsuranceClaimId");
+
                     b.HasIndex("InvoiceCode")
                         .IsUnique();
 
                     b.ToTable("Invoices");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.MedicalHistory", b =>
+                {
+                    b.Property<int>("MedicalHistoryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicalHistoryId"));
+
+                    b.Property<string>("Condition")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("DiagnosedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Treatment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("MedicalHistoryId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("MedicalHistories");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.MedicalOrder", b =>
+                {
+                    b.Property<int>("MedicalOrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicalOrderId"));
+
+                    b.Property<int>("AdmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ExecutedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ExecutedByStaffStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ExecutionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("OrderCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("OrderDetails")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("OrderType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("OrderedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("OrderedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PrescriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ScheduledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("MedicalOrderId");
+
+                    b.HasIndex("AdmissionId");
+
+                    b.HasIndex("ExecutedByStaffStaffId");
+
+                    b.HasIndex("OrderedBy");
+
+                    b.HasIndex("PrescriptionId");
+
+                    b.ToTable("MedicalOrders");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Medicine", b =>
+                {
+                    b.Property<int>("MedicineId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicineId"));
+
+                    b.Property<string>("ActiveIngredient")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Manufacturer")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("RequiresPrescription")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("MedicineId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Medicines");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.MedicineBatch", b =>
+                {
+                    b.Property<int>("MedicineBatchId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MedicineBatchId"));
+
+                    b.Property<string>("BatchNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("ManufactureDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MedicineId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinStockLevel")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuantityInStock")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("MedicineBatchId");
+
+                    b.HasIndex("MedicineId");
+
+                    b.ToTable("MedicineBatches");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.Order", b =>
@@ -333,6 +967,10 @@ namespace HisMvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PatientId"));
 
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateOnly?>("Dob")
                         .HasColumnType("date");
 
@@ -344,6 +982,29 @@ namespace HisMvc.Migrations
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
+                    b.Property<string>("IdentityNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("InsuranceCoveragePercent")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime?>("InsuranceExpiry")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InsuranceHospital")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("InsuranceNumber")
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
+
+                    b.Property<string>("InsuranceType")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -354,6 +1015,115 @@ namespace HisMvc.Migrations
                     b.HasIndex("Phone");
 
                     b.ToTable("Patients");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.PharmacyDispense", b =>
+                {
+                    b.Property<int>("PharmacyDispenseId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PharmacyDispenseId"));
+
+                    b.Property<DateTime>("DispensedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DispensedBy")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("PrescriptionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("PharmacyDispenseId");
+
+                    b.HasIndex("DispensedBy");
+
+                    b.HasIndex("PrescriptionId");
+
+                    b.ToTable("PharmacyDispenses");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Prescription", b =>
+                {
+                    b.Property<int>("PrescriptionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("EncounterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("PrescribedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PrescribedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrescriptionId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("EncounterId");
+
+                    b.HasIndex("PrescribedBy");
+
+                    b.ToTable("Prescriptions");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.PrescriptionItem", b =>
+                {
+                    b.Property<int>("PrescriptionItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PrescriptionItemId"));
+
+                    b.Property<string>("Dosage")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("MedicineId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PrescriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.HasKey("PrescriptionItemId");
+
+                    b.HasIndex("MedicineId");
+
+                    b.HasIndex("PrescriptionId");
+
+                    b.ToTable("PrescriptionItems");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.Service", b =>
@@ -411,6 +1181,79 @@ namespace HisMvc.Migrations
                     b.ToTable("Staffs");
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.Surgery", b =>
+                {
+                    b.Property<int>("SurgeryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SurgeryId"));
+
+                    b.Property<int>("AdmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("AnesthesiologistId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Complications")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("EndedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OperatingRoom")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OperativeNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("PostOpInstructions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("ScheduledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SurgeonId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SurgeryCode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("SurgeryType")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("SurgeryId");
+
+                    b.HasIndex("AdmissionId");
+
+                    b.HasIndex("AnesthesiologistId");
+
+                    b.HasIndex("SurgeonId");
+
+                    b.HasIndex("SurgeryCode")
+                        .IsUnique();
+
+                    b.ToTable("Surgeries");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.TimeSlot", b =>
                 {
                     b.Property<int>("TimeSlotId")
@@ -433,6 +1276,111 @@ namespace HisMvc.Migrations
                     b.HasKey("TimeSlotId");
 
                     b.ToTable("TimeSlots");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.VitalSign", b =>
+                {
+                    b.Property<int>("VitalSignId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VitalSignId"));
+
+                    b.Property<int>("AdmissionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BloodPressureDiastolic")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BloodPressureSystolic")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("HeartRate")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Height")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal?>("OxygenSaturation")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RecordedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RecordedByStaffStaffId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RespiratoryRate")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("Temperature")
+                        .HasPrecision(4, 1)
+                        .HasColumnType("decimal(4,1)");
+
+                    b.Property<decimal?>("Weight")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.HasKey("VitalSignId");
+
+                    b.HasIndex("AdmissionId");
+
+                    b.HasIndex("RecordedByStaffStaffId");
+
+                    b.ToTable("VitalSigns");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Ward", b =>
+                {
+                    b.Property<int>("WardId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("WardId"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("TotalBeds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("WardId");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("DepartmentId");
+
+                    b.ToTable("Wards");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -568,6 +1516,50 @@ namespace HisMvc.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.Admission", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Staff", "AttendingDoctor")
+                        .WithMany()
+                        .HasForeignKey("AttendingDoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Bed", "Bed")
+                        .WithMany()
+                        .HasForeignKey("BedId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "DischargedByStaff")
+                        .WithMany()
+                        .HasForeignKey("DischargedByStaffStaffId");
+
+                    b.HasOne("HisMvc.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AttendingDoctor");
+
+                    b.Navigation("Bed");
+
+                    b.Navigation("DischargedByStaff");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Allergy", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Appointment", b =>
                 {
                     b.HasOne("HisMvc.Entities.Department", "Department")
@@ -602,6 +1594,36 @@ namespace HisMvc.Migrations
                     b.Navigation("TimeSlot");
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.Bed", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Ward", "Ward")
+                        .WithMany()
+                        .HasForeignKey("WardId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ward");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.DispenseItem", b =>
+                {
+                    b.HasOne("HisMvc.Entities.MedicineBatch", "MedicineBatch")
+                        .WithMany()
+                        .HasForeignKey("MedicineBatchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.PharmacyDispense", "PharmacyDispense")
+                        .WithMany("Items")
+                        .HasForeignKey("PharmacyDispenseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MedicineBatch");
+
+                    b.Navigation("PharmacyDispense");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Encounter", b =>
                 {
                     b.HasOne("HisMvc.Entities.Appointment", "Appointment")
@@ -627,6 +1649,63 @@ namespace HisMvc.Migrations
                     b.Navigation("Patient");
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.InsuranceClaim", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Admission", "Admission")
+                        .WithMany()
+                        .HasForeignKey("AdmissionId");
+
+                    b.HasOne("HisMvc.Entities.Staff", "ApprovedByStaff")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByStaffStaffId");
+
+                    b.HasOne("HisMvc.Entities.Encounter", "Encounter")
+                        .WithMany()
+                        .HasForeignKey("EncounterId");
+
+                    b.HasOne("HisMvc.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Admission");
+
+                    b.Navigation("ApprovedByStaff");
+
+                    b.Navigation("Encounter");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.InsuranceClaimItem", b =>
+                {
+                    b.HasOne("HisMvc.Entities.InsuranceClaim", "InsuranceClaim")
+                        .WithMany()
+                        .HasForeignKey("InsuranceClaimId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("InsuranceClaim");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.InventoryTransaction", b =>
+                {
+                    b.HasOne("HisMvc.Entities.MedicineBatch", "MedicineBatch")
+                        .WithMany()
+                        .HasForeignKey("MedicineBatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "Staff")
+                        .WithMany()
+                        .HasForeignKey("StaffId");
+
+                    b.Navigation("MedicineBatch");
+
+                    b.Navigation("Staff");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Invoice", b =>
                 {
                     b.HasOne("HisMvc.Entities.Encounter", "Encounter")
@@ -635,7 +1714,66 @@ namespace HisMvc.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("HisMvc.Entities.InsuranceClaim", "InsuranceClaim")
+                        .WithMany()
+                        .HasForeignKey("InsuranceClaimId");
+
                     b.Navigation("Encounter");
+
+                    b.Navigation("InsuranceClaim");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.MedicalHistory", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.MedicalOrder", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Admission", "Admission")
+                        .WithMany("MedicalOrders")
+                        .HasForeignKey("AdmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "ExecutedByStaff")
+                        .WithMany()
+                        .HasForeignKey("ExecutedByStaffStaffId");
+
+                    b.HasOne("HisMvc.Entities.Staff", "OrderedByStaff")
+                        .WithMany()
+                        .HasForeignKey("OrderedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Prescription", "Prescription")
+                        .WithMany()
+                        .HasForeignKey("PrescriptionId");
+
+                    b.Navigation("Admission");
+
+                    b.Navigation("ExecutedByStaff");
+
+                    b.Navigation("OrderedByStaff");
+
+                    b.Navigation("Prescription");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.MedicineBatch", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Medicine", "Medicine")
+                        .WithMany()
+                        .HasForeignKey("MedicineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
                 });
 
             modelBuilder.Entity("HisMvc.Entities.Order", b =>
@@ -668,7 +1806,117 @@ namespace HisMvc.Migrations
                     b.Navigation("Order");
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.PharmacyDispense", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Staff", "Pharmacist")
+                        .WithMany()
+                        .HasForeignKey("DispensedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Prescription", "Prescription")
+                        .WithMany()
+                        .HasForeignKey("PrescriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Pharmacist");
+
+                    b.Navigation("Prescription");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Prescription", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Encounter", "Encounter")
+                        .WithMany()
+                        .HasForeignKey("EncounterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("PrescribedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Encounter");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.PrescriptionItem", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Medicine", "Medicine")
+                        .WithMany()
+                        .HasForeignKey("MedicineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Prescription", "Prescription")
+                        .WithMany("Items")
+                        .HasForeignKey("PrescriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Medicine");
+
+                    b.Navigation("Prescription");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Staff", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Department", "Department")
+                        .WithMany()
+                        .HasForeignKey("DepartmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Department");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Surgery", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Admission", "Admission")
+                        .WithMany()
+                        .HasForeignKey("AdmissionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "Anesthesiologist")
+                        .WithMany()
+                        .HasForeignKey("AnesthesiologistId");
+
+                    b.HasOne("HisMvc.Entities.Staff", "Surgeon")
+                        .WithMany()
+                        .HasForeignKey("SurgeonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Admission");
+
+                    b.Navigation("Anesthesiologist");
+
+                    b.Navigation("Surgeon");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.VitalSign", b =>
+                {
+                    b.HasOne("HisMvc.Entities.Admission", "Admission")
+                        .WithMany()
+                        .HasForeignKey("AdmissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HisMvc.Entities.Staff", "RecordedByStaff")
+                        .WithMany()
+                        .HasForeignKey("RecordedByStaffStaffId");
+
+                    b.Navigation("Admission");
+
+                    b.Navigation("RecordedByStaff");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Ward", b =>
                 {
                     b.HasOne("HisMvc.Entities.Department", "Department")
                         .WithMany()
@@ -730,9 +1978,24 @@ namespace HisMvc.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("HisMvc.Entities.Admission", b =>
+                {
+                    b.Navigation("MedicalOrders");
+                });
+
             modelBuilder.Entity("HisMvc.Entities.Order", b =>
                 {
                     b.Navigation("OrderResult");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.PharmacyDispense", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("HisMvc.Entities.Prescription", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

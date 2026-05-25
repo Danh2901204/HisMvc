@@ -1,0 +1,26 @@
+<div class="container mt-4">
+  <h2>Add Room</h2>
+  <form action="/admin/rooms" method="POST">
+    <div class="form-group">
+      <label for="roomNumber">Room Number</label>
+      <input type="text" class="form-control" id="roomNumber" name="roomNumber" required>
+    </div>
+    <div class="form-group">
+      <label for="department">Department</label>
+      <select class="form-control" id="department" name="department" required>
+        <% departments.forEach(department => { %>
+          <option value="<%= department._id %>"><%= department.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="roomType">Room Type</label>
+      <select class="form-control" id="roomType" name="roomType" required>
+        <option>Private</option>
+        <option>Semi-Private</option>
+        <option>Ward</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+  </form>
+</div>

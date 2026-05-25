@@ -1,0 +1,159 @@
+@model List<Admission>
+@{
+    ViewData["Title"] = "Quan Li Noi Tru";
+    var wards = (List<Ward>)ViewBag.Wards;
+    var selectedWardId = (int?)ViewBag.SelectedWardId;
+    var selectedStatus = (AdmissionStatus?)ViewBag.SelectedStatus;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-hospital"></i> Quan Li Benh Nhan Noi Tru</h2>
+        <div class="btn-group">
+            <a asp-controller="Ward" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-door-open"></i> Quan Li Buong
+            </a>
+            <a asp-action="Admit" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Nhap Vien Moi
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Buong/Khoa</label>
+                    <select name="wardId" class="form-select">
+                        <option value="">-- Tat ca --</option>
+                        @foreach (var ward in wards)
+                        {
+                            <option value="@ward.WardId" selected="@(selectedWardId == ward.WardId)">
+                                @ward.Name (@ward.Code)
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trang thai</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- Tat ca --</option>
+                        <option value="Active" selected="@(selectedStatus == AdmissionStatus.Active)">Dang dieu tri</option>
+                        <option value="Discharged" selected="@(selectedStatus == AdmissionStatus.Discharged)">Da xuat vien</option>
+                        <option value="Transferred" selected="@(selectedStatus == AdmissionStatus.Transferred)">Chuyen vien</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Loc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Danh sach benh nhan -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ma nhap vien</th>
+                            <th>Benh nhan</th>
+                            <th>Buong - Giuong</th>
+                            <th>Bac si dieu tri</th>
+                            <th>Ngay nhap vien</th>
+                            <th>Ngay nam</th>
+                            <th>Trang thai</th>
+                            <th>Thao tac</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1"></i><br />
+                                    Khong co benh nhan nao
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                var daysInHospital = item.Status == AdmissionStatus.Active 
+                                    ? (DateTime.UtcNow - item.AdmittedAt).Days 
+                                    : item.DischargedAt.HasValue ? (item.DischargedAt.Value - item.AdmittedAt).Days : 0;
+
+                                <tr>
+                                    <td><strong>@item.AdmissionCode</strong></td>
+                                    <td>
+                                        <strong>@item.Patient?.FullName</strong><br />
+                                        <small class="text-muted">@item.Patient?.Phone</small>
+                                    </td>
+                                    <td>
+                                        <strong>@item.Bed?.Ward?.Name</strong><br />
+                                        <small class="text-muted">Giuong: @item.Bed?.BedNumber</small>
+                                    </td>
+                                    <td>@item.AttendingDoctor?.FullName</td>
+                                    <td>
+                                        @item.AdmittedAt.ToString("dd/MM/yyyy")<br />
+                                        <small class="text-muted">@item.AdmittedAt.ToString("HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">@daysInHospital ngay</span>
+                                    </td>
+                                    <td>
+                                        @if (item.Status == AdmissionStatus.Active)
+                                        {
+                                            <span class="badge bg-success">Dang dieu tri</span>
+                                        }
+                                        else if (item.Status == AdmissionStatus.Discharged)
+                                        {
+                                            <span class="badge bg-secondary">Da xuat vien</span>
+                                        }
+                                        else if (item.Status == AdmissionStatus.Transferred)
+                                        {
+                                            <span class="badge bg-warning">Chuyen vien</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Detail" asp-route-id="@item.AdmissionId" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                            @if (item.Status == AdmissionStatus.Active)
+                                            {
+                                                <a asp-action="Discharge" asp-route-id="@item.AdmissionId" class="btn btn-warning">
+                                                    <i class="bi bi-box-arrow-right"></i> Xuat vien
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <small class="text-muted">
+            Tong so: <strong>@Model.Count</strong> benh nhan
+        </small>
+    </div>
+</div>

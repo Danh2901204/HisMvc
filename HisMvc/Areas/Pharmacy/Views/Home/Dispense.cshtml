@@ -1,0 +1,176 @@
+@model Prescription
+@{
+    ViewData["Title"] = "C?p Phát Thu?c";
+    var batches = (Dictionary<int, List<MedicineBatch>>)ViewBag.Batches;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-box-seam"></i> C?p Phát Thu?c</h2>
+        <a asp-action="Detail" asp-route-id="@Model.PrescriptionId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Quay l?i
+        </a>
+    </div>
+
+    <!-- Thông tin ??n thu?c -->
+    <div class="card mb-4 border-primary">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-receipt"></i> Thông Tin ??n Thu?c: <strong>@Model.Code</strong>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>B?nh nhân:</strong> @Model.Encounter?.Patient?.FullName</p>
+                    <p class="mb-1"><strong>Bác s? kê ??n:</strong> @Model.Doctor?.FullName</p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1"><strong>Th?i gian:</strong> @Model.PrescribedAt.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1"><strong>S? lo?i thu?c:</strong> @Model.Items.Count</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách thu?c c?n c?p phát -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+            <i class="bi bi-capsule"></i> Chi Ti?t Thu?c C?n C?p Phát
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên thu?c</th>
+                            <th>Li?u dùng</th>
+                            <th>S? l??ng c?n</th>
+                            <th>Lô thu?c kh? d?ng (FEFO)</th>
+                            <th>Tr?ng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ 
+                            int stt = 1;
+                            bool canDispense = true;
+                        }
+                        @foreach (var item in Model.Items)
+                        {
+                            var availableBatches = batches.ContainsKey(item.MedicineId) ? batches[item.MedicineId] : new List<MedicineBatch>();
+                            var totalStock = availableBatches.Sum(b => b.QuantityInStock);
+                            var hasEnough = totalStock >= item.Quantity;
+                            if (!hasEnough) canDispense = false;
+
+                            <tr class="@(!hasEnough ? "table-danger" : "table-success")">
+                                <td class="text-center">@(stt++)</td>
+                                <td>
+                                    <strong>@item.Medicine?.Name</strong><br />
+                                    <small class="text-muted">@item.Medicine?.Code | @item.Medicine?.ActiveIngredient</small>
+                                </td>
+                                <td>@item.Dosage</td>
+                                <td class="text-center">
+                                    <strong class="text-primary">@item.Quantity @item.Medicine?.Unit</strong>
+                                </td>
+                                <td>
+                                    @if (availableBatches.Any())
+                                    {
+                                        <table class="table table-sm table-borderless mb-0">
+                                            @foreach (var batch in availableBatches.Take(3))
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <span class="badge bg-info">@batch.BatchNumber</span>
+                                                    </td>
+                                                    <td>
+                                                        <small>SL: @batch.QuantityInStock</small>
+                                                    </td>
+                                                    <td>
+                                                        <small>HSD: @batch.ExpiryDate.ToString("MM/yyyy")</small>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </table>
+                                        @if (availableBatches.Count > 3)
+                                        {
+                                            <small class="text-muted">... và @(availableBatches.Count - 3) lô khác</small>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger">Không có lô kh? d?ng</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    @if (hasEnough)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> ?? hàng
+                                        </span><br/>
+                                        <small class="text-muted">T?n: @totalStock</small>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle"></i> Thi?u hàng
+                                        </span><br/>
+                                        <small class="text-danger">T?n: @totalStock / C?n: @item.Quantity</small>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form c?p phát -->
+    @if (canDispense)
+    {
+        <form method="post" asp-action="Dispense" asp-route-id="@Model.PrescriptionId">
+            @Html.AntiForgeryToken()
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-sticky"></i> Ghi Chú (Không b?t bu?c)
+                </div>
+                <div class="card-body">
+                    <textarea name="note" class="form-control" rows="3" placeholder="Nh?p ghi chú v? vi?c c?p phát..."></textarea>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>L?u ý:</strong> H? th?ng s? t? ??ng ch?n lô thu?c theo nguyên t?c FEFO (First Expired First Out - xu?t lô s?p h?t h?n tr??c).
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a asp-action="Detail" asp-route-id="@Model.PrescriptionId" class="btn btn-secondary btn-lg">
+                    <i class="bi bi-x-circle"></i> H?y
+                </a>
+                <button type="submit" class="btn btn-success btn-lg" onclick="return confirm('Xác nh?n c?p phát ??n thu?c này?')">
+                    <i class="bi bi-check-circle"></i> Xác Nh?n C?p Phát
+                </button>
+            </div>
+        </form>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            <h5><i class="bi bi-exclamation-triangle"></i> Không Th? C?p Phát</h5>
+            <p class="mb-0">M?t s? thu?c trong ??n không ?? t?n kho. Vui lòng ki?m tra và nh?p thêm hàng tr??c khi c?p phát.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left"></i> Quay L?i Danh Sách
+        </a>
+    }
+</div>
+
+<style>
+    .table-success {
+        background-color: #d1e7dd !important;
+    }
+    .table-danger {
+        background-color: #f8d7da !important;
+    }
+</style>

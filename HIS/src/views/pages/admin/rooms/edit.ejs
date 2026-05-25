@@ -1,0 +1,26 @@
+<div class="container mt-4">
+  <h2>Edit Room</h2>
+  <form action="/admin/rooms/<%= room._id %>" method="POST">
+    <div class="form-group">
+      <label for="roomNumber">Room Number</label>
+      <input type="text" class="form-control" id="roomNumber" name="roomNumber" value="<%= room.roomNumber %>" required>
+    </div>
+    <div class="form-group">
+      <label for="department">Department</label>
+      <select class="form-control" id="department" name="department" required>
+        <% departments.forEach(department => { %>
+          <option value="<%= department._id %>" <%= (room.department && room.department._id.equals(department._id)) ? 'selected' : '' %>><%= department.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="roomType">Room Type</label>
+      <select class="form-control" id="roomType" name="roomType" required>
+        <option <%= room.roomType === 'Private' ? 'selected' : '' %>>Private</option>
+        <option <%= room.roomType === 'Semi-Private' ? 'selected' : '' %>>Semi-Private</option>
+        <option <%= room.roomType === 'Ward' ? 'selected' : '' %>>Ward</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update</button>
+  </form>
+</div>

@@ -1,0 +1,80 @@
+@model Patient
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="FullName" class="form-label">Ho va Ten <span class="text-danger">*</span></label>
+        <input asp-for="FullName" class="form-control" placeholder="Nhap ho va ten day du" required />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="Phone" class="form-label">So Dien Thoai <span class="text-danger">*</span></label>
+        <input asp-for="Phone" type="tel" class="form-control" placeholder="VD: 0912345678" required />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="Dob" class="form-label">Ngay Sinh</label>
+        <input asp-for="Dob" type="date" class="form-control" />
+        <span asp-validation-for="Dob" class="text-danger"></span>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="Gender" class="form-label">Gioi Tinh</label>
+        <select asp-for="Gender" class="form-select">
+            <option value="0">Chua ro</option>
+            <option value="1">Nam</option>
+            <option value="2">Nu</option>
+            <option value="3">Khac</option>
+        </select>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="IdentityNumber" class="form-label">CMND/CCCD</label>
+        <input asp-for="IdentityNumber" class="form-control" placeholder="So dinh danh" />
+        <span asp-validation-for="IdentityNumber" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="mb-3">
+    <label asp-for="Address" class="form-label">Dia Chi</label>
+    <input asp-for="Address" class="form-control" placeholder="Dia chi thuong tru" />
+    <span asp-validation-for="Address" class="text-danger"></span>
+</div>
+
+<hr class="my-4" />
+<h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Thong Tin BHYT (tuy chon)</h6>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label asp-for="InsuranceNumber" class="form-label">Ma The BHYT</label>
+        <input asp-for="InsuranceNumber" class="form-control" maxlength="15" placeholder="15 ky tu" />
+        <span asp-validation-for="InsuranceNumber" class="text-danger"></span>
+    </div>
+    <div class="col-md-6 mb-3">
+        <label asp-for="InsuranceType" class="form-label">Loai The</label>
+        <select asp-for="InsuranceType" class="form-select">
+            <option value="">-- Chon loai the --</option>
+            <option value="QN">QN - Quan nhan</option>
+            <option value="KC">KC - Kham chua benh</option>
+            <option value="GD">GD - Gia dinh</option>
+            <option value="HT">HT - Ho ngheo/can ngheo</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label asp-for="InsuranceExpiry" class="form-label">Han The</label>
+        <input asp-for="InsuranceExpiry" type="date" class="form-control"
+               value="@(Model.InsuranceExpiry?.ToString("yyyy-MM-dd"))" />
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="InsuranceCoveragePercent" class="form-label">% Chi Tra (%)</label>
+        <input asp-for="InsuranceCoveragePercent" type="number" class="form-control" min="0" max="100" step="1" />
+        <small class="text-muted">VD: 80, 95, 100</small>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label asp-for="InsuranceHospital" class="form-label">Noi DK KCB Ban Dau</label>
+        <input asp-for="InsuranceHospital" class="form-control" placeholder="Ten benh vien" />
+    </div>
+</div>

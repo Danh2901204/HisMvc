@@ -1,0 +1,54 @@
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="h1">Quản lý thuốc</div>
+            <div class="muted">Thêm, sửa, xóa và quản lý các loại thuốc trong hệ thống.</div>
+            <div style="height:12px"></div>
+
+            <div class="actions">
+                <a class="btn" href="/admin/drugs/new">+ Thêm thuốc</a>
+                <a class="btn secondary" href="/dashboard">Quay lại Dashboard</a>
+                <span class="badge">Tổng: <%= drugs.length %></span>
+            </div>
+
+            <div style="height:14px"></div>
+
+            <% if (drugs.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tên thuốc</th>
+                            <th>Mô tả</th>
+                            <th>Giá</th>
+                            <th>Tồn kho</th>
+                            <th style="width: 180px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% drugs.forEach(drug => { %>
+                            <tr>
+                                <td><%= drug.name %></td>
+                                <td><%= drug.description %></td>
+                                <td><%= drug.price %></td>
+                                <td><%= drug.quantityInStock %></td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="/admin/drugs/<%= drug._id %>/edit" class="btn secondary">Sửa</a>
+                                        <form action="/admin/drugs/<%= drug._id %>/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thuốc này không?');" style="display: inline;">
+                                            <button type="submit" class="btn secondary">Xóa</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div style="padding: 2rem; text-align: center;">
+                    <p class="muted">Chưa có loại thuốc nào được tạo.</p>
+                    <a href="/admin/drugs/new" class="btn">Tạo thuốc đầu tiên</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>

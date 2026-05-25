@@ -1,0 +1,44 @@
+// ... existing code ...
+            <div class="muted">Thêm, sửa, xóa và quản lý các phòng ban trong hệ thống.</div>
+            <div style="height:12px"></div>
+
+            <div class="actions">
+                <% if (user.role !== 'admin') { %>
+                <a class="btn" href="/admin/departments/new">+ Thêm phòng ban</a>
+                <% } %>
+                <a class="btn secondary" href="/dashboard">Quay lại Dashboard</a>
+                <span class="badge">Tổng: <%= departments.length %></span>
+            </div>
+
+            <div style="height:14px"></div>
+                                <td><%= department.description %></td>
+                                <td>
+                                    <div class="actions">
+                                        <% if (user.role !== 'admin') { %>
+                                        <a href="/admin/departments/<%= department._id %>/edit" class="btn secondary">Sửa</a>
+                                        <form action="/admin/departments/<%= department._id %>/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng ban này không?');" style="display: inline;">
+                                            <button type="submit" class="btn secondary">Xóa</button>
+                                        </form>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+            <% } else { %>
+                <div style="padding: 2rem; text-align: center;">
+                    <p class="muted">Chưa có phòng ban nào được tạo.</p>
+                    <% if (user.role !== 'admin') { %>
+                    <a href="/admin/departments/new" class="btn">Tạo phòng ban đầu tiên</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+            <% } else { %>
+                <div style="padding: 2rem; text-align: center;">
+                    <p class="muted">Chưa có phòng ban nào được tạo.</p>
+                    <% if (user.role !== 'admin') { %>
+                    <a href="/admin/departments/new" class="btn">Tạo phòng ban đầu tiên</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>

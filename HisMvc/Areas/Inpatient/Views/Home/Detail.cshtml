@@ -1,0 +1,163 @@
+@model Admission
+@{
+    ViewData["Title"] = "Chi Tiet Ho So Noi Tru";
+    var vitalSigns = (List<VitalSign>)ViewBag.VitalSigns;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-file-medical"></i> Ho So Noi Tru: @Model.AdmissionCode</h2>
+        <div class="btn-group">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Quay lai
+            </a>
+            @if (Model.Status == AdmissionStatus.Active)
+            {
+                <a asp-action="AddVitalSign" asp-route-admissionId="@Model.AdmissionId" class="btn btn-info">
+                    <i class="bi bi-heart-pulse"></i> Ghi Sinh Hieu
+                </a>
+                <a asp-action="Discharge" asp-route-id="@Model.AdmissionId" class="btn btn-warning">
+                    <i class="bi bi-box-arrow-right"></i> Xuat Vien
+                </a>
+            }
+        </div>
+    </div>
+
+    <!-- Thong tin co ban -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-person"></i> Thong Tin Benh Nhan
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td width="150"><strong>Ho ten:</strong></td>
+                            <td>@Model.Patient?.FullName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ngay sinh:</strong></td>
+                            <td>@Model.Patient?.Dob?.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Gioi tinh:</strong></td>
+                            <td>@Model.Patient?.Gender</td>
+                        </tr>
+                        <tr>
+                            <td><strong>So dien thoai:</strong></td>
+                            <td>@Model.Patient?.Phone</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="bi bi-clipboard2-pulse"></i> Thong Tin Nhap Vien
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <td width="150"><strong>Buong:</strong></td>
+                            <td>@Model.Bed?.Ward?.Name</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Giuong:</strong></td>
+                            <td><span class="badge bg-info">@Model.Bed?.BedNumber</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Bac si:</strong></td>
+                            <td>@Model.AttendingDoctor?.FullName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nhap vien:</strong></td>
+                            <td>@Model.AdmittedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Trang thai:</strong></td>
+                            <td>
+                                @if (Model.Status == AdmissionStatus.Active)
+                                {
+                                    <span class="badge bg-success">Dang dieu tri</span>
+                                }
+                                else if (Model.Status == AdmissionStatus.Discharged)
+                                {
+                                    <span class="badge bg-secondary">Da xuat vien</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ly do nhap vien & Chan doan -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="bi bi-clipboard-data"></i> Ly Do Nhap Vien & Chan Doan
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Ly do nhap vien:</h6>
+                    <p>@Model.AdmissionReason</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Chan doan ban dau:</h6>
+                    <p>@(Model.InitialDiagnosis ?? "Chua co")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sinh hieu -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <i class="bi bi-heart-pulse"></i> Sinh Hieu Gan Nhat
+        </div>
+        <div class="card-body">
+            @if (vitalSigns.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Thoi gian</th>
+                                <th>Nhiet do (C)</th>
+                                <th>Mach (nhip/phut)</th>
+                                <th>Ho hap</th>
+                                <th>Huyet ap (mmHg)</th>
+                                <th>SpO2 (%)</th>
+                                <th>Can nang (kg)</th>
+                                <th>Ghi chu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var vs in vitalSigns)
+                            {
+                                <tr>
+                                    <td>@vs.RecordedAt.ToString("dd/MM HH:mm")</td>
+                                    <td>@vs.Temperature?.ToString("F1")</td>
+                                    <td>@vs.HeartRate</td>
+                                    <td>@vs.RespiratoryRate</td>
+                                    <td>@vs.BloodPressureSystolic/@vs.BloodPressureDiastolic</td>
+                                    <td>@vs.OxygenSaturation?.ToString("F1")</td>
+                                    <td>@vs.Weight?.ToString("F1")</td>
+                                    <td><small>@vs.Note</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center py-3">Chua co sinh hieu nao duoc ghi nhan</p>
+            }
+        </div>
+    </div>
+</div>

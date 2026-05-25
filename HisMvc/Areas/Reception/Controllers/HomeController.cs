@@ -89,6 +89,13 @@ public class HomeController : Controller
         string phone,
         DateOnly? dob,
         Gender? gender,
+        string? identityNumber,
+        string? address,
+        string? insuranceNumber,
+        string? insuranceType,
+        DateTime? insuranceExpiry,
+        decimal insuranceCoveragePercent,
+        string? insuranceHospital,
         int departmentId,
         int doctorId,
         int slotId,
@@ -96,6 +103,9 @@ public class HomeController : Controller
         string? note
     )
     {
+        phone = (phone ?? "").Trim();
+        fullName = (fullName ?? "").Trim();
+
         if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(phone))
         {
             TempData["Error"] = "Vui long nhap day du ho ten va so dien thoai!";
@@ -115,13 +125,9 @@ public class HomeController : Controller
             };
             _db.Patients.Add(patient);
         }
-        else
-        {
-            // Cập nhật thông tin nếu đã tồn tại
-            patient.FullName = fullName;
-            if (dob.HasValue) patient.Dob = dob;
-            if (gender.HasValue) patient.Gender = gender.Value;
-        }
+
+        ApplyPatientDetails(patient, fullName, dob, gender, identityNumber, address,
+            insuranceNumber, insuranceType, insuranceExpiry, insuranceCoveragePercent, insuranceHospital);
 
         await _db.SaveChangesAsync();
 
@@ -237,8 +243,40 @@ public class HomeController : Controller
             fullName = patient.FullName,
             phone = patient.Phone,
             dob = patient.Dob?.ToString("yyyy-MM-dd"),
-            gender = patient.Gender.ToString()
+            gender = patient.Gender.ToString(),
+            identityNumber = patient.IdentityNumber,
+            address = patient.Address,
+            insuranceNumber = patient.InsuranceNumber,
+            insuranceType = patient.InsuranceType,
+            insuranceExpiry = patient.InsuranceExpiry?.ToString("yyyy-MM-dd"),
+            insuranceCoveragePercent = patient.InsuranceCoveragePercent,
+            insuranceHospital = patient.InsuranceHospital
         });
+    }
+
+    private static void ApplyPatientDetails(
+        Patient patient,
+        string fullName,
+        DateOnly? dob,
+        Gender? gender,
+        string? identityNumber,
+        string? address,
+        string? insuranceNumber,
+        string? insuranceType,
+        DateTime? insuranceExpiry,
+        decimal insuranceCoveragePercent,
+        string? insuranceHospital)
+    {
+        patient.FullName = fullName;
+        patient.Dob = dob;
+        patient.Gender = gender ?? patient.Gender;
+        patient.IdentityNumber = string.IsNullOrWhiteSpace(identityNumber) ? null : identityNumber.Trim();
+        patient.Address = string.IsNullOrWhiteSpace(address) ? null : address.Trim();
+        patient.InsuranceNumber = string.IsNullOrWhiteSpace(insuranceNumber) ? null : insuranceNumber.Trim();
+        patient.InsuranceType = string.IsNullOrWhiteSpace(insuranceType) ? null : insuranceType.Trim();
+        patient.InsuranceExpiry = insuranceExpiry;
+        patient.InsuranceCoveragePercent = insuranceCoveragePercent;
+        patient.InsuranceHospital = string.IsNullOrWhiteSpace(insuranceHospital) ? null : insuranceHospital.Trim();
     }
 
     // Trang quản lý bệnh nhân
@@ -308,7 +346,21 @@ public class HomeController : Controller
             return View(model);
         }
 
-        _db.Patients.Update(model);
+        var patient = await _db.Patients.FindAsync(model.PatientId);
+        if (patient == null)
+            return NotFound();
+
+        if (await _db.Patients.AnyAsync(x => x.Phone == model.Phone && x.PatientId != model.PatientId))
+        {
+            ModelState.AddModelError(nameof(Patient.Phone), "So dien thoai da duoc su dung boi benh nhan khac!");
+            return View(model);
+        }
+
+        ApplyPatientDetails(patient, model.FullName, model.Dob, model.Gender,
+            model.IdentityNumber, model.Address, model.InsuranceNumber, model.InsuranceType,
+            model.InsuranceExpiry, model.InsuranceCoveragePercent, model.InsuranceHospital);
+        patient.Phone = model.Phone;
+
         await _db.SaveChangesAsync();
 
         TempData["Success"] = "Da cap nhat thong tin benh nhan!";

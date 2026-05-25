@@ -1,0 +1,108 @@
+@model Ward
+@{
+    ViewData["Title"] = "Them Buong Benh";
+    var departments = (List<Department>)ViewBag.Departments;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-plus-circle"></i> Them Buong Benh Moi</h2>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lai
+        </a>
+    </div>
+
+    <form method="post" asp-action="Create">
+        @Html.AntiForgeryToken()
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-info-circle"></i> Thong Tin Buong Benh
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Code" class="form-label">Ma buong <span class="text-danger">*</span></label>
+                            <input asp-for="Code" class="form-control" placeholder="VD: NOI-A, VIP-1" required />
+                            <span asp-validation-for="Code" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Ten buong <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: Buong Noi Tang Hop A" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="DepartmentId" class="form-label">Khoa <span class="text-danger">*</span></label>
+                            <select asp-for="DepartmentId" class="form-select" required>
+                                <option value="">-- Chon khoa --</option>
+                                @foreach (var dept in departments)
+                                {
+                                    <option value="@dept.DepartmentId">@dept.Name (@dept.Code)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="DepartmentId" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="Type" class="form-label">Loai buong <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select" required>
+                                <option value="1">Thuong (General)</option>
+                                <option value="2">VIP</option>
+                                <option value="3">ICU</option>
+                                <option value="4">Cap cuu (Emergency)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="TotalBeds" class="form-label">Tong so giuong <span class="text-danger">*</span></label>
+                            <input asp-for="TotalBeds" type="number" class="form-control" min="1" max="100" value="10" required />
+                            <small class="text-muted">So giuong toi da trong buong</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    Dang hoat dong
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Mo ta</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Mo ta ve buong benh..."></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a asp-action="Index" class="btn btn-secondary btn-lg">
+                <i class="bi bi-x-circle"></i> Huy
+            </a>
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-save"></i> Luu Buong Benh
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,47 @@
+// ... existing code ...
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table mr-1"></i>
+            Danh sách nhân viên
+            <% if (user.role !== 'admin') { %>
+            <a href="/admin/staff/create" class="btn btn-primary float-right">Thêm nhân viên mới</a>
+            <% } %>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered">
+                                            <thead>
+                                                <th>Tên</th>
+                                                <th>Tài khoản</th>
+                                                <th>Vai trò</th>
+                                            </thead>
+                                            <tbody class="row">
+                                                <% staff.forEach(function(staffMember) { %>
+                                                    <tr>
+                                                        <td><%= staffMember.name %></td>
+                                                        <td><%= staffMember.userAccount ? staffMember.userAccount.username : 'N/A' %></td>
+                                                        <td><%= staffMember.userAccount ? staffMember.userAccount.role : 'N/A' %></td>
+                                                        <td>
+                                                            <% if (user.role !== 'admin') { %>
+                                                            <a href="/admin/staff/edit/<%= staffMember._id %>" class="btn btn-sm btn-warning">Sửa</a>
+                                                            <form action="/admin/staff/delete/<%= staffMember._id %>?_method=POST" method="POST" style="display: inline-block;">
+                                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này không?');">Xóa</button>
+                                                            </form>
+                                                            <% } %>
+                                                        </td>
+                                                    </tr>
+                                                <% }); %>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

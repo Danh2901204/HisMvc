@@ -1,0 +1,150 @@
+@model List<Prescription>
+@{
+    ViewData["Title"] = "Danh Sách ??n Thu?c - D??c";
+    var selectedDate = (DateOnly)ViewBag.SelectedDate;
+    var selectedStatus = (PrescriptionStatus?)ViewBag.SelectedStatus;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-capsule"></i> Danh Sách ??n Thu?c</h2>
+        <div class="btn-group">
+            <a asp-controller="Medicine" asp-action="Index" class="btn btn-outline-primary">
+                <i class="bi bi-card-list"></i> Qu?n Lý Thu?c
+            </a>
+            <a asp-controller="Medicine" asp-action="LowStock" class="btn btn-outline-warning">
+                <i class="bi bi-exclamation-triangle"></i> T?n Kho Th?p
+            </a>
+            <a asp-controller="Medicine" asp-action="Expiring" class="btn btn-outline-danger">
+                <i class="bi bi-calendar-x"></i> S?p H?t H?n
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Ngày kê ??n</label>
+                    <input type="date" name="date" class="form-control" value="@selectedDate.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Tr?ng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">-- T?t c? --</option>
+                        <option value="Pending" selected="@(selectedStatus == PrescriptionStatus.Pending)">Ch? c?p phát</option>
+                        <option value="Dispensed" selected="@(selectedStatus == PrescriptionStatus.Dispensed)">?ã c?p phát</option>
+                        <option value="Cancelled" selected="@(selectedStatus == PrescriptionStatus.Cancelled)">?ã h?y</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> L?c
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle"></i> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Danh sách ??n thu?c -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã ??n</th>
+                            <th>B?nh nhân</th>
+                            <th>Bác s? kê ??n</th>
+                            <th>Th?i gian</th>
+                            <th>S? lo?i thu?c</th>
+                            <th>Tr?ng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox fs-1"></i><br />
+                                    Không có ??n thu?c nào
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td><strong>@item.Code</strong></td>
+                                    <td>
+                                        <strong>@item.Encounter?.Patient?.FullName</strong><br />
+                                        <small class="text-muted">@item.Encounter?.Patient?.Phone</small>
+                                    </td>
+                                    <td>@item.Doctor?.FullName</td>
+                                    <td>
+                                        @item.PrescribedAt.ToString("dd/MM/yyyy")<br />
+                                        <small class="text-muted">@item.PrescribedAt.ToString("HH:mm")</small>
+                                    </td>
+                                    <td><span class="badge bg-info">@item.Items.Count lo?i</span></td>
+                                    <td>
+                                        @if (item.Status == PrescriptionStatus.Pending)
+                                        {
+                                            <span class="badge bg-warning">Ch? c?p phát</span>
+                                        }
+                                        else if (item.Status == PrescriptionStatus.Dispensed)
+                                        {
+                                            <span class="badge bg-success">?ã c?p phát</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">?ã h?y</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Detail" asp-route-id="@item.PrescriptionId" class="btn btn-outline-primary">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                            @if (item.Status == PrescriptionStatus.Pending)
+                                            {
+                                                <a asp-action="Dispense" asp-route-id="@item.PrescriptionId" class="btn btn-success">
+                                                    <i class="bi bi-box-seam"></i> C?p phát
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <small class="text-muted">
+            T?ng s?: <strong>@Model.Count</strong> ??n thu?c
+        </small>
+    </div>
+</div>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <%- include('../../partials/header') %>
+  <div class="container">
+    <h1>Doctor Dashboard</h1>
+    <div class="card">
+      <h2>Patient List</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (patients.length > 0) { %>
+            <% patients.forEach(patient => { %>
+              <tr>
+                <td><%= patient.id %></td>
+                <td><%= patient.name %></td>
+                <td><%= patient.age %></td>
+                <td><%= patient.gender %></td>
+                <td>
+                  <a href="/doctor/patients/<%= patient.id %>" class="btn">View Details</a>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="5">No patients found.</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <%- include('../../partials/footer') %>
+</body>
+</html>

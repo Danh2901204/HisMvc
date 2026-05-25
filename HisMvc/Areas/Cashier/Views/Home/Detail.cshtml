@@ -124,12 +124,38 @@
                                 }
                             </tbody>
                             <tfoot>
-                                <tr class="table-success">
-                                    <td colspan="3" class="text-end"><strong>Tong cong:</strong></td>
-                                    <td class="text-end">
-                                        <strong class="text-danger fs-4">@Model.TotalAmount.ToString("N0") VND</strong>
-                                    </td>
-                                </tr>
+                                @if (Model.HasInsurance)
+                                {
+                                    <tr class="table-light">
+                                        <td colspan="3" class="text-end"><strong>T?ng chi phí:</strong></td>
+                                        <td class="text-end">
+                                            <strong>@Model.TotalAmount.ToString("N0") VND</strong>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td colspan="3" class="text-end">
+                                            <i class="bi bi-shield-check"></i> <strong>BHYT chi tr?:</strong>
+                                        </td>
+                                        <td class="text-end">
+                                            <strong class="text-success">@Model.InsuranceAmount.ToString("N0") VND</strong>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td colspan="3" class="text-end"><strong>B?nh nhân tr?:</strong></td>
+                                        <td class="text-end">
+                                            <strong class="text-danger fs-4">@Model.PatientAmount.ToString("N0") VND</strong>
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr class="table-success">
+                                        <td colspan="3" class="text-end"><strong>T?ng c?ng:</strong></td>
+                                        <td class="text-end">
+                                            <strong class="text-danger fs-4">@Model.TotalAmount.ToString("N0") VND</strong>
+                                        </td>
+                                    </tr>
+                                }
                             </tfoot>
                         </table>
                     </div>

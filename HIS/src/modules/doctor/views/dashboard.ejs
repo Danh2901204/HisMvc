@@ -1,0 +1,92 @@
+<div class="container-fluid">
+    <h1 class="mt-4">Doctor Dashboard</h1>
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <i class="fas fa-user-injured fa-2x"></i>
+                        <div class="text-right">
+                            <div class="h3"><%= stats.patientCount %></div>
+                            <div>Total Patients</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <i class="fas fa-calendar-check fa-2x"></i>
+                        <div class="text-right">
+                            <div class="h3"><%= stats.appointmentCount %></div>
+                            <div>Appointments</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <i class="fas fa-user-md fa-2x"></i>
+                        <div class="text-right">
+                            <div class="h3"><%= stats.doctorCount %></div>
+                            <div>Doctors</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <i class="fas fa-flask fa-2x"></i>
+                        <div class="text-right">
+                            <div class="h3"><%= stats.labOrderCount %></div>
+                            <div>Lab Orders</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-table mr-1"></i>
+            Recent Patients
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Date of Birth</th>
+                            <th>Gender</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% patients.forEach(patient => { %>
+                            <tr>
+                                <td><%= patient.patientCode %></td>
+                                <td><%= patient.fullName %></td>
+                                <td><%= patient.dateOfBirth.toLocaleDateString() %></td>
+                                <td><%= patient.gender %></td>
+                                <td>
+                                    <a href="/doctors/patients/<%= patient._id %>" class="btn btn-primary btn-sm">View Details</a>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

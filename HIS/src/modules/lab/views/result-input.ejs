@@ -1,0 +1,17 @@
+<%- include('../../views/partials/header') %>
+
+<div class="container mt-4">
+    <h2>Enter Lab Result</h2>
+    <h4>Patient: <%= patient.name %></h4>
+    <h5>Test: <%= labOrder.labTestId.name %></h5>
+
+    <form action="/lab/<%= labOrder._id %>" method="POST">
+        <div class="form-group">
+            <label for="result">Result</label>
+            <textarea class="form-control" id="result" name="result" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Submit Result</button>
+    </form>
+</div>
+
+<%- include('../../views/partials/footer') %>

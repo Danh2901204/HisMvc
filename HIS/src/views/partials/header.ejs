@@ -1,0 +1,41 @@
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">HIS</div>
+    <div>
+      <div class="brand-title">Hospital Information System</div>
+      <div class="brand-sub">Reception / Tiếp đón</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <% if (typeof user !== 'undefined' && user) { %>
+        <a href="/dashboard">Dashboard</a>
+        <% if (user && user.role === 'admin') { %>
+            <div class="nav-dropdown">
+              <a href="/admin" class="nav-dropdown-toggle">Admin</a>
+              <div class="nav-dropdown-menu">
+                <a href="/admin/departments">Quản lý Khoa</a>
+                <a href="/admin/rooms">Quản lý Phòng</a>
+                <a href="/admin/beds">Quản lý Giường</a>
+                <a href="/admin/drugs">Quản lý Thuốc</a>
+                <a href="/admin/staff">Quản lý Nhân viên</a>
+                <a href="/admin/invoices">Quản lý Hóa đơn</a>
+              </div>
+            </div>
+        <% } %>
+        <% if (user && user.role === 'reception') { %>
+            <a href="/reception/patients">Bệnh nhân</a>
+            <a href="/reception/patients/new">Tạo hồ sơ</a>
+            <a href="/reception/visits/new">Đăng ký khám</a>
+            <a href="/reception/invoices">Hóa đơn</a>
+        <% } else { %>
+            <a href="/reception/patients">Bệnh nhân</a>
+            <a href="/reception/patients/new">Tạo hồ sơ</a>
+            <a href="/reception/visits/new">Đăng ký khám</a>
+        <% } %>
+        <a href="/auth/logout" class="btn secondary">Logout</a>
+    <% } else { %>
+        <a href="/auth/login" class="btn">Login</a>
+    <% } %>
+  </nav>
+</header>

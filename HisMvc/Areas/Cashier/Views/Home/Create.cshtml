@@ -5,6 +5,7 @@
     var examFee = (decimal)ViewBag.ExamFee;
     var totalOrderPrice = (decimal)ViewBag.TotalOrderPrice;
     var totalAmount = (decimal)ViewBag.TotalAmount;
+    var insuranceCalc = (InsuranceCalculationResult)ViewBag.InsuranceCalculation;
 }
 
 <div class="container mt-4">
@@ -115,9 +116,74 @@
 
                     <hr />
 
+                    <!-- Thông tin BHYT -->
+                    @if (insuranceCalc.HasInsurance)
+                    {
+                        <div class="card mb-3 @(insuranceCalc.IsValid ? "border-success" : "border-danger")">
+                            <div class="card-header @(insuranceCalc.IsValid ? "bg-success" : "bg-danger") text-white">
+                                <h5 class="mb-0"><i class="bi bi-shield-check"></i> Thông Tin B?o Hi?m Y T?</h5>
+                            </div>
+                            <div class="card-body">
+                                @if (insuranceCalc.IsExpired)
+                                {
+                                    <div class="alert alert-danger">
+                                        <i class="bi bi-exclamation-triangle"></i> 
+                                        <strong>Th? BHYT ?ã h?t h?n!</strong> Không th? s? d?ng BHYT.
+                                    </div>
+                                }
+                                else if (insuranceCalc.IsValid)
+                                {
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>Mã th? BHYT:</strong> @insuranceCalc.InsuranceNumber</p>
+                                            <p class="mb-2"><strong>Lo?i th?:</strong> @insuranceCalc.InsuranceType</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2"><strong>T? l? chi tr?:</strong> <span class="badge bg-info">@insuranceCalc.CoveragePercent%</span></p>
+                                            <p class="mb-2"><strong>Tr?ng thái:</strong> <span class="badge bg-success">H?p l?</span></p>
+                                        </div>
+                                    </div>
+                                    
+                                    <hr />
+                                    
+                                    <h6>Chi Ti?t Thanh Toán V?i BHYT:</h6>
+                                    <table class="table table-sm table-bordered">
+                                        <tr>
+                                            <td><strong>T?ng chi phí:</strong></td>
+                                            <td class="text-end">@insuranceCalc.TotalAmount.ToString("N0") VND</td>
+                                        </tr>
+                                        <tr class="table-success">
+                                            <td><strong>BHYT chi tr? (@insuranceCalc.CoveragePercent%):</strong></td>
+                                            <td class="text-end"><strong class="text-success">@insuranceCalc.InsurancePays.ToString("N0") VND</strong></td>
+                                        </tr>
+                                        <tr class="table-warning">
+                                            <td><strong>B?nh nhân ??ng chi tr?:</strong></td>
+                                            <td class="text-end"><strong class="text-danger">@insuranceCalc.PatientPays.ToString("N0") VND</strong></td>
+                                        </tr>
+                                    </table>
+                                    
+                                    <div class="alert alert-info mb-0">
+                                        <i class="bi bi-info-circle"></i> 
+                                        B?nh nhân ch? c?n thanh toán <strong>@insuranceCalc.PatientPays.ToString("N0") VND</strong>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
                     <form method="post" asp-action="CreateInvoice">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="encounterId" value="@encounter.EncounterId" />
+
+                        @if (insuranceCalc.HasInsurance && insuranceCalc.IsValid)
+                        {
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" name="useInsurance" id="useInsurance" value="true" checked />
+                                <label class="form-check-label" for="useInsurance">
+                                    <strong>S? d?ng BHYT cho hóa ??n này</strong>
+                                </label>
+                            </div>
+                        }
 
                         <div class="mb-3">
                             <label class="form-label"><i class="bi bi-card-text"></i> Ghi chu:</label>

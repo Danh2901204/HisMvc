@@ -1,0 +1,86 @@
+<div class="container-fluid">
+    <h1 class="mt-4"><%= title %></h1>
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-user-edit mr-1"></i>
+            Chỉnh sửa thông tin nhân viên
+        </div>
+        <div class="card-body">
+            <form action="/admin/staff/edit/<%= staffMember._id %>" method="POST">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="firstName">Họ</label>
+                        <input type="text" class="form-control" id="firstName" name="firstName" value="<%= staffMember.firstName %>" required>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="lastName">Tên</label>
+                        <input type="text" class="form-control" id="lastName" name="lastName" value="<%= staffMember.lastName %>" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="<%= staffMember.email %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Điện thoại</label>
+                    <input type="text" class="form-control" id="phone" name="phone" value="<%= staffMember.phone %>">
+                </div>
+                <div class="form-group">
+                    <label for="position">Chức vụ</label>
+                    <input type="text" class="form-control" id="position" name="position" value="<%= staffMember.position %>">
+                </div>
+                <div class="form-group">
+                    <label for="address">Địa chỉ</label>
+                    <input type="text" class="form-control" id="address" name="address" value="<%= staffMember.address %>">
+                </div>
+                <div class="form-group">
+                    <label for="dateOfBirth">Ngày sinh</label>
+                    <input type="date" class="form-control" id="dateOfBirth" name="dateOfBirth" value="<%= staffMember.dateOfBirth ? staffMember.dateOfBirth.toISOString().split('T')[0] : '' %>">
+                </div>
+
+                <hr>
+                <h5>Tài khoản đăng nhập</h5>
+                <% if (staffMember.userAccount) { %>
+                    <div class="form-group">
+                        <label>Tên đăng nhập</label>
+                        <p class="form-control-static"><%= staffMember.userAccount.username %></p>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Vai trò</label>
+                        <select class="form-control" id="role" name="role">
+                            <option value="receptionist" <%= staffMember.userAccount.role === 'receptionist' ? 'selected' : '' %>>Lễ tân</option>
+                            <option value="doctor" <%= staffMember.userAccount.role === 'doctor' ? 'selected' : '' %>>Bác sĩ</option>
+                            <option value="nurse" <%= staffMember.userAccount.role === 'nurse' ? 'selected' : '' %>>Y tá</option>
+                            <option value="pharmacist" <%= staffMember.userAccount.role === 'pharmacist' ? 'selected' : '' %>>Dược sĩ</option>
+                            <option value="lab_technician" <%= staffMember.userAccount.role === 'lab_technician' ? 'selected' : '' %>>Kỹ thuật viên xét nghiệm</option>
+                            <option value="admin" <%= staffMember.userAccount.role === 'admin' ? 'selected' : '' %>>Quản trị viên</option>
+                        </select>
+                    </div>
+                     <p>Để thay đổi mật khẩu, vui lòng sử dụng chức năng "Quên mật khẩu" hoặc liên hệ quản trị viên.</p>
+                <% } else { %>
+                    <div class="form-group">
+                        <label for="username">Tên đăng nhập</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Để trống nếu không muốn tạo tài khoản">
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Mật khẩu</label>
+                        <input type="password" class="form-control" id="password" name="password">
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Vai trò</label>
+                        <select class="form-control" id="role" name="role">
+                            <option value="RECEPTION">Reception</option>
+                            <option value="DOCTOR">Doctor</option>
+                            <option value="NURSE">Nurse</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                <% } %>
+
+
+                <button type="submit" class="btn btn-primary">Cập nhật</button>
+                <a href="/admin/staff" class="btn btn-secondary">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>

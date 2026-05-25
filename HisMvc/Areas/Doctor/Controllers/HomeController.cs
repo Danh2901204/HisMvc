@@ -70,6 +70,20 @@ public class HomeController : Controller
             "Name"
         );
 
+        // Lấy đơn thuốc nếu có
+        var prescription = await _db.Prescriptions
+            .Include(p => p.Items).ThenInclude(i => i.Medicine)
+            .FirstOrDefaultAsync(p => p.EncounterId == id);
+
+        ViewBag.Prescription = prescription;
+        
+        // Danh sách thuốc để kê đơn
+        ViewBag.Medicines = new SelectList(
+            await _db.Medicines.Where(m => m.IsActive).OrderBy(m => m.Name).ToListAsync(),
+            "MedicineId",
+            "Name"
+        );
+
         return View(enc);
     }
 
@@ -239,19 +253,21 @@ public class HomeController : Controller
             .ToListAsync();
 
         // Tính tổng tiền
-        decimal examFee = 100000;
+        decimal examFee = HisConstants.EXAM_FEE;
         decimal totalOrderPrice = orders.Sum(x => x.Service?.Price ?? 0);
         decimal totalAmount = examFee + totalOrderPrice;
 
         // Tạo mã hóa đơn
         var invoiceCode = $"INV{DateTime.Now:yyyyMMddHHmmss}";
 
-        // Tạo hóa đơn
+        // Tạo hóa đơn (không tự động tính BHYT ở đây, để thu ngân xử lý)
         var invoice = new Invoice
         {
             EncounterId = encounterId,
             InvoiceCode = invoiceCode,
             TotalAmount = totalAmount,
+            PatientAmount = totalAmount, // Mặc định bệnh nhân trả toàn bộ
+            HasInsurance = false,
             Status = InvoiceStatus.Unpaid,
             CreatedAt = DateTime.UtcNow,
             Note = "Tu dong tao khi chot luot kham"
@@ -260,6 +276,123 @@ public class HomeController : Controller
         _db.Invoices.Add(invoice);
         await _db.SaveChangesAsync();
     }
+
+    // ========== KÊ ĐƠN THUỐC ==========
+
+    // Kê đơn thuốc mới
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreatePrescription(int encounterId)
+    {
+        var enc = await _db.Encounters.FirstOrDefaultAsync(x => x.EncounterId == encounterId);
+        if (enc == null)
+        {
+            TempData["Error"] = "Không tìm thấy lượt khám!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (enc.Status == EncounterStatus.Completed)
+        {
+            TempData["Error"] = "Lượt khám đã chốt, không thể kê đơn!";
+            return RedirectToAction(nameof(Examine), new { id = encounterId });
+        }
+
+        // Kiểm tra đã có đơn thuốc chưa
+        var existing = await _db.Prescriptions.FirstOrDefaultAsync(p => p.EncounterId == encounterId);
+        if (existing != null)
+        {
+            TempData["Error"] = "Đã có đơn thuốc cho lượt khám này!";
+            return RedirectToAction(nameof(Examine), new { id = encounterId });
+        }
+
+        // Lấy StaffId của bác sĩ
+        var doctorEmail = User.Identity!.Name;
+        var staff = await _db.Staffs.FirstOrDefaultAsync(s => s.FullName == doctorEmail);
+
+        var prescription = new Prescription
+        {
+            Code = $"PRE{DateTime.UtcNow:yyyyMMddHHmmss}",
+            EncounterId = encounterId,
+            PrescribedBy = staff?.StaffId ?? enc.DoctorId,
+            PrescribedAt = DateTime.UtcNow,
+            Status = PrescriptionStatus.Pending
+        };
+
+        _db.Prescriptions.Add(prescription);
+        await _db.SaveChangesAsync();
+
+        TempData["Success"] = "Đã tạo đơn thuốc!";
+        return RedirectToAction(nameof(Examine), new { id = encounterId });
+    }
+
+    // Thêm thuốc vào đơn
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddMedicine(int prescriptionId, int medicineId, int quantity, string dosage, string? instructions, int duration = 1)
+    {
+        var prescription = await _db.Prescriptions
+            .Include(p => p.Items)
+            .FirstOrDefaultAsync(p => p.PrescriptionId == prescriptionId);
+
+        if (prescription == null)
+        {
+            TempData["Error"] = "Không tìm thấy đơn thuốc!";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (prescription.Status != PrescriptionStatus.Pending)
+        {
+            TempData["Error"] = "Đơn thuốc đã cấp phát, không thể sửa!";
+            return RedirectToAction(nameof(Examine), new { id = prescription.EncounterId });
+        }
+
+        // Kiểm tra thuốc đã có trong đơn chưa
+        if (prescription.Items.Any(i => i.MedicineId == medicineId))
+        {
+            TempData["Error"] = "Thuốc đã có trong đơn!";
+            return RedirectToAction(nameof(Examine), new { id = prescription.EncounterId });
+        }
+
+        var item = new PrescriptionItem
+        {
+            PrescriptionId = prescriptionId,
+            MedicineId = medicineId,
+            Quantity = quantity,
+            Dosage = dosage,
+            Instructions = instructions,
+            Duration = duration
+        };
+
+        _db.PrescriptionItems.Add(item);
+        await _db.SaveChangesAsync();
+
+        TempData["Success"] = "Đã thêm thuốc vào đơn!";
+        return RedirectToAction(nameof(Examine), new { id = prescription.EncounterId });
+    }
+
+    // Xóa thuốc khỏi đơn
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RemoveMedicine(int itemId, int encounterId)
+    {
+        var item = await _db.PrescriptionItems
+            .Include(i => i.Prescription)
+            .FirstOrDefaultAsync(i => i.PrescriptionItemId == itemId);
+
+        if (item == null || item.Prescription!.Status != PrescriptionStatus.Pending)
+        {
+            TempData["Error"] = "Không thể xóa thuốc!";
+            return RedirectToAction(nameof(Examine), new { id = encounterId });
+        }
+
+        _db.PrescriptionItems.Remove(item);
+        await _db.SaveChangesAsync();
+
+        TempData["Success"] = "Đã xóa thuốc khỏi đơn!";
+        return RedirectToAction(nameof(Examine), new { id = encounterId });
+    }
+
+    // ========== END KÊ ĐƠN THUỐC ==========
 
     // Mở lại lượt khám (nếu cần)
     [HttpPost]

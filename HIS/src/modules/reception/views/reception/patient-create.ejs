@@ -1,0 +1,42 @@
+<%- include("../../../views/layouts/main", {
+  title,
+  body: `
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div class="h1">Tạo hồ sơ bệnh nhân</div>
+          <div class="muted">Nhập thông tin hành chính để tạo mã bệnh nhân (BN).</div>
+          <div style="height:14px"></div>
+
+          <form class="form" method="POST" action="/reception/patients">
+            <div class="field">
+              <label>Họ tên</label>
+              <input name="name" placeholder="VD: Nguyễn Văn A" required />
+            </div>
+
+            <div class="row">
+              <div class="col field">
+                <label>Ngày sinh</label>
+                <input type="date" name="dob" />
+              </div>
+              <div class="col field">
+                <label>Số điện thoại</label>
+                <input name="phone" placeholder="VD: 090xxxxxxx" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>CCCD</label>
+              <input name="cccd" placeholder="VD: 0010xxxxxxxxx" />
+            </div>
+
+            <div class="actions">
+              <button class="btn" type="submit">Lưu hồ sơ</button>
+              <a class="btn secondary" href="/reception/patients">Quay lại</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  `
+}) %>

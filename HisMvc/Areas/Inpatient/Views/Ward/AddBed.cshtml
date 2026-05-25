@@ -1,0 +1,83 @@
+@model Bed
+@{
+    ViewData["Title"] = "Them Giuong";
+    var ward = (Ward)ViewBag.Ward;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="bi bi-plus-circle"></i> Them Giuong Moi</h2>
+            <p class="text-muted mb-0">Buong: <strong>@ward.Name</strong></p>
+        </div>
+        <a asp-action="BedMap" asp-route-id="@ward.WardId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lai
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="post" asp-action="AddBed">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="WardId" value="@ward.WardId" />
+
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <i class="bi bi-hospital"></i> Thong Tin Giuong
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label asp-for="BedNumber" class="form-label">So giuong <span class="text-danger">*</span></label>
+                            <input asp-for="BedNumber" class="form-control" placeholder="VD: A01, B02, VIP-01" required autofocus />
+                            <span asp-validation-for="BedNumber" class="text-danger"></span>
+                            <small class="text-muted">So giuong phai duy nhat trong buong nay</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Status" class="form-label">Trang thai ban dau</label>
+                            <select asp-for="Status" class="form-select">
+                                <option value="1">Trong (Empty)</option>
+                                <option value="3">Dang dan dep (Cleaning)</option>
+                                <option value="4">Bao tri (Maintenance)</option>
+                            </select>
+                            <small class="text-muted">Trang thai "Co benh nhan" se tu dong khi nhap vien</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    Giuong dang su dung
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Note" class="form-label">Ghi chu</label>
+                            <textarea asp-for="Note" class="form-control" rows="3" placeholder="Ghi chu ve giuong (vi tri, dac diem...)"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="BedMap" asp-route-id="@ward.WardId" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Huy
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Them Giuong
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Auto format bed number
+        document.querySelector('input[name="BedNumber"]').addEventListener('blur', function() {
+            this.value = this.value.toUpperCase().trim();
+        });
+    </script>
+}

@@ -1,0 +1,80 @@
+@* Form fields without Patient model — for appointment create (manual name attributes) *@
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Ho va ten <span class="text-danger">*</span></label>
+        <input id="fullName" name="fullName" class="form-control" placeholder="Nhap ho ten benh nhan" required />
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">So dien thoai <span class="text-danger">*</span></label>
+        <div class="input-group">
+            <input id="phone" name="phone" type="tel" class="form-control" placeholder="Nhap SDT de tim kiem" required />
+            <button type="button" class="btn btn-info" onclick="searchPatient()">
+                <i class="bi bi-search"></i> Tim
+            </button>
+        </div>
+        <small class="text-muted">Nhap SDT va click Tim de tu dong dien thong tin BN cu</small>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Ngay sinh</label>
+        <input id="dob" name="dob" type="date" class="form-control" />
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Gioi tinh</label>
+        <select id="gender" name="gender" class="form-select">
+            <option value="0">Chua ro</option>
+            <option value="1">Nam</option>
+            <option value="2">Nu</option>
+            <option value="3">Khac</option>
+        </select>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">CMND/CCCD</label>
+        <input id="identityNumber" name="identityNumber" class="form-control" placeholder="So dinh danh" />
+    </div>
+</div>
+
+<div class="mb-3">
+    <label class="form-label">Dia chi</label>
+    <input id="address" name="address" class="form-control" placeholder="Dia chi thuong tru" />
+</div>
+
+<hr class="my-3" />
+<h6 class="text-primary mb-3"><i class="bi bi-shield-check"></i> Thong tin BHYT (tuy chon)</h6>
+
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Ma the BHYT</label>
+        <input id="insuranceNumber" name="insuranceNumber" class="form-control" maxlength="15" placeholder="15 ky tu" />
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Loai the</label>
+        <select id="insuranceType" name="insuranceType" class="form-select">
+            <option value="">-- Chon loai the --</option>
+            <option value="QN">QN - Quan nhan</option>
+            <option value="KC">KC - Kham chua benh</option>
+            <option value="GD">GD - Gia dinh</option>
+            <option value="HT">HT - Ho ngheo/can ngheo</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Han the</label>
+        <input id="insuranceExpiry" name="insuranceExpiry" type="date" class="form-control" />
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">% Chi tra (%)</label>
+        <input id="insuranceCoveragePercent" name="insuranceCoveragePercent" type="number"
+               class="form-control" min="0" max="100" step="1" value="0" />
+        <small class="text-muted">VD: 80, 95, 100</small>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Noi DK KCB ban dau</label>
+        <input id="insuranceHospital" name="insuranceHospital" class="form-control" placeholder="Ten benh vien" />
+    </div>
+</div>

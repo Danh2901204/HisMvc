@@ -1,0 +1,45 @@
+// ... existing code ...
+            <div class="muted">Thêm, sửa, xóa và quản lý các loại thuốc trong hệ thống.</div>
+            <div style="height:12px"></div>
+
+            <div class="actions">
+                <% if (user.role !== 'admin') { %>
+                <a class="btn" href="/admin/drugs/new">+ Thêm thuốc</a>
+                <% } %>
+                <a class="btn secondary" href="/dashboard">Quay lại Dashboard</a>
+                <span class="badge">Tổng: <%= drugs.length %></span>
+            </div>
+
+            <div style="height:14px"></div>
+                                <td><%= drug.price %></td>
+                                <td><%= drug.quantityInStock %></td>
+                                <td>
+                                    <div class="actions">
+                                        <% if (user.role !== 'admin') { %>
+                                        <a href="/admin/drugs/<%= drug._id %>/edit" class="btn secondary">Sửa</a>
+                                        <form action="/admin/drugs/<%= drug._id %>/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa thuốc này không?');" style="display: inline;">
+                                            <button type="submit" class="btn secondary">Xóa</button>
+                                        </form>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+            <% } else { %>
+                <div style="padding: 2rem; text-align: center;">
+                    <p class="muted">Chưa có loại thuốc nào được tạo.</p>
+                    <% if (user.role !== 'admin') { %>
+                    <a href="/admin/drugs/new" class="btn">Tạo thuốc đầu tiên</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>
+            <% } else { %>
+                <div style="padding: 2rem; text-align: center;">
+                    <p class="muted">Chưa có loại thuốc nào được tạo.</p>
+                    <% if (user.role !== 'admin') { %>
+                    <a href="/admin/drugs/new" class="btn">Tạo thuốc đầu tiên</a>
+                    <% } %>
+                </div>
+            <% } %>
+        </div>

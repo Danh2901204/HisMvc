@@ -1,0 +1,30 @@
+// ... existing code ...
+            <div class="muted">Tra cứu nhanh hồ sơ bệnh nhân đã tiếp nhận.</div>
+            <div style="height:12px"></div>
+
+            <div class="actions">
+                <% if (user.role !== 'admin') { %>
+                <a class="btn" href="/reception/patients/new">+ Tạo hồ sơ</a>
+                <a class="btn secondary" href="/reception/visits/new">Đăng ký lượt khám</a>
+                <% } %>
+                <a class="btn secondary" href="/dashboard">Quay lại Dashboard</a>
+                <span class="badge">Tổng: <%= patients.length %></span>
+            </div>
+
+            <div style="height:14px"></div>
+
+            <div class="muted">Tra cứu nhanh hồ sơ bệnh nhân đã tiếp nhận.</div>
+            <div style="height:12px"></div>
+
+            <div class="actions">
+                <% if (user.role !== 'admin') { %>
+                <a class="btn" href="/reception/patients/new">+ Tạo hồ sơ</a>
+                <a class="btn secondary" href="/reception/visits/new">Đăng ký lượt khám</a>
+                <% } %>
+                <a class="btn secondary" href="/dashboard">Quay lại Dashboard</a>
+                <span class="badge">Tổng: <%= patients.length %></span>
+            </div>
+
+            <div style="height:14px"></div>
+
+// ... existing code ...

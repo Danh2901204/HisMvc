@@ -12,20 +12,40 @@
 
     @if (User.Identity?.IsAuthenticated == true)
     {
-        <div class="row g-4 mt-4">
+        <div class="row g-3 mt-4 justify-content-center">
+            @if (User.IsInRole("ADMIN"))
+            {
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-gear-fill display-4 text-danger"></i>
+                            </div>
+                            <h5 class="card-title">ADMIN</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Quản trị hệ thống
+                            </p>
+                            <a href="/Admin/Home/Index" class="btn btn-danger btn-sm mt-auto">
+                                <i class="bi bi-arrow-right-circle"></i> Truy cập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
             @if (User.IsInRole("RECEPTION") || User.IsInRole("ADMIN"))
             {
-                <div class="col-md-4">
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
                     <div class="card h-100 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="mb-3">
-                                <i class="bi bi-calendar-check display-1 text-primary"></i>
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-calendar-check display-4 text-primary"></i>
                             </div>
-                            <h4 class="card-title">Lễ tân</h4>
-                            <p class="card-text text-muted">
-                                Quản lý lịch hẹn và check-in bệnh nhân
+                            <h5 class="card-title">Lễ tân</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Lịch hẹn & check-in
                             </p>
-                            <a href="/Reception/Home/Index" class="btn btn-primary">
+                            <a href="/Reception/Home/Index" class="btn btn-primary btn-sm mt-auto">
                                 <i class="bi bi-arrow-right-circle"></i> Truy cập
                             </a>
                         </div>
@@ -35,17 +55,17 @@
 
             @if (User.IsInRole("DOCTOR") || User.IsInRole("ADMIN"))
             {
-                <div class="col-md-4">
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
                     <div class="card h-100 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="mb-3">
-                                <i class="bi bi-stethoscope display-1 text-success"></i>
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-stethoscope display-4 text-success"></i>
                             </div>
-                            <h4 class="card-title">Bác sĩ</h4>
-                            <p class="card-text text-muted">
-                                Khám bệnh và quản lý lượt khám
+                            <h5 class="card-title">Bác sĩ</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Khám bệnh
                             </p>
-                            <a href="/Doctor/Home/Index" class="btn btn-success">
+                            <a href="/Doctor/Home/Index" class="btn btn-success btn-sm mt-auto">
                                 <i class="bi bi-arrow-right-circle"></i> Truy cập
                             </a>
                         </div>
@@ -55,17 +75,77 @@
 
             @if (User.IsInRole("LAB_TECH") || User.IsInRole("ADMIN"))
             {
-                <div class="col-md-4">
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
                     <div class="card h-100 shadow-sm hover-card">
-                        <div class="card-body text-center p-4">
-                            <div class="mb-3">
-                                <i class="bi bi-flask display-1 text-info"></i>
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-flask display-4 text-info"></i>
                             </div>
-                            <h4 class="card-title">Xét nghiệm</h4>
-                            <p class="card-text text-muted">
-                                Nhập và quản lý kết quả xét nghiệm
+                            <h5 class="card-title">Xét nghiệm</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Kết quả xét nghiệm
                             </p>
-                            <a href="/Lab/Home/Index" class="btn btn-info">
+                            <a href="/Lab/Home/Index" class="btn btn-info btn-sm mt-auto">
+                                <i class="bi bi-arrow-right-circle"></i> Truy cập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("CASHIER") || User.IsInRole("ADMIN"))
+            {
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-cash-coin display-4 text-warning"></i>
+                            </div>
+                            <h5 class="card-title">Viện phí</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Hóa đơn & thanh toán
+                            </p>
+                            <a href="/Cashier/Home/Index" class="btn btn-warning btn-sm mt-auto">
+                                <i class="bi bi-arrow-right-circle"></i> Truy cập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("PHARMACIST") || User.IsInRole("ADMIN"))
+            {
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-capsule display-4 text-secondary"></i>
+                            </div>
+                            <h5 class="card-title">Dược</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Kê đơn & cấp phát thuốc
+                            </p>
+                            <a href="/Pharmacy/Home/Index" class="btn btn-secondary btn-sm mt-auto">
+                                <i class="bi bi-arrow-right-circle"></i> Truy cập
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("DOCTOR") || User.IsInRole("ADMIN"))
+            {
+                <div class="col-auto" style="flex: 0 0 19%; min-width: 200px; max-width: 250px;">
+                    <div class="card h-100 shadow-sm hover-card">
+                        <div class="card-body text-center p-3 d-flex flex-column">
+                            <div class="mb-2">
+                                <i class="bi bi-hospital-fill display-4 text-dark"></i>
+                            </div>
+                            <h5 class="card-title">Nội trú</h5>
+                            <p class="card-text text-muted small" style="min-height: 40px;">
+                                Quản lý bệnh nhân nằm viện
+                            </p>
+                            <a href="/Inpatient/Home/Index" class="btn btn-dark btn-sm mt-auto">
                                 <i class="bi bi-arrow-right-circle"></i> Truy cập
                             </a>
                         </div>
@@ -122,11 +202,11 @@
                             <p class="mt-2 mb-0"><strong>Đặt lịch hẹn</strong></p>
                         </div>
                         <div class="col-md-3">
-                            <i class="bi bi-clipboard-pulse text-danger" style="font-size: 2rem;"></i>
+                            <i class="bi bi-stethoscope text-danger" style="font-size: 2rem;"></i>
                             <p class="mt-2 mb-0"><strong>Khám và chẩn đoán</strong></p>
                         </div>
                         <div class="col-md-3">
-                            <i class="bi bi-file-medical text-info" style="font-size: 2rem;"></i>
+                            <i class="bi bi-flask text-info" style="font-size: 2rem;"></i>
                             <p class="mt-2 mb-0"><strong>Xét nghiệm</strong></p>
                         </div>
                     </div>

@@ -1,0 +1,43 @@
+// ... existing code ...
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-4">
+                        <% if (user.role !== 'admin') { %>
+                        <a href="/admin/invoices/create" class="btn btn-danger mb-2"><i class="mdi mdi-plus-circle mr-2"></i> Add Invoice</a>
+                        <% } %>
+                    </div>
+                    <div class="col-sm-8">
+                        <div class="text-sm-right">
+                            <% if (user.role !== 'admin') { %>
+                            <button type="button" class="btn btn-success mb-2 mr-1"><i class="mdi mdi-cog"></i></button>
+                            <button type="button" class="btn btn-light mb-2 mr-1">Import</button>
+                            <% } %>
+                            <button type="button" class="btn btn-light mb-2">Export</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <th>Trạng thái</th>
+                            <th style="width: 75px;">Hành động</th>
+                        </thead>
+                        <tbody>
+                            <% invoices.forEach(invoice => { %>
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-warning">CHƯA_THU</span>
+                                    </td>
+                                    <td>
+                                        <% if (user.role !== 'admin') { %>
+                                        <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-square-edit-outline"></i></a>
+                                        <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-delete"></i></a>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>

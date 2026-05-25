@@ -1,0 +1,22 @@
+<div class="container mt-4">
+  <h2>Add Bed</h2>
+  <form action="/admin/beds" method="POST">
+    <div class="form-group">
+      <label for="bedNumber">Bed Number</label>
+      <input type="text" class="form-control" id="bedNumber" name="bedNumber" required>
+    </div>
+    <div class="form-group">
+      <label for="room">Room</label>
+      <select class="form-control" id="room" name="room" required>
+        <% rooms.forEach(room => { %>
+          <option value="<%= room._id %>"><%= room.roomNumber %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="form-check">
+      <input type="checkbox" class="form-check-input" id="isOccupied" name="isOccupied">
+      <label class="form-check-label" for="isOccupied">Occupied</label>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+  </form>
+</div>

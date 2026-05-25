@@ -1,0 +1,72 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-sm-4">
+                        <a href="javascript:void(0);" class="btn btn-danger mb-2"><i class="mdi mdi-plus-circle mr-2"></i> Add Invoice</a>
+                    </div>
+                    <div class="col-sm-8">
+                        <div class="text-sm-right">
+                            <button type="button" class="btn btn-success mb-2 mr-1"><i class="mdi mdi-cog"></i></button>
+                            <button type="button" class="btn btn-light mb-2 mr-1">Import</button>
+                            <button type="button" class="btn btn-light mb-2">Export</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-centered table-striped dt-responsive nowrap w-100" id="products-datatable">
+                        <thead>
+                            <tr>
+                                <th style="width: 20px;">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="customCheck1">
+                                        <label class="form-check-label" for="customCheck1">&nbsp;</label>
+                                    </div>
+                                </th>
+                                <th>Mã hóa đơn</th>
+                                <th>Bệnh nhân</th>
+                                <th>Mã lượt khám</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th style="width: 75px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% invoices.forEach(invoice => { %>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <input type="checkbox" class="form-check-input" id="customCheck2">
+                                            <label class="form-check-label" for="customCheck2">&nbsp;</label>
+                                        </div>
+                                    </td>
+                                    <td class="table-user">
+                                        <a href="javascript:void(0);" class="text-body font-weight-semibold"><%= invoice.invoiceCode %></a>
+                                    </td>
+                                    <td>
+                                        N/A
+                                    </td>
+                                    <td>
+                                        N/A
+                                    </td>
+                                    <td>
+                                        <%= invoice.total.toLocaleString() %> VNĐ
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">CHƯA_THU</span>
+                                    </td>
+                                    <td>
+                                        <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-square-edit-outline"></i></a>
+                                        <a href="javascript:void(0);" class="action-icon"> <i class="mdi mdi-delete"></i></a>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div> 
+        </div> 
+    </div>
+</div>

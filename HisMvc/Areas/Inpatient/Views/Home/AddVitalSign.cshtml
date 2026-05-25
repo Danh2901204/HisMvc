@@ -1,0 +1,161 @@
+@{
+    ViewData["Title"] = "Ghi Nhan Sinh Hieu";
+    var admission = (Admission)ViewBag.Admission;
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-heart-pulse"></i> Ghi Nhan Sinh Hieu</h2>
+        <a asp-action="Detail" asp-route-id="@admission.AdmissionId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lai
+        </a>
+    </div>
+
+    <!-- Thong tin benh nhan -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="bi bi-person"></i> Thong Tin Benh Nhan
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Ho ten:</strong> @admission.Patient?.FullName</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Ma nhap vien:</strong> @admission.AdmissionCode</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-1"><strong>Buong - Giuong:</strong> @admission.Bed?.Ward?.Name - @admission.Bed?.BedNumber</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form sinh hieu -->
+    <form method="post" asp-action="AddVitalSign">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="admissionId" value="@admission.AdmissionId" />
+
+        <div class="row">
+            <!-- Cot trai -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <i class="bi bi-thermometer"></i> Cac Chi So Co Ban
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Nhiet do co the (C)</label>
+                            <input type="number" name="temperature" class="form-control" step="0.1" min="35" max="42" placeholder="36.5">
+                            <small class="text-muted">Binh thuong: 36.1 - 37.2C</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nhip tim (nhip/phut)</label>
+                            <input type="number" name="heartRate" class="form-control" min="40" max="200" placeholder="72">
+                            <small class="text-muted">Binh thuong: 60 - 100 nhip/phut</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nhip tho (lan/phut)</label>
+                            <input type="number" name="respiratoryRate" class="form-control" min="10" max="40" placeholder="16">
+                            <small class="text-muted">Binh thuong: 12 - 20 lan/phut</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cot phai -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-activity"></i> Huyet Ap & Oxy
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Huyet ap tam thu (mmHg)</label>
+                                <input type="number" name="bpSystolic" class="form-control" min="80" max="200" placeholder="120">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Huyet ap tam truong (mmHg)</label>
+                                <input type="number" name="bpDiastolic" class="form-control" min="50" max="120" placeholder="80">
+                            </div>
+                            <div class="col-12 mt-2">
+                                <small class="text-muted">Binh thuong: 90/60 - 120/80 mmHg</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">SpO2 - Do bao hoa oxy (%)</label>
+                            <input type="number" name="oxygenSat" class="form-control" step="0.1" min="70" max="100" placeholder="98">
+                            <small class="text-muted">Binh thuong: 95 - 100%</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Can nang & Chieu cao -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-person-check"></i> Sac Thai & Can Nang
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Can nang (kg)</label>
+                        <input type="number" name="weight" class="form-control" step="0.1" min="10" max="300" placeholder="70">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Chieu cao (cm)</label>
+                        <input type="number" name="height" class="form-control" min="50" max="250" placeholder="170">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">BMI (tu tinh)</label>
+                        <input type="number" name="bmi" class="form-control" step="0.1" placeholder="BMI" readonly>
+                        <small class="text-muted">Tinh tu: Can nang (kg) / Chieu cao^2 (m)</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ghi chu -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-pencil"></i> Ghi Chu Them
+            </div>
+            <div class="card-body">
+                <textarea name="note" class="form-control" rows="4" placeholder="Ghi chu them: trang thai chi chui, hanh dong dac biet, phan ung..."></textarea>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <a asp-action="Detail" asp-route-id="@admission.AdmissionId" class="btn btn-secondary btn-lg">
+                <i class="bi bi-x-circle"></i> Huy
+            </a>
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-save"></i> Luu Sinh Hieu
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Tinh BMI
+        document.querySelector('input[name="weight"]').addEventListener('input', calculateBMI);
+        document.querySelector('input[name="height"]').addEventListener('input', calculateBMI);
+
+        function calculateBMI() {
+            const weight = parseFloat(document.querySelector('input[name="weight"]').value) || 0;
+            const height = parseFloat(document.querySelector('input[name="height"]').value) || 0;
+
+            if (weight > 0 && height > 0) {
+                const heightM = height / 100;
+                const bmi = (weight / (heightM * heightM)).toFixed(1);
+                document.querySelector('input[name="bmi"]').value = bmi;
+            }
+        }
+    </script>
+}

@@ -1,0 +1,52 @@
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="h1">Quản lý phòng</div>
+            <div class="muted">Thêm, sửa, xóa và quản lý các phòng trong hệ thống.</div>
+            <div style="height:12px"></div>
+
+            <div class="actions">
+                <a class="btn" href="/admin/rooms/new">+ Thêm phòng</a>
+                <a class="btn secondary" href="/dashboard">Quay lại Dashboard</a>
+                <span class="badge">Tổng: <%= rooms.length %></span>
+            </div>
+
+            <div style="height:14px"></div>
+
+            <% if (rooms.length > 0) { %>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Số phòng</th>
+                            <th>Phòng ban</th>
+                            <th>Loại phòng</th>
+                            <th style="width: 180px;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% rooms.forEach(room => { %>
+                            <tr>
+                                <td><%= room.roomNumber %></td>
+                                <td><%= room.department ? room.department.name : 'Không có' %></td>
+                                <td><%= room.roomType %></td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="/admin/rooms/<%= room._id %>/edit" class="btn secondary">Sửa</a>
+                                        <form action="/admin/rooms/<%= room._id %>/delete" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng này không?');" style="display: inline;">
+                                            <button type="submit" class="btn secondary">Xóa</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            <% } else { %>
+                <div style="padding: 2rem; text-align: center;">
+                    <p class="muted">Chưa có phòng nào được tạo.</p>
+                    <a href="/admin/rooms/new" class="btn">Tạo phòng đầu tiên</a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
