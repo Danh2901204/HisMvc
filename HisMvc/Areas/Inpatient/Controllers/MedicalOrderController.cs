@@ -56,7 +56,7 @@ public class MedicalOrderController : Controller
 
         if (string.IsNullOrWhiteSpace(orderDetails))
         {
-            TempData["Error"] = "Vui lòng nhập nội dung y lenh!";
+            TempData["Error"] = "Vui lòng nhập nội dung lệnh điều trị!";
             return RedirectToAction(nameof(Index), new { admissionId });
         }
 
@@ -86,7 +86,7 @@ public class MedicalOrderController : Controller
                 PrescribedBy = orderedBy,
                 PrescribedAt = DateTime.UtcNow,
                 Status = PrescriptionStatus.Pending,
-                Note = $"Y lênh noi tru {orderCode}",
+                Note = $"Lệnh điều trị nội trú {orderCode}",
                 Items = new List<PrescriptionItem>
                 {
                     new PrescriptionItem
@@ -121,7 +121,7 @@ public class MedicalOrderController : Controller
         _db.MedicalOrders.Add(medicalOrder);
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = $"Đã ra y lenh {orderCode}!";
+        TempData["Success"] = $"Đã ra lệnh điều trị {orderCode}!";
         return RedirectToAction(nameof(Index), new { admissionId });
     }
 
@@ -132,13 +132,13 @@ public class MedicalOrderController : Controller
         var order = await _db.MedicalOrders.FindAsync(id);
         if (order == null || order.Status != MedicalOrderStatus.Ordered)
         {
-            TempData["Error"] = "Không thể bat dau y lenh nay!";
+            TempData["Error"] = "Không thể bắt đầu lệnh điều trị này!";
             return RedirectToAction(nameof(Index), new { admissionId = order?.AdmissionId ?? 0 });
         }
 
         order.Status = MedicalOrderStatus.InProgress;
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Đã bat dau thuc hien y lenh.";
+        TempData["Success"] = "Đã bắt đầu thực hiện lệnh điều trị.";
         return RedirectToAction(nameof(Index), new { admissionId = order.AdmissionId });
     }
 
@@ -147,10 +147,10 @@ public class MedicalOrderController : Controller
     public async Task<IActionResult> Complete(int id, string? executionNote)
     {
         var order = await _db.MedicalOrders.FindAsync(id);
-        if (order == null) { TempData["Error"] = "Không tìm thay y lenh!"; return RedirectToAction(nameof(Index), new { admissionId = 0 }); }
+        if (order == null) { TempData["Error"] = "Không tìm thấy lệnh điều trị!"; return RedirectToAction(nameof(Index), new { admissionId = 0 }); }
         if (order.Status != MedicalOrderStatus.InProgress)
         {
-            TempData["Error"] = "Chi co the hoàn thành y lenh dang thuc hien (InProgress). Vui lòng bấm 'Bat dau' trước.";
+            TempData["Error"] = "Chỉ có thể hoàn thành lệnh điều trị đang thực hiện (InProgress). Vui lòng bấm 'Bắt đầu' trước.";
             return RedirectToAction(nameof(Index), new { admissionId = order.AdmissionId });
         }
 
@@ -161,7 +161,7 @@ public class MedicalOrderController : Controller
         order.ExecutionNote = executionNote?.Trim();
         await _db.SaveChangesAsync();
 
-        TempData["Success"] = "Đã hoàn thành y lenh.";
+        TempData["Success"] = "Đã hoàn thành lệnh điều trị.";
         return RedirectToAction(nameof(Index), new { admissionId = order.AdmissionId });
     }
 
@@ -172,14 +172,14 @@ public class MedicalOrderController : Controller
         var order = await _db.MedicalOrders.FindAsync(id);
         if (order == null || order.Status == MedicalOrderStatus.Completed)
         {
-            TempData["Error"] = "Không thể huy y lenh nay!";
+            TempData["Error"] = "Không thể hủy lệnh điều trị này!";
             return RedirectToAction(nameof(Index), new { admissionId = order?.AdmissionId ?? 0 });
         }
 
         order.Status = MedicalOrderStatus.Cancelled;
         order.ExecutionNote = $"Hủy: {reason}";
         await _db.SaveChangesAsync();
-        TempData["Success"] = "Đã huy y lenh.";
+        TempData["Success"] = "Đã hủy lệnh điều trị.";
         return RedirectToAction(nameof(Index), new { admissionId = order.AdmissionId });
     }
 

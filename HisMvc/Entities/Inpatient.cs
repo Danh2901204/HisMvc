@@ -98,7 +98,7 @@ public class Admission
     public List<MedicalOrder> MedicalOrders { get; set; } = new();
 }
 
-// 4. Y lênh (theo gio cho bệnh nhân noi tru)
+// 4. Lệnh điều trị (theo giờ cho bệnh nhân nội trú)
 public class MedicalOrder
 {
     public int MedicalOrderId { get; set; }
@@ -138,7 +138,7 @@ public class MedicalOrder
     [MaxLength(500)]
     public string? Note { get; set; }
     
-    // Lien ket với đơn thuốc nếu là y lenh thuốc
+    // Liên kết với đơn thuốc nếu là lệnh thuốc
     public int? PrescriptionId { get; set; }
     public Prescription? Prescription { get; set; }
 }

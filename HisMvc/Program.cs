@@ -20,6 +20,14 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
        .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 // Register custom services
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient("Gemini", client => client.Timeout = TimeSpan.FromSeconds(45));
+builder.Services.AddScoped<DepartmentMaintenanceService>();
+builder.Services.AddScoped<IAppointmentCancellationService, AppointmentCancellationService>();
+builder.Services.AddHostedService<AppointmentCleanupService>();
+builder.Services.AddScoped<IPublicAppointmentService, PublicAppointmentService>();
+builder.Services.AddScoped<HisMvc.Services.Chatbot.IChatbotService, HisMvc.Services.Chatbot.ChatbotService>();
+builder.Services.AddScoped<HisMvc.Services.Chatbot.IChatbotFlowService, HisMvc.Services.Chatbot.ChatbotFlowService>();
 builder.Services.AddScoped<InsuranceService>();
 builder.Services.AddScoped<CurrentStaffService>();
 builder.Services.AddScoped<Icd10Service>();

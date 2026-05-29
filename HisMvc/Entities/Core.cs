@@ -8,6 +8,10 @@ public class Department
     public int DepartmentId { get; set; }
     [MaxLength(50)] public string Code { get; set; } = "";
     [MaxLength(200)] public string Name { get; set; } = "";
+    /// <summary>Khoa lâm sàng mới được đặt lịch khám trực tuyến (ngoại trú).</summary>
+    public DepartmentKind Kind { get; set; } = DepartmentKind.Administrative;
+
+    public bool AllowsPublicBooking => Kind == DepartmentKind.Clinical;
 }
 
 public class Staff
@@ -102,6 +106,13 @@ public class Appointment
     [MaxLength(500)] public string? Note { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CheckedInAt { get; set; } // Thoi diem bệnh nhân check-in tai le tan
+    public DateTime? CancelledAt { get; set; }
+    public DateTime? NoShowAt { get; set; }
+
+    public bool IsCancelled => Status == AppointmentStatus.Cancelled;
+    public bool IsNoShow => Status == AppointmentStatus.NoShow;
+    public bool CanReceptionCancel =>
+        Status == AppointmentStatus.Booked && CheckedInAt == null;
 }
 
 public class Encounter

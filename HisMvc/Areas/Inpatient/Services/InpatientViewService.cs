@@ -231,7 +231,7 @@ public class InpatientViewService
             {
                 At = o.OrderedAt,
                 Icon = "bi-clipboard-pulse",
-                Title = $"Y lênh: {o.OrderType}",
+                Title = $"Lệnh điều trị: {o.OrderType}",
                 Detail = $"BN {o.Admission?.Patient?.FullName} - {o.OrderDetails}",
                 Url = $"/Inpatient/MedicalOrder/Index?admissionId={o.AdmissionId}",
                 Tag = o.Status.ToString(),

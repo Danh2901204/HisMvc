@@ -47,19 +47,28 @@
         <div class="col-6 col-md-3">
             <div class="kpi-card kpi-danger">
                 <div>
-                    <div class="kpi-label">Lich Đã Hủy</div>
+                    <div class="kpi-label">Lịch đã hủy</div>
                     <div class="kpi-value">@Model.Kpi.CancelledToday</div>
                 </div>
-                <div class="kpi-sub"><i class="bi bi-x-circle"></i> Hom nay</div>
+                <div class="kpi-sub"><i class="bi bi-x-circle"></i> Hôm nay</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="kpi-card">
+                <div>
+                    <div class="kpi-label">Không đến khám</div>
+                    <div class="kpi-value">@Model.Kpi.NoShowToday</div>
+                </div>
+                <div class="kpi-sub"><i class="bi bi-person-x"></i> Hôm nay</div>
             </div>
         </div>
         <div class="col-6 col-md-3">
             <div class="kpi-card kpi-info">
                 <div>
-                    <div class="kpi-label">7 Ngay Toi</div>
+                    <div class="kpi-label">7 ngày tới</div>
                     <div class="kpi-value">@Model.Kpi.BookedNext7</div>
                 </div>
-                <div class="kpi-sub">lịch hẹn da dat</div>
+                <div class="kpi-sub">lịch hẹn đã đặt</div>
             </div>
         </div>
     </div>
