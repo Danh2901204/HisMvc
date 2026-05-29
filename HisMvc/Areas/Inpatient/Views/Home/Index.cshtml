@@ -136,7 +136,7 @@
                                             </a>
                                             @if (item.Status == AdmissionStatus.Active)
                                             {
-                                                <a asp-controller="MedicalOrder" asp-action="Index" asp-route-admissionId="@item.AdmissionId" class="btn btn-outline-primary" title="Y lênh">
+                                                <a asp-controller="MedicalOrder" asp-action="Index" asp-route-admissionId="@item.AdmissionId" class="btn btn-outline-primary" title="Lệnh điều trị">
                                                     <i class="bi bi-prescription2"></i>
                                                 </a>
                                                 <a asp-controller="Surgery" asp-action="Index" asp-route-admissionId="@item.AdmissionId" class="btn btn-outline-danger" title="Phẩu thuật">

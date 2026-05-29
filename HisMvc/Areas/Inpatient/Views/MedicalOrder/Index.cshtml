@@ -3,13 +3,13 @@
     var admission = Model.Admission;
     var medicines = Model.Medicines;
     var services = Model.Services;
-    ViewData["Title"] = $"Y Lenh - {admission.AdmissionCode}";
+    ViewData["Title"] = $"Lệnh điều trị - {admission.AdmissionCode}";
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="mb-1"><i class="bi bi-prescription2"></i> Phieu Y Lenh — @admission.AdmissionCode</h2>
+            <h2 class="mb-1"><i class="bi bi-prescription2"></i> Phiếu lệnh điều trị — @admission.AdmissionCode</h2>
             <p class="text-muted mb-0">
                 BN: <strong>@admission.Patient?.FullName</strong> — Buồng @admission.Bed?.Ward?.Name, giường @admission.Bed?.BedNumber
                 — BS: @admission.AttendingDoctor?.FullName
@@ -37,15 +37,15 @@
 
     <div class="alert alert-info py-2 small mb-3">
         <i class="bi bi-info-circle"></i>
-        Theo <strong>Thông tư 56/2017/TT-BYT</strong> — Phieu Y Lenh la phan bat buoc cua benh an noi tru.
-        Bác sĩ ra y lệnh, điều dưỡng/kỹ thuật viên thực hiện và ghi nhận thời gian.
+        Theo <strong>Thông tư 56/2017/TT-BYT</strong> — Phiếu lệnh điều trị là phần bắt buộc của bệnh án nội trú.
+        Bác sĩ ra lệnh điều trị, điều dưỡng/kỹ thuật viên thực hiện và ghi nhận thời gian.
     </div>
 
     @if (admission.Status == AdmissionStatus.Active)
     {
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-primary text-white">
-                <i class="bi bi-plus-circle"></i> Ra Y Lenh Moi
+                <i class="bi bi-plus-circle"></i> Ra lệnh điều trị mới
             </div>
             <div class="card-body">
                 <form asp-action="Create" method="post" id="orderForm">
@@ -54,7 +54,7 @@
 
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label">Loai Y Lenh <span class="text-danger">*</span></label>
+                            <label class="form-label">Loại lệnh điều trị <span class="text-danger">*</span></label>
                             <select name="orderType" class="form-select" id="orderType" required>
                                 <option value="@MedicalOrderType.Medication">Thuốc</option>
                                 <option value="@MedicalOrderType.Lab">Xet nghiem</option>
@@ -70,7 +70,7 @@
                                 value="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Noi dung y lenh <span class="text-danger">*</span></label>
+                            <label class="form-label">Nội dung lệnh điều trị <span class="text-danger">*</span></label>
                             <input type="text" name="orderDetails" class="form-control"
                                 placeholder="Vi du: Truyen NaCl 0.9% 500ml; Theo doi mach huyet ap 30 phút/lan" required />
                         </div>
@@ -78,7 +78,7 @@
                         <div class="col-12 panel-medication" style="display:none;">
                             <div class="card border-info">
                                 <div class="card-body">
-                                    <h6 class="text-info"><i class="bi bi-capsule"></i> Don thuốc (y lenh thuốc)</h6>
+                                    <h6 class="text-info"><i class="bi bi-capsule"></i> Đơn thuốc (lệnh thuốc)</h6>
                                     <div class="row g-2">
                                         <div class="col-md-5">
                                             <select name="medicineId" class="form-select">
@@ -126,7 +126,7 @@
 
                     <div class="mt-3 text-end">
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check2-circle"></i> Ra Y Lenh
+                            <i class="bi bi-check2-circle"></i> Ra lệnh điều trị
                         </button>
                     </div>
                 </form>
@@ -136,7 +136,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header bg-secondary text-white">
-            <i class="bi bi-list-ul"></i> Danh sách y lenh (@Model.Orders.Count)
+            <i class="bi bi-list-ul"></i> Danh sách lệnh điều trị (@Model.Orders.Count)
         </div>
         <div class="card-body p-0">
             @if (Model.Orders.Any())
@@ -241,7 +241,7 @@
             }
             else
             {
-                <p class="text-muted text-center py-4 mb-0">Chưa có y lenh nao.</p>
+                <p class="text-muted text-center py-4 mb-0">Chưa có lệnh điều trị nào.</p>
             }
         </div>
     </div>
@@ -254,7 +254,7 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="id" id="completeOrderId" />
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-check2-circle"></i> Hoàn thành y lenh</h5>
+                <h5 class="modal-title"><i class="bi bi-check2-circle"></i> Hoàn thành lệnh điều trị</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -277,7 +277,7 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="id" id="cancelOrderId" />
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-x-octagon"></i> Hủy y lenh</h5>
+                <h5 class="modal-title"><i class="bi bi-x-octagon"></i> Hủy lệnh điều trị</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">

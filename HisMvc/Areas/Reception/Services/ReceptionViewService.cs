@@ -25,6 +25,7 @@ public class ReceptionViewService
                 BookedToday = await _db.Appointments.CountAsync(a => a.Date == today && a.Status == AppointmentStatus.Booked),
                 CheckedInToday = await _db.Encounters.CountAsync(e => e.CheckInAt >= todayStart && e.CheckInAt < todayEnd),
                 CancelledToday = await _db.Appointments.CountAsync(a => a.Date == today && a.Status == AppointmentStatus.Cancelled),
+                NoShowToday = await _db.Appointments.CountAsync(a => a.Date == today && a.Status == AppointmentStatus.NoShow),
                 NewPatients = await _db.Patients.CountAsync(),
                 BookedNext7 = await _db.Appointments.CountAsync(a => a.Date > today && a.Date <= today.AddDays(7))
             },
@@ -67,6 +68,8 @@ public class ReceptionViewService
             }
             else if (status == "Cancelled")
                 query = query.Where(x => x.Status == AppointmentStatus.Cancelled);
+            else if (status == "NoShow")
+                query = query.Where(x => x.Status == AppointmentStatus.NoShow);
         }
 
         var checkedInAppointments = await _db.Encounters
@@ -98,12 +101,22 @@ public class ReceptionViewService
             activities.Add(new DashboardActivity
             {
                 At = a.CreatedAt,
-                Icon = a.Status == AppointmentStatus.Cancelled ? "bi-calendar-x" : "bi-calendar-plus",
+                Icon = a.Status switch
+                {
+                    AppointmentStatus.Cancelled => "bi-calendar-x",
+                    AppointmentStatus.NoShow => "bi-person-x",
+                    _ => "bi-calendar-plus"
+                },
                 Title = $"Lịch hẹn {a.Code} - {a.Patient?.FullName}",
                 Detail = $"{a.Department?.Name} · BS {a.Doctor?.FullName} · {a.Date:dd/MM} {a.TimeSlot?.Start:HH:mm}",
                 Url = $"/Reception/Home/Index?date={a.Date:yyyy-MM-dd}",
-                Tag = a.Status == AppointmentStatus.Cancelled ? "Đã huy" : "Đã dat",
-                Priority = a.Status == AppointmentStatus.Cancelled ? "high" : ""
+                Tag = a.Status switch
+                {
+                    AppointmentStatus.Cancelled => "Đã hủy",
+                    AppointmentStatus.NoShow => "Không đến",
+                    _ => "Đã đặt"
+                },
+                Priority = a.Status is AppointmentStatus.Cancelled or AppointmentStatus.NoShow ? "high" : ""
             });
         }
 

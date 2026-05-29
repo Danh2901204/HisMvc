@@ -3,6 +3,7 @@ using HisMvc.Areas.Reception.Services;
 using HisMvc.Data;
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services;
 using HisMvc.Services.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,12 +19,18 @@ public class HomeController : Controller
     private readonly AppDbContext _db;
     private readonly ReceptionViewService _views;
     private readonly OutpatientWorkflowService _workflow;
+    private readonly IAppointmentCancellationService _cancellation;
 
-    public HomeController(AppDbContext db, ReceptionViewService views, OutpatientWorkflowService workflow)
+    public HomeController(
+        AppDbContext db,
+        ReceptionViewService views,
+        OutpatientWorkflowService workflow,
+        IAppointmentCancellationService cancellation)
     {
         _db = db;
         _views = views;
         _workflow = workflow;
+        _cancellation = cancellation;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -128,31 +135,14 @@ public class HomeController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int appointmentId)
     {
-        var appt = await _db.Appointments.FindAsync(appointmentId);
-        if (appt == null)
-        {
-            TempData["Error"] = "Không tìm thay lịch hẹn!";
-            return RedirectToAction(nameof(Index));
-        }
+        var result = await _cancellation.CancelByReceptionAsync(appointmentId);
 
-        var hasEncounter = await _db.Encounters.AnyAsync(e => e.AppointmentId == appointmentId);
-        if (hasEncounter)
-        {
-            TempData["Error"] = "Không thể huy lịch hẹn da check-in. Vui lòng huy lich kham trong he thong.";
-            return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
-        }
+        TempData[result.Success ? "Success" : "Error"] = result.Message;
 
-        if (appt.Status == AppointmentStatus.Cancelled)
-        {
-            TempData["Error"] = "Lịch hẹn đã hủy trước đó.";
-            return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
-        }
-
-        appt.Status = AppointmentStatus.Cancelled;
-        await _db.SaveChangesAsync();
-
-        TempData["Success"] = "Đã huy lịch hẹn thành công!";
-        return RedirectToAction(nameof(Index), new { date = appt.Date.ToString("yyyy-MM-dd") });
+        var appt = await _db.Appointments.AsNoTracking()
+            .FirstOrDefaultAsync(a => a.AppointmentId == appointmentId);
+        var date = appt?.Date.ToString("yyyy-MM-dd") ?? DateTime.Today.ToString("yyyy-MM-dd");
+        return RedirectToAction(nameof(Index), new { date });
     }
 
     [HttpGet]

@@ -15,6 +15,7 @@ public class ReceptionKpiViewModel
     public int BookedToday { get; set; }
     public int CheckedInToday { get; set; }
     public int CancelledToday { get; set; }
+    public int NoShowToday { get; set; }
     public int NewPatients { get; set; }
     public int BookedNext7 { get; set; }
 }

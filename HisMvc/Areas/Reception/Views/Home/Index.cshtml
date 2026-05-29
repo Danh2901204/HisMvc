@@ -45,9 +45,10 @@
                     <label class="form-label">Trạng thái:</label>
                     <select name="status" class="form-select">
                         <option value="">Tất cả</option>
-                        <option value="Booked" selected="@(currentStatus == "Booked")">Chờ kham</option>
+                        <option value="Booked" selected="@(currentStatus == "Booked")">Chờ khám</option>
                         <option value="CheckedIn" selected="@(currentStatus == "CheckedIn")">Đã check-in</option>
-                        <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Đã huy</option>
+                        <option value="Cancelled" selected="@(currentStatus == "Cancelled")">Đã hủy</option>
+                        <option value="NoShow" selected="@(currentStatus == "NoShow")">Không đến khám</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -108,11 +109,23 @@
                                         }
                                         else if (a.Status == HisMvc.Entities.AppointmentStatus.Booked)
                                         {
-                                            <span class="badge bg-warning text-dark">Chờ kham</span>
+                                            <span class="badge bg-warning text-dark">Chờ khám</span>
                                         }
-                                        else if (a.Status == HisMvc.Entities.AppointmentStatus.Cancelled)
+                                        else if (a.IsCancelled)
                                         {
-                                            <span class="badge bg-danger">Đã huy</span>
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                            @if (a.CancelledAt.HasValue)
+                                            {
+                                                <br /><small class="text-muted">@a.CancelledAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</small>
+                                            }
+                                        }
+                                        else if (a.IsNoShow)
+                                        {
+                                            <span class="badge bg-secondary">Không đến khám</span>
+                                            @if (a.NoShowAt.HasValue)
+                                            {
+                                                <br /><small class="text-muted">@a.NoShowAt.Value.ToLocalTime().ToString("dd/MM HH:mm")</small>
+                                            }
                                         }
                                         else
                                         {
@@ -120,7 +133,7 @@
                                         }
                                     </td>
                                     <td class="text-center">
-                                        @if (a.Status == HisMvc.Entities.AppointmentStatus.Booked && !isCheckedIn)
+                                        @if (a.CanReceptionCancel && !isCheckedIn)
                                         {
                                             <form method="post" asp-action="CheckIn" style="display: inline;">
                                                 @Html.AntiForgeryToken()

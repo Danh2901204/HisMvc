@@ -43,6 +43,8 @@
                             <th>ID</th>
                             <th>Ma</th>
                             <th>Tên Khoa/Phong Ban</th>
+                            <th>Phân loại</th>
+                            <th>Đặt lịch công khai</th>
                             <th class="text-center">Thao tác</th>
                         </tr>
                     </thead>
@@ -53,6 +55,17 @@
                                 <td><strong>@dept.DepartmentId</strong></td>
                                 <td><code>@dept.Code</code></td>
                                 <td>@dept.Name</td>
+                                <td>@DepartmentBookingRules.GetKindLabel(dept.Kind)</td>
+                                <td>
+                                    @if (dept.AllowsPublicBooking)
+                                    {
+                                        <span class="badge bg-success">Có</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Không</span>
+                                    }
+                                </td>
                                 <td class="text-center">
                                     <a href="@Url.Action("Edit", new { id = dept.DepartmentId })" class="btn btn-sm btn-warning">
                                         <i class="bi bi-pencil"></i> Sua
