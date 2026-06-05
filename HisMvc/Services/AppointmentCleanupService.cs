@@ -1,7 +1,7 @@
 namespace HisMvc.Services;
 
 /// <summary>
-/// Chạy ngầm quét lịch hẹn quá hạn 60 phút chưa check-in → chuyển NoShow.
+/// Chạy ngầm bảo trì định kỳ: NoShow lịch hẹn và hủy lượt khám treo.
 /// </summary>
 public class AppointmentCleanupService : BackgroundService
 {
@@ -52,10 +52,6 @@ public class AppointmentCleanupService : BackgroundService
     private async Task RunCleanupAsync(CancellationToken ct)
     {
         using var scope = _services.CreateScope();
-        var cancellation = scope.ServiceProvider.GetRequiredService<IAppointmentCancellationService>();
-        var marked = await cancellation.MarkOverdueAsNoShowAsync(ct);
-
-        if (marked > 0)
-            _logger.LogInformation("Marked {Count} appointment(s) as NoShow", marked);
+        await ScheduledMaintenanceService.RunAsync(scope.ServiceProvider, ct);
     }
 }

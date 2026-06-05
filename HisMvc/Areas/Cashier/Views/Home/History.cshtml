@@ -1,0 +1,127 @@
+@model InvoiceHistoryViewModel
+@using HisMvc.Models.Common
+@{
+    ViewData["Title"] = "Lịch sử hóa đơn";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history"></i> Lịch sử hóa đơn</h2>
+        <a asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Hóa đơn hôm nay
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-2">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Loại HĐ</label>
+                    <select name="type" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="ExamFee" selected="@(Model.CurrentType == "ExamFee")">Phí khám</option>
+                        <option value="Final" selected="@(Model.CurrentType == "Final")">Tổng hợp</option>
+                        <option value="Inpatient" selected="@(Model.CurrentType == "Inpatient")">Nội trú</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="Unpaid" selected="@(Model.CurrentStatus == "Unpaid")">Chưa thanh toán</option>
+                        <option value="Paid" selected="@(Model.CurrentStatus == "Paid")">Đã thanh toán</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block w-100">
+                        <i class="bi bi-search"></i> Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-receipt-cutoff"></i> Hóa đơn (@Model.Invoices.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Invoices.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã HĐ</th>
+                                <th>Loại</th>
+                                <th>Bệnh nhân</th>
+                                <th>Bác sĩ</th>
+                                <th>Ngày tạo</th>
+                                <th>Thanh toán</th>
+                                <th class="text-end">BN trả</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var inv in Model.Invoices)
+                            {
+                                var isPaid = inv.Status == InvoiceStatus.Paid;
+                                <tr>
+                                    <td><strong>@inv.InvoiceCode</strong></td>
+                                    <td><span class="badge bg-secondary">@InvoiceDisplay.TypeLabel(inv.InvoiceType)</span></td>
+                                    <td>
+                                        <strong>@inv.Encounter?.Patient?.FullName</strong><br />
+                                        <small class="text-muted">@inv.Encounter?.Patient?.Phone</small>
+                                    </td>
+                                    <td>@inv.Encounter?.Doctor?.FullName</td>
+                                    <td>@inv.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (isPaid && inv.PaidAt.HasValue)
+                                        {
+                                            @inv.PaidAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                            <br /><small class="text-muted">@(inv.PaidByStaff?.FullName ?? inv.PaidBy)</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">@inv.PatientAmount.ToString("N0")</td>
+                                    <td>
+                                        @if (isPaid)
+                                        {
+                                            <span class="badge bg-success">Đã thu</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Chưa thu</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Detail" asp-route-id="@inv.InvoiceId" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center py-5 mb-0">Không có hóa đơn nào trong khoảng thời gian này.</p>
+            }
+        </div>
+    </div>
+</div>

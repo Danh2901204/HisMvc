@@ -73,6 +73,42 @@ public class CashierViewService
         };
     }
 
+    public async Task<InvoiceHistoryViewModel> GetInvoiceHistoryAsync(
+        DateOnly? fromDate,
+        DateOnly? toDate,
+        string status,
+        string type)
+    {
+        var to = toDate ?? DateOnly.FromDateTime(DateTime.Today);
+        var from = fromDate ?? to.AddDays(-30);
+        if (from > to)
+            (from, to) = (to, from);
+
+        var fromDt = from.ToDateTime(TimeOnly.MinValue);
+        var toDt = to.ToDateTime(TimeOnly.MaxValue);
+
+        var query = _db.Invoices
+            .Include(x => x.Encounter)!.ThenInclude(e => e!.Patient)
+            .Include(x => x.Encounter)!.ThenInclude(e => e!.Doctor)
+            .Include(x => x.PaidByStaff)
+            .Where(x => x.CreatedAt >= fromDt && x.CreatedAt <= toDt);
+
+        if (status == "Unpaid") query = query.Where(x => x.Status == InvoiceStatus.Unpaid);
+        else if (status == "Paid") query = query.Where(x => x.Status == InvoiceStatus.Paid);
+
+        if (!string.IsNullOrEmpty(type) && Enum.TryParse<InvoiceType>(type, out var t))
+            query = query.Where(x => x.InvoiceType == t);
+
+        return new InvoiceHistoryViewModel
+        {
+            Invoices = await query.OrderByDescending(x => x.CreatedAt).ToListAsync(),
+            FromDate = from,
+            ToDate = to,
+            CurrentStatus = status,
+            CurrentType = type
+        };
+    }
+
     public async Task<PendingPaymentViewModel> GetPendingPaymentsAsync(DateOnly date)
     {
         var encounters = await _db.Encounters

@@ -16,12 +16,15 @@ public class HomeController : Controller
     private readonly PharmacyViewService _views;
     private readonly CurrentStaffService _staffService;
     private readonly OutpatientWorkflowService _workflow;
+    private readonly PrintFormService _printForm;
 
-    public HomeController(PharmacyViewService views, CurrentStaffService staffService, OutpatientWorkflowService workflow)
+    public HomeController(PharmacyViewService views, CurrentStaffService staffService,
+        OutpatientWorkflowService workflow, PrintFormService printForm)
     {
         _views = views;
         _staffService = staffService;
         _workflow = workflow;
+        _printForm = printForm;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -80,5 +83,25 @@ public class HomeController : Controller
     {
         var model = await _views.GetDispenseHistoryAsync(fromDate, toDate);
         return View(model);
+    }
+
+    public async Task<IActionResult> PrintDonThuoc(int id, bool auto = false)
+    {
+        var model = await _printForm.BuildDonThuocAsync(id);
+        if (model == null)
+            return NotFound();
+
+        ViewData["AutoPrint"] = auto;
+        return View("~/Views/Shared/Print/DonThuoc.cshtml", model);
+    }
+
+    public async Task<IActionResult> PrintReceipt(int id, bool auto = false)
+    {
+        var model = await _printForm.BuildPhieuThuForPrescriptionAsync(id);
+        if (model == null)
+            return NotFound();
+
+        ViewData["AutoPrint"] = auto;
+        return View("~/Views/Shared/Print/PhieuThuTien.cshtml", model);
     }
 }

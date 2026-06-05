@@ -1,7 +1,7 @@
-using HisMvc.Data;
-using HisMvc.Entities;
+using HisMvc.Models;
+using HisMvc.Models.Chatbot;
+using HisMvc.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace HisMvc.Controllers.Api;
 
@@ -9,229 +9,125 @@ namespace HisMvc.Controllers.Api;
 [Route("api/[controller]")]
 public class AppointmentsApiController : ControllerBase
 {
-    private readonly AppDbContext _db;
+    private readonly IPublicAppointmentService _appointments;
     private readonly ILogger<AppointmentsApiController> _logger;
 
-    public AppointmentsApiController(AppDbContext db, ILogger<AppointmentsApiController> logger)
+    public AppointmentsApiController(IPublicAppointmentService appointments, ILogger<AppointmentsApiController> logger)
     {
-        _db = db;
+        _appointments = appointments;
         _logger = logger;
     }
 
-    // GET: api/AppointmentsApi/AvailableSlots?date=2026-01-09&departmentId=1
     [HttpGet("AvailableSlots")]
-    public async Task<IActionResult> GetAvailableSlots([FromQuery] DateOnly date, [FromQuery] int? departmentId)
+    public async Task<IActionResult> GetAvailableSlots(
+        [FromQuery] DateOnly date,
+        [FromQuery] int departmentId,
+        [FromQuery] int? doctorId)
     {
         try
         {
-            // Lấy danh sách khung giờ
-            var timeSlots = await _db.TimeSlots
-                .OrderBy(x => x.Start)
-                .ToListAsync();
+            if (!await _appointments.IsBookableDepartmentAsync(departmentId))
+                return BadRequest(new { success = false, message = "Khoa/phòng không hỗ trợ đặt lịch khám trực tuyến" });
 
-            // Lấy danh sách appointment da dat trong ngày
-            var bookedAppointments = await _db.Appointments
-                .Where(x => x.Date == date && x.Status == AppointmentStatus.Booked)
-                .ToListAsync();
-
-            // Tinh so luong con trong moi khung giờ (gia su moi khung giờ cho phep 10 appointment)
-            var availableSlots = timeSlots.Select(slot => new
-            {
-                slot.TimeSlotId,
-                slot.Code,
-                Start = slot.Start.ToString("HH:mm"),
-                End = slot.End.ToString("HH:mm"),
-                Booked = bookedAppointments.Count(a => a.TimeSlotId == slot.TimeSlotId),
-                MaxCapacity = 10,
-                Available = 10 - bookedAppointments.Count(a => a.TimeSlotId == slot.TimeSlotId)
-            }).Where(x => x.Available > 0).ToList();
-
+            var slots = await _appointments.GetPublicSlotsAsync(date, departmentId, doctorId);
             return Ok(new
             {
                 success = true,
                 date = date.ToString("yyyy-MM-dd"),
-                slots = availableSlots
+                serverNow = AppointmentSlotRules.GetHospitalNow().ToString("yyyy-MM-ddTHH:mm:ss"),
+                slots
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting available slots");
-            return StatusCode(500, new { success = false, message = "Lỗi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi máy chủ" });
         }
     }
 
-    // GET: api/AppointmentsApi/Departments
     [HttpGet("Departments")]
     public async Task<IActionResult> GetDepartments()
     {
         try
         {
-            var departments = await _db.Departments
-                .OrderBy(x => x.Name)
-                .Select(x => new
-                {
-                    x.DepartmentId,
-                    x.Code,
-                    x.Name
-                })
-                .ToListAsync();
-
+            var departments = await _appointments.GetBookableDepartmentsAsync();
             return Ok(new
             {
                 success = true,
-                departments
+                departments = departments.Select(d => new { departmentId = d.Id, name = d.Label, kind = 1 })
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting departments");
-            return StatusCode(500, new { success = false, message = "Lỗi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi máy chủ" });
         }
     }
 
-    // GET: api/AppointmentsApi/Doctors?departmentId=1
     [HttpGet("Doctors")]
-    public async Task<IActionResult> GetDoctors([FromQuery] int? departmentId)
+    public async Task<IActionResult> GetDoctors([FromQuery] int departmentId)
     {
         try
         {
-            var query = _db.Staffs
-                .Where(x => x.StaffType == "DOCTOR")
-                .AsQueryable();
+            if (!await _appointments.IsBookableDepartmentAsync(departmentId))
+                return BadRequest(new { success = false, message = "Khoa/phòng không hỗ trợ đặt lịch khám trực tuyến" });
 
-            if (departmentId.HasValue)
-            {
-                query = query.Where(x => x.DepartmentId == departmentId.Value);
-            }
-
-            var doctors = await query
-                .OrderBy(x => x.FullName)
-                .Select(x => new
-                {
-                    x.StaffId,
-                    x.FullName,
-                    x.DepartmentId,
-                    DepartmentName = x.Department!.Name
-                })
-                .ToListAsync();
-
+            var doctors = await _appointments.GetDoctorsAsync(departmentId);
             return Ok(new
             {
                 success = true,
-                doctors
+                doctors = doctors.Select(d => new { staffId = d.Id, fullName = d.Label })
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting doctors");
-            return StatusCode(500, new { success = false, message = "Lỗi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi máy chủ" });
         }
     }
 
-    // POST: api/AppointmentsApi/Book
     [HttpPost("Book")]
     public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentRequest request)
     {
-        try
+        var result = await _appointments.BookAsync(request);
+        if (!result.Success)
+            return BadRequest(new { success = false, message = result.Message });
+
+        return Ok(new
         {
-            // Validate request
-            if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Phone))
-            {
-                return BadRequest(new { success = false, message = "Vui lòng nhập đầy đủ thông tin" });
-            }
-
-            // Tim hoặc tao bệnh nhân
-            var patient = await _db.Patients.FirstOrDefaultAsync(x => x.Phone == request.Phone);
-            if (patient == null)
-            {
-                patient = new Patient
-                {
-                    FullName = request.FullName,
-                    Phone = request.Phone,
-                    Dob = request.Dob,
-                    Gender = request.Gender ?? Gender.Unknown
-                };
-                _db.Patients.Add(patient);
-                await _db.SaveChangesAsync();
-            }
-            else
-            {
-                // Cập nhật thông tin
-                patient.FullName = request.FullName;
-                if (request.Dob.HasValue) patient.Dob = request.Dob;
-                if (request.Gender.HasValue) patient.Gender = request.Gender.Value;
-                await _db.SaveChangesAsync();
-            }
-
-            // Kiểm tra khung giờ con trong
-            var existingCount = await _db.Appointments
-                .CountAsync(x => x.Date == request.Date && 
-                                 x.TimeSlotId == request.TimeSlotId && 
-                                 x.Status == AppointmentStatus.Booked);
-
-            if (existingCount >= 10)
-            {
-                return BadRequest(new { success = false, message = "Khung gio da day, vui long chọn khung giờ khac" });
-            }
-
-            // Tạo ma lịch hẹn
-            var code = $"APT{DateTime.Now:yyyyMMddHHmmss}";
-
-            // Tạo appointment
-            var appointment = new Appointment
-            {
-                Code = code,
-                PatientId = patient.PatientId,
-                DepartmentId = request.DepartmentId,
-                DoctorId = request.DoctorId,
-                Date = request.Date,
-                TimeSlotId = request.TimeSlotId,
-                Status = AppointmentStatus.Booked,
-                Note = request.Note,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _db.Appointments.Add(appointment);
-            await _db.SaveChangesAsync();
-
-            return Ok(new
-            {
-                success = true,
-                message = "Dat lich thành công",
-                appointmentCode = code,
-                appointmentId = appointment.AppointmentId,
-                date = request.Date.ToString("dd/MM/yyyy")
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error booking appointment");
-            return StatusCode(500, new { success = false, message = "Lỗi server khi dat lich" });
-        }
+            success = true,
+            message = result.Message,
+            code = result.Code,
+            appointmentCode = result.Code,
+            appointmentId = result.AppointmentId,
+            date = request.Date.ToString("dd/MM/yyyy")
+        });
     }
 
-    // GET: api/AppointmentsApi/Check?code=APT20260109123456
+    [HttpPost("Cancel")]
+    public async Task<IActionResult> CancelAppointment([FromBody] CancelAppointmentRequest request)
+    {
+        var result = await _appointments.CancelAsync(request.Code, request.Phone);
+        if (!result.Success)
+        {
+            var status = result.Message == "Không tìm thấy lịch hẹn" ? 404 : 400;
+            return StatusCode(status, new { success = false, message = result.Message });
+        }
+
+        return Ok(new { success = true, message = result.Message, code = request.Code.Trim().ToUpperInvariant() });
+    }
+
     [HttpGet("Check")]
     public async Task<IActionResult> CheckAppointment([FromQuery] string code)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(code))
-            {
-                return BadRequest(new { success = false, message = "Mã lịch hẹn không hop le" });
-            }
+                return BadRequest(new { success = false, message = "Mã lịch hẹn không hợp lệ" });
 
-            var appointment = await _db.Appointments
-                .Include(x => x.Patient)
-                .Include(x => x.Department)
-                .Include(x => x.Doctor)
-                .Include(x => x.TimeSlot)
-                .FirstOrDefaultAsync(x => x.Code == code);
-
+            var appointment = await _appointments.FindByCodeAsync(code, tracking: false);
             if (appointment == null)
-            {
-                return NotFound(new { success = false, message = "Không tìm thay lịch hẹn" });
-            }
+                return NotFound(new { success = false, message = "Không tìm thấy lịch hẹn" });
 
             return Ok(new
             {
@@ -257,21 +153,7 @@ public class AppointmentsApiController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking appointment");
-            return StatusCode(500, new { success = false, message = "Lỗi server" });
+            return StatusCode(500, new { success = false, message = "Lỗi máy chủ" });
         }
     }
-}
-
-// DTO cho request dat lich
-public class BookAppointmentRequest
-{
-    public string FullName { get; set; } = "";
-    public string Phone { get; set; } = "";
-    public DateOnly? Dob { get; set; }
-    public Gender? Gender { get; set; }
-    public int DepartmentId { get; set; }
-    public int? DoctorId { get; set; }
-    public DateOnly Date { get; set; }
-    public int TimeSlotId { get; set; }
-    public string? Note { get; set; }
 }

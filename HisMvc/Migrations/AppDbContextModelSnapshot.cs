@@ -223,6 +223,9 @@ namespace HisMvc.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentId"));
 
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("CheckedInAt")
                         .HasColumnType("datetime2");
 
@@ -242,6 +245,9 @@ namespace HisMvc.Migrations
 
                     b.Property<int?>("DoctorId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("NoShowAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Note")
                         .HasMaxLength(500)
@@ -318,6 +324,9 @@ namespace HisMvc.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()

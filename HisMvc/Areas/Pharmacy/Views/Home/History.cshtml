@@ -1,31 +1,31 @@
 @model DispenseHistoryViewModel
 @{
-    ViewData["Title"] = "Lich Su Cap Phat Thuốc";
+    ViewData["Title"] = "Lịch sử đơn trả thuốc";
     var fromDate = Model.FromDate;
     var toDate = Model.ToDate;
 }
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="bi bi-clock-history"></i> Lich Su Cap Phat Thuốc</h2>
+        <h2><i class="bi bi-clock-history"></i> Lịch sử đơn trả thuốc</h2>
         <a asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Don Chờ Cap
+            <i class="bi bi-arrow-left"></i> Đơn chờ cấp phát
         </a>
     </div>
 
-    <div class="card mb-4">
+    <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-3">
-                    <label class="form-label">Tu ngày</label>
+                    <label class="form-label">Từ ngày</label>
                     <input type="date" name="fromDate" class="form-control" value="@fromDate.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Den ngày</label>
+                    <label class="form-label">Đến ngày</label>
                     <input type="date" name="toDate" class="form-control" value="@toDate.ToString("yyyy-MM-dd")" />
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Loc</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Lọc</button>
                 </div>
             </form>
         </div>
@@ -33,21 +33,25 @@
 
     @if (!Model.Dispenses.Any())
     {
-        <div class="alert alert-info">Không có phieu cấp phát nao trong khoang thoi gian nay.</div>
+        <div class="alert alert-info">Không có đơn trả thuốc nào trong khoảng thời gian này.</div>
     }
     else
     {
-        <div class="card">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-capsule"></i> Đã cấp phát (@Model.Dispenses.Count)</h5>
+            </div>
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Cap luc</th>
-                            <th>Don thuốc</th>
+                            <th>Cấp lúc</th>
+                            <th>Đơn thuốc</th>
                             <th>Bệnh nhân</th>
-                            <th>Duoc si</th>
-                            <th class="text-end">Tổng tien</th>
+                            <th>Dược sĩ</th>
+                            <th class="text-end">Tổng tiền</th>
                             <th>Ghi chú</th>
+                            <th class="text-center">In</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,6 +67,11 @@
                                 <td>@d.Pharmacist?.FullName</td>
                                 <td class="text-end">@total.ToString("N0") VND</td>
                                 <td class="text-muted small">@d.Note</td>
+                                <td class="text-center">
+                                    <a asp-action="PrintReceipt" asp-route-id="@d.PrescriptionId" target="_blank" class="btn btn-sm btn-outline-primary" title="In phiếu thu tiền">
+                                        <i class="bi bi-printer"></i>
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>

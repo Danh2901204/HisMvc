@@ -15,18 +15,27 @@ public class HomeController : Controller
     private readonly CashierViewService _views;
     private readonly CurrentStaffService _staff;
     private readonly OutpatientWorkflowService _workflow;
+    private readonly PrintFormService _printForm;
 
-    public HomeController(CashierViewService views, CurrentStaffService staff, OutpatientWorkflowService workflow)
+    public HomeController(CashierViewService views, CurrentStaffService staff,
+        OutpatientWorkflowService workflow, PrintFormService printForm)
     {
         _views = views;
         _staff = staff;
         _workflow = workflow;
+        _printForm = printForm;
     }
 
     // GET — hien thi dashboard
     public async Task<IActionResult> Dashboard()
     {
         var model = await _views.BuildDashboardAsync();
+        return View(model);
+    }
+
+    public async Task<IActionResult> History(string status = "", string type = "", DateOnly? fromDate = null, DateOnly? toDate = null)
+    {
+        var model = await _views.GetInvoiceHistoryAsync(fromDate, toDate, status, type);
         return View(model);
     }
 
@@ -59,6 +68,16 @@ public class HomeController : Controller
             return RedirectToAction(nameof(Index));
         }
         return View(model);
+    }
+
+    public async Task<IActionResult> Print(int id, bool auto = false)
+    {
+        var model = await _printForm.BuildPhieuThuFromInvoiceAsync(id);
+        if (model == null)
+            return NotFound();
+
+        ViewData["AutoPrint"] = auto;
+        return View("~/Views/Shared/Print/PhieuThuTien.cshtml", model);
     }
 
     // POST — thu tien (buoc 2 hoặc 8)

@@ -1,0 +1,97 @@
+@model HisMvc.Models.Common.PhieuThuTienPrintViewModel
+@using HisMvc.Services
+@{
+    Layout = "~/Views/Shared/_LayoutPrint.cshtml";
+    ViewData["Title"] = Model.Title;
+    var h = Model.Hospital;
+    var qrUrl = string.IsNullOrWhiteSpace(Model.QrPayload)
+        ? ""
+        : $"https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={Uri.EscapeDataString(Model.QrPayload)}";
+}
+
+<div class="print-form phieu-thu-form">
+    <table style="width:100%; border:none; margin-bottom:6px;">
+        <tr>
+            <td style="width:38%; border:none; vertical-align:top;">
+                <div class="hospital-name">@h.Name</div>
+                <div>@h.SubName</div>
+                <div>@h.Address</div>
+                <div>ĐT: @h.Phone</div>
+            </td>
+            <td style="width:24%; border:none; vertical-align:top; text-align:center;">
+                <div class="doc-title" style="margin:0; font-size:18px;">@Model.Title</div>
+            </td>
+            <td style="width:38%; border:none; vertical-align:top; text-align:right;" class="meta-block">
+                <div>Xuất từ: @h.PharmacyCounter</div>
+                <div>In: @h.PharmacyCounter</div>
+                <div><strong>Số toa:</strong> @Model.PrescriptionCode</div>
+                <div><strong>Mã xuất:</strong> @Model.ExportCode</div>
+                <div>Lần in: 1</div>
+                <div>Giờ in: @Model.PrintTime.ToLocalTime().ToString("HH:mm:ss")</div>
+                <div><strong>Mã bệnh nhân:</strong> @Model.PatientCode</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="patient-row"><label>Bệnh nhân:</label> <strong>@Model.PatientName</strong></div>
+    <div class="patient-row"><label>Bác sĩ khám:</label> @Model.DoctorName</div>
+
+    <table class="form-table">
+        <thead>
+            <tr>
+                <th style="width:5%;">TT</th>
+                <th>Tên mặt hàng</th>
+                <th style="width:8%;">ĐVT</th>
+                <th style="width:6%;">SL</th>
+                <th style="width:12%;">Đơn giá</th>
+                <th style="width:14%;">Thành tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var line in Model.Items)
+            {
+                <tr>
+                    <td class="text-center">@line.Index</td>
+                    <td>@line.Name</td>
+                    <td class="text-center">@line.Unit</td>
+                    <td class="text-center">@line.Quantity</td>
+                    <td class="text-right">@VietnameseCurrencyHelper.FormatNumber(line.UnitPrice)</td>
+                    <td class="text-right">@VietnameseCurrencyHelper.FormatNumber(line.TotalPrice)</td>
+                </tr>
+            }
+            <tr>
+                <td colspan="3" class="text-bold">Tổng khoản: @Model.Items.Count</td>
+                <td colspan="3" class="text-right text-bold">Tổng tiền: @VietnameseCurrencyHelper.FormatNumber(Model.TotalAmount)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="amount-words"><strong>Bằng chữ:</strong> @Model.TotalInWords.</div>
+
+    <div class="qr-area">
+        @if (!string.IsNullOrEmpty(qrUrl))
+        {
+            <img src="@qrUrl" alt="QR" />
+        }
+        <div class="qr-notes">
+            <div>Quét mã QR để nhận hóa đơn điện tử.</div>
+            <div>Phiếu thu chỉ có giá trị xuất hóa đơn trong ngày.</div>
+            <div>Cảm ơn quý khách đã sử dụng dịch vụ @h.SubName.</div>
+        </div>
+    </div>
+
+    <div style="margin-top:12px; text-align:right;">
+        Ngày @Model.PrintTime.ToLocalTime().ToString("dd") tháng @Model.PrintTime.ToLocalTime().ToString("MM") năm @Model.PrintTime.ToLocalTime().ToString("yyyy")
+    </div>
+
+    <div class="footer-sign">
+        <div class="sign-col">
+            <div class="sign-title">Người thu tiền</div>
+            <div class="sign-name">@(string.IsNullOrWhiteSpace(Model.CashierName) ? "........................" : Model.CashierName)</div>
+        </div>
+        <div class="sign-col">
+            <div class="sign-title">Người nhận thuốc</div>
+            <div class="sign-name">@Model.PatientName</div>
+        </div>
+    </div>
+</div>

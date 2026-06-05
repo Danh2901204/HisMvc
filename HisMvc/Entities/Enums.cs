@@ -1,5 +1,21 @@
 namespace HisMvc.Entities;
 
+/// <summary>
+/// Phân loại khoa/phòng theo cơ cấu tổ chức BV (TT 07/2021/TT-BYT, TT 15/2014/TT-BYT).
+/// Chỉ khoa lâm sàng (Clinical) được phép đặt lịch khám ngoại trú công khai.
+/// </summary>
+public enum DepartmentKind
+{
+    [System.ComponentModel.DataAnnotations.Display(Name = "Khoa lâm sàng (đặt lịch được)")]
+    Clinical = 1,
+    [System.ComponentModel.DataAnnotations.Display(Name = "Phòng hành chính / quản trị")]
+    Administrative = 2,
+    [System.ComponentModel.DataAnnotations.Display(Name = "Khoa cận lâm sàng")]
+    Paraclinical = 3,
+    [System.ComponentModel.DataAnnotations.Display(Name = "Nội trú / hồi sức")]
+    InpatientOnly = 4
+}
+
 public enum Gender { Unknown = 0, Male = 1, Female = 2, Other = 3 }
 public enum AppointmentStatus { Booked = 1, CheckedIn = 2, Completed = 8, Cancelled = 9, NoShow = 10 }
 

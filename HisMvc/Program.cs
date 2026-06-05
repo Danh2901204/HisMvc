@@ -1,5 +1,6 @@
 using HisMvc.Data;
 using HisMvc.Middlewares;
+using HisMvc.Models.Common;
 using HisMvc.Services;
 using HisMvc.Services.Workflow;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +25,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpClient("Gemini", client => client.Timeout = TimeSpan.FromSeconds(45));
 builder.Services.AddScoped<DepartmentMaintenanceService>();
 builder.Services.AddScoped<IAppointmentCancellationService, AppointmentCancellationService>();
+builder.Services.AddScoped<IEncounterCancellationService, EncounterCancellationService>();
 builder.Services.AddHostedService<AppointmentCleanupService>();
 builder.Services.AddScoped<IPublicAppointmentService, PublicAppointmentService>();
 builder.Services.AddScoped<HisMvc.Services.Chatbot.IChatbotService, HisMvc.Services.Chatbot.ChatbotService>();
@@ -31,6 +33,8 @@ builder.Services.AddScoped<HisMvc.Services.Chatbot.IChatbotFlowService, HisMvc.S
 builder.Services.AddScoped<InsuranceService>();
 builder.Services.AddScoped<CurrentStaffService>();
 builder.Services.AddScoped<Icd10Service>();
+builder.Services.Configure<HospitalPrintSettings>(builder.Configuration.GetSection("Hospital"));
+builder.Services.AddScoped<PrintFormService>();
 
 // Luong KCB — moi buoc 1 class, facade 1 class
 builder.Services.AddScoped<ReceptionWorkflowStep>();
@@ -93,6 +97,8 @@ try
             await DatabaseConnectionGuard.EnsureCanConnectAsync(db, logger);
             logger.LogInformation("Initializing database on SQL Server...");
             await SeedData.InitializeAsync(services);
+
+            await ScheduledMaintenanceService.RunAsync(services);
             logger.LogInformation("Database initialized successfully.");
         }
         catch (Exception ex)

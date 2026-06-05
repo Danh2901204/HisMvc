@@ -1,0 +1,186 @@
+@page {
+    size: A4;
+    margin: 12mm 10mm;
+}
+
+body.print-form-body {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 13px;
+    color: #000;
+    background: #fff;
+    margin: 0;
+    padding: 16px;
+}
+
+.print-form {
+    max-width: 210mm;
+    margin: 0 auto;
+}
+
+.print-form .hospital-name {
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.print-form .doc-title {
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    letter-spacing: 1px;
+    margin: 8px 0 12px;
+}
+
+.print-form .meta-block {
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+.print-form .meta-block strong {
+    font-weight: bold;
+}
+
+.print-form .patient-row {
+    margin-bottom: 4px;
+    line-height: 1.5;
+}
+
+.print-form .patient-row label {
+    font-weight: bold;
+    margin-right: 4px;
+}
+
+.print-form table.form-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+.print-form table.form-table th,
+.print-form table.form-table td {
+    border: 1px solid #000;
+    padding: 4px 6px;
+    vertical-align: top;
+}
+
+.print-form table.form-table th {
+    text-align: center;
+    font-weight: bold;
+    background: #fff;
+}
+
+.print-form .text-right { text-align: right; }
+.print-form .text-center { text-align: center; }
+.print-form .text-bold { font-weight: bold; }
+
+.print-form .rx-item {
+    margin-bottom: 10px;
+    page-break-inside: avoid;
+}
+
+.print-form .rx-item-title {
+    font-weight: bold;
+}
+
+.print-form .rx-item-qty {
+    float: right;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.print-form .rx-item-body {
+    margin-top: 2px;
+    padding-left: 14px;
+}
+
+.print-form .amount-words {
+    margin-top: 10px;
+    font-style: italic;
+}
+
+.print-form .footer-sign {
+    margin-top: 24px;
+}
+
+.print-form .footer-sign .sign-col {
+    text-align: center;
+    width: 50%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.print-form .footer-sign .sign-title {
+    font-weight: bold;
+    margin-bottom: 60px;
+}
+
+.print-form .footer-sign .sign-name {
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.print-form .qr-area {
+    margin-top: 12px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.print-form .qr-area img {
+    width: 100px;
+    height: 100px;
+}
+
+.print-form .qr-notes {
+    font-size: 11px;
+    line-height: 1.45;
+    flex: 1;
+}
+
+.print-form .doctor-sign-block {
+    margin-top: 20px;
+    text-align: right;
+    min-height: 120px;
+}
+
+.print-form .doctor-sign-block .sign-label {
+    font-weight: bold;
+}
+
+.print-form .barcode-line {
+    font-family: "Libre Barcode 39", monospace;
+    font-size: 28px;
+    letter-spacing: 2px;
+}
+
+.print-toolbar {
+    max-width: 210mm;
+    margin: 0 auto 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.print-toolbar .btn-print,
+.print-toolbar .btn-close {
+    padding: 6px 16px;
+    border: 1px solid #333;
+    background: #f5f5f5;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.print-toolbar .btn-print:hover,
+.print-toolbar .btn-close:hover {
+    background: #e8e8e8;
+}
+
+@media print {
+    .print-toolbar {
+        display: none !important;
+    }
+
+    body.print-form-body {
+        padding: 0;
+    }
+}

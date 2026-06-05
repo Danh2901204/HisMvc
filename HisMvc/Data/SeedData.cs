@@ -1,5 +1,6 @@
 using HisMvc.Entities;
 using HisMvc.Models;
+using HisMvc.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,8 @@ public static class SeedData
             logger.LogError(ex, "Error during database migration.");
             throw;
         }
+
+        await sp.GetRequiredService<DepartmentMaintenanceService>().SyncForPublicBookingAsync();
 
         var roleMgr = sp.GetRequiredService<RoleManager<IdentityRole>>();
         var userMgr = sp.GetRequiredService<UserManager<AppUser>>();
@@ -60,25 +63,14 @@ public static class SeedData
         {
             logger.LogInformation("Seeding departments...");
             db.Departments.AddRange(
-                new Department { Code = "KB", Name = "Khoa Khám bệnh" },
-                new Department { Code = "NOI", Name = "Noi tong hop" },
-                new Department { Code = "TMH", Name = "Tai Mui Hong" }
+                new Department { Code = "KB", Name = "Khoa Khám bệnh", Kind = DepartmentKind.Clinical },
+                new Department { Code = "NOI", Name = "Khoa Nội tổng hợp", Kind = DepartmentKind.Clinical },
+                new Department { Code = "TMH", Name = "Khoa Tai Mũi Họng", Kind = DepartmentKind.Clinical }
             );
             await db.SaveChangesAsync();
         }
 
-        // 4) Seed TimeSlots
-        if (!await db.TimeSlots.AnyAsync())
-        {
-            logger.LogInformation("Seeding time slots...");
-            db.TimeSlots.AddRange(
-                new TimeSlot { Code = "S1", Start = new TimeOnly(8, 0), End = new TimeOnly(9, 0) },
-                new TimeSlot { Code = "S2", Start = new TimeOnly(9, 0), End = new TimeOnly(10, 0) },
-                new TimeSlot { Code = "S3", Start = new TimeOnly(10, 0), End = new TimeOnly(11, 0) },
-                new TimeSlot { Code = "C1", Start = new TimeOnly(13, 0), End = new TimeOnly(14, 0) }
-            );
-            await db.SaveChangesAsync();
-        }
+        await EnsureTimeSlotsAsync(db, logger);
 
         // 5) Seed Staff (bac si + cac vai tro khac theo Book1 / AspNetUsers.StaffId)
         var kbDept = await db.Departments.FirstOrDefaultAsync(x => x.Code == "KB")
@@ -404,6 +396,37 @@ public static class SeedData
 
         user.StaffId = staff.StaffId;
         await userMgr.UpdateAsync(user);
+    }
+
+    /// <summary>Ca khám 7h–12h và 13h–17h (bổ sung nếu DB thiếu).</summary>
+    private static async Task EnsureTimeSlotsAsync(AppDbContext db, ILogger logger)
+    {
+        var schedules = new (string Code, int StartH, int EndH)[]
+        {
+            ("S07", 7, 8), ("S08", 8, 9), ("S09", 9, 10), ("S10", 10, 11), ("S11", 11, 12),
+            ("C13", 13, 14), ("C14", 14, 15), ("C15", 15, 16), ("C16", 16, 17)
+        };
+
+        var added = 0;
+        foreach (var (code, startH, endH) in schedules)
+        {
+            if (await db.TimeSlots.AnyAsync(t => t.Code == code))
+                continue;
+
+            db.TimeSlots.Add(new TimeSlot
+            {
+                Code = code,
+                Start = new TimeOnly(startH, 0),
+                End = new TimeOnly(endH, 0)
+            });
+            added++;
+        }
+
+        if (added > 0)
+        {
+            await db.SaveChangesAsync();
+            logger.LogInformation("Đã bổ sung {Count} khung giờ khám", added);
+        }
     }
 
     private static async Task EnsureStaffAsync(AppDbContext db, string staffType, string fullName, int departmentId)

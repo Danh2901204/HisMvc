@@ -278,7 +278,15 @@
                     }
                     else
                     {
-                        <p class="mb-2 small">Don @prescription.Code · @prescription.Status</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <p class="mb-0 small">Don @prescription.Code · @prescription.Status</p>
+                            @if (prescription.Items.Any())
+                            {
+                                <a asp-action="PrintPrescription" asp-route-encounterId="@enc.EncounterId" target="_blank" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-printer"></i> In đơn thuốc
+                                </a>
+                            }
+                        </div>
 
                         @if (prescription.Items.Any())
                         {

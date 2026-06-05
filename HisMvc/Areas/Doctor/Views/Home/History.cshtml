@@ -1,0 +1,119 @@
+@model EncounterHistoryViewModel
+@{
+    ViewData["Title"] = "Lịch sử khám";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-clock-history"></i> Lịch sử khám bệnh</h2>
+        <a asp-action="Index" class="btn btn-primary">
+            <i class="bi bi-arrow-left"></i> Danh sách lượt khám
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Tìm BN / mã / chẩn đoán</label>
+                    <input type="text" name="search" class="form-control" value="@Model.Search" placeholder="Họ tên, SĐT, mã LK, chẩn đoán..." />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary d-block w-100">
+                        <i class="bi bi-search"></i> Lọc
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-journal-medical"></i> Đã khám (@Model.Encounters.Count)</h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Encounters.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã LK</th>
+                                <th>Bệnh nhân</th>
+                                <th>Khoa</th>
+                                <th>Bác sĩ</th>
+                                <th>Check-in</th>
+                                <th>Kết thúc</th>
+                                <th>Chẩn đoán / ICD-10</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var e in Model.Encounters)
+                            {
+                                <tr>
+                                    <td><strong>@e.EncounterCode</strong></td>
+                                    <td>
+                                        <strong>@e.Patient?.FullName</strong><br />
+                                        <small class="text-muted">@e.Patient?.Phone</small>
+                                    </td>
+                                    <td>@e.Department?.Name</td>
+                                    <td>@e.Doctor?.FullName</td>
+                                    <td>@e.CheckInAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@(e.EndAt > e.CheckInAt ? e.EndAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(e.Diagnosis))
+                                        {
+                                            <span>@e.Diagnosis</span>
+                                            @if (!string.IsNullOrWhiteSpace(e.Icd10Primary))
+                                            {
+                                                <br /><small class="text-muted">@e.Icd10Primary</small>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (e.Status == EncounterStatus.Completed)
+                                        {
+                                            <span class="badge bg-success">Hoàn thành</span>
+                                        }
+                                        else if (e.Status == EncounterStatus.Cancelled)
+                                        {
+                                            <span class="badge bg-danger">Đã hủy</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@e.Status</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <a asp-action="Examine" asp-route-id="@e.EncounterId" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i> Xem
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted text-center py-5 mb-0">Không có lượt khám nào trong khoảng thời gian này.</p>
+            }
+        </div>
+    </div>
+</div>

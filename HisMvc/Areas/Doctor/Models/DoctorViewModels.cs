@@ -27,6 +27,14 @@ public class EncounterListViewModel
     public string CurrentStatus { get; set; } = "";
 }
 
+public class EncounterHistoryViewModel
+{
+    public List<Encounter> Encounters { get; set; } = new();
+    public DateOnly FromDate { get; set; }
+    public DateOnly ToDate { get; set; }
+    public string Search { get; set; } = "";
+}
+
 public class ExamineViewModel
 {
     public Encounter Encounter { get; set; } = null!;

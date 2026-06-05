@@ -28,6 +28,15 @@ public class InvoiceIndexViewModel
     public DateOnly Date { get; set; }
 }
 
+public class InvoiceHistoryViewModel
+{
+    public List<Invoice> Invoices { get; set; } = new();
+    public DateOnly FromDate { get; set; }
+    public DateOnly ToDate { get; set; }
+    public string CurrentStatus { get; set; } = "";
+    public string CurrentType { get; set; } = "";
+}
+
 public class PendingPaymentViewModel
 {
     public List<Encounter> Encounters { get; set; } = new();

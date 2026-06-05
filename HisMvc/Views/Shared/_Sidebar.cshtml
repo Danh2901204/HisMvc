@@ -102,6 +102,10 @@
                     <i class="bi bi-clipboard2-pulse"></i>
                     <span class="sidebar-text">Danh sách lượt khám</span>
                 </a>
+                <a class="sidebar-link @ActiveIf("Doctor", "Home", "History")" asp-area="Doctor" asp-controller="Home" asp-action="History">
+                    <i class="bi bi-clock-history"></i>
+                    <span class="sidebar-text">Lịch sử khám</span>
+                </a>
             </div>
         }
 
@@ -136,6 +140,10 @@
                     <i class="bi bi-capsule"></i>
                     <span class="sidebar-text">Đơn chờ cấp phát</span>
                 </a>
+                <a class="sidebar-link @ActiveIf("Pharmacy", "Home", "History")" asp-area="Pharmacy" asp-controller="Home" asp-action="History">
+                    <i class="bi bi-clock-history"></i>
+                    <span class="sidebar-text">Lịch sử đơn trả thuốc</span>
+                </a>
                 <a class="sidebar-link @ActiveIf("Pharmacy", "Medicine")" asp-area="Pharmacy" asp-controller="Medicine" asp-action="Index">
                     <i class="bi bi-box-seam"></i>
                     <span class="sidebar-text">Quản lý thuốc</span>
@@ -158,6 +166,10 @@
                 <a class="sidebar-link @ActiveIf("Cashier", "Home", "Pending")" asp-area="Cashier" asp-controller="Home" asp-action="Pending">
                     <i class="bi bi-cash-coin"></i>
                     <span class="sidebar-text">Chờ tạo hóa đơn</span>
+                </a>
+                <a class="sidebar-link @ActiveIf("Cashier", "Home", "History")" asp-area="Cashier" asp-controller="Home" asp-action="History">
+                    <i class="bi bi-clock-history"></i>
+                    <span class="sidebar-text">Lịch sử hóa đơn</span>
                 </a>
             </div>
         }

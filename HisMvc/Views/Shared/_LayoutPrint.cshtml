@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/print-forms.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="print-form-body">
+    @if (ViewData["ShowToolbar"] as bool? != false)
+    {
+        <div class="print-toolbar">
+            <button type="button" class="btn-print" onclick="window.print()">In</button>
+            <button type="button" class="btn-close" onclick="window.close()">Đóng</button>
+        </div>
+    }
+    @RenderBody()
+    @if (ViewData["AutoPrint"] as bool? == true)
+    {
+        <script>window.addEventListener('load', () => window.print());</script>
+    }
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

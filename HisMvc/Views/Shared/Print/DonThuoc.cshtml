@@ -1,0 +1,83 @@
+@model HisMvc.Models.Common.DonThuocPrintViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutPrint.cshtml";
+    ViewData["Title"] = "Đơn thuốc";
+    var h = Model.Hospital;
+}
+
+<div class="print-form don-thuoc-form">
+    <table style="width:100%; border:none; margin-bottom:8px;">
+        <tr>
+            <td style="width:55%; border:none; vertical-align:top;">
+                <div class="hospital-name">@h.Name</div>
+                <div>@h.Department</div>
+                <div>ĐT: @h.Phone</div>
+            </td>
+            <td style="width:45%; border:none; vertical-align:top; text-align:right;" class="meta-block">
+                <div><strong>Mã BN:</strong> @Model.PatientCode</div>
+                <div><strong>Mã đơn thuốc:</strong> @Model.PrescriptionCode</div>
+                <div><strong>Mã điều trị:</strong> @Model.EncounterCode</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-title">ĐƠN THUỐC</div>
+
+    <div class="patient-row">
+        <label>Họ tên:</label> @Model.PatientName
+        &nbsp;&nbsp;<label>Ngày sinh:</label> @Model.Dob
+        &nbsp;&nbsp;<label>Giới tính:</label> @Model.Gender
+    </div>
+    <div class="patient-row">
+        <label>Số ĐDCN/CCCD:</label> @Model.IdentityNumber
+    </div>
+    <div class="patient-row">
+        <label>Địa chỉ:</label> @Model.Address
+    </div>
+    <div class="patient-row">
+        <label>Chẩn đoán:</label> @Model.Diagnosis
+    </div>
+
+    <div style="margin-top:14px;">
+        @foreach (var item in Model.Items)
+        {
+            <div class="rx-item">
+                <div>
+                    <span class="rx-item-title">@item.Index) @item.MedicineName</span>
+                    @if (!string.IsNullOrWhiteSpace(item.ActiveIngredient))
+                    {
+                        <span>(@item.ActiveIngredient)</span>
+                    }
+                    <span class="rx-item-qty">X @item.Quantity.ToString("00") @item.Unit</span>
+                </div>
+                <div class="rx-item-body">
+                    @{
+                        var usage = new List<string>();
+                        if (!string.IsNullOrWhiteSpace(item.Dosage)) usage.Add(item.Dosage);
+                        if (!string.IsNullOrWhiteSpace(item.Instructions)) usage.Add(item.Instructions);
+                        if (item.Duration > 0) usage.Add($"trong {item.Duration} ngày");
+                    }
+                    @string.Join(", ", usage)
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.DoctorNote))
+    {
+        <div style="margin-top:12px;">
+            <strong>Lời dặn bác sĩ:</strong> @Model.DoctorNote
+        </div>
+    }
+
+    <div class="doctor-sign-block">
+        <div>Hà Nội, Ngày @Model.PrescribedAt.ToLocalTime().ToString("dd") tháng @Model.PrescribedAt.ToLocalTime().ToString("MM") năm @Model.PrescribedAt.ToLocalTime().ToString("yyyy")</div>
+        <div class="sign-label">Bác sĩ khám bệnh</div>
+        <div style="margin-top:48px; font-weight:bold;">@Model.DoctorName</div>
+    </div>
+
+    <div style="margin-top:20px; font-size:11px; border-top:1px solid #ccc; padding-top:8px;">
+        <div>— Tuân thủ hướng dẫn sử dụng thuốc. Quay lại khám nếu có dấu hiệu bất thường.</div>
+        <div>— Hotline: @h.Phone</div>
+    </div>
+</div>

@@ -20,15 +20,17 @@ public class HomeController : Controller
     private readonly CurrentStaffService _staffService;
     private readonly OutpatientWorkflowService _workflow;
     private readonly Icd10Service _icd10;
+    private readonly PrintFormService _printForm;
 
     public HomeController(AppDbContext db, DoctorViewService views, CurrentStaffService staffService,
-        OutpatientWorkflowService workflow, Icd10Service icd10)
+        OutpatientWorkflowService workflow, Icd10Service icd10, PrintFormService printForm)
     {
         _db = db;
         _views = views;
         _staffService = staffService;
         _workflow = workflow;
         _icd10 = icd10;
+        _printForm = printForm;
     }
 
     public async Task<IActionResult> Dashboard()
@@ -43,12 +45,42 @@ public class HomeController : Controller
         return View(model);
     }
 
+    public async Task<IActionResult> History(DateOnly? fromDate, DateOnly? toDate, string search = "")
+    {
+        int? doctorId = null;
+        if (!User.IsInRole(AppRoles.ADMIN))
+        {
+            var staffId = await _staffService.TryGetStaffIdAsync(User);
+            if (staffId.HasValue)
+                doctorId = staffId.Value;
+        }
+
+        var model = await _views.GetExamHistoryAsync(fromDate, toDate, search, doctorId);
+        return View(model);
+    }
+
     public async Task<IActionResult> Examine(int id)
     {
         var model = await _views.GetExamineAsync(id);
         if (model == null)
             return NotFound();
         return View(model);
+    }
+
+    public async Task<IActionResult> PrintPrescription(int encounterId, bool auto = false)
+    {
+        var prescription = await _db.Prescriptions
+            .FirstOrDefaultAsync(p => p.EncounterId == encounterId && p.Status != PrescriptionStatus.Cancelled);
+
+        if (prescription == null)
+            return NotFound();
+
+        var model = await _printForm.BuildDonThuocAsync(prescription.PrescriptionId);
+        if (model == null)
+            return NotFound();
+
+        ViewData["AutoPrint"] = auto;
+        return View("~/Views/Shared/Print/DonThuoc.cshtml", model);
     }
 
     [HttpGet]

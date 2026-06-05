@@ -11,35 +11,18 @@
 <div class="container mt-4">
     @if (TempData["Success"] != null)
     {
-        <div class="alert alert-success alert-dismissible fade show">
+        <div class="alert alert-success alert-dismissible fade show d-print-none">
             <i class="bi bi-check-circle"></i> @TempData["Success"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
     @if (TempData["Error"] != null)
     {
-        <div class="alert alert-danger alert-dismissible fade show">
+        <div class="alert alert-danger alert-dismissible fade show d-print-none">
             <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
-
-    <div class="alert alert-info py-2 mb-3">
-        <i class="bi bi-signpost-split"></i>
-        <strong>Luong KCB:</strong>
-        @if (isExamFee)
-        {
-            <span>Bước 2 — Thu <strong>phi kham</strong> trước khi BN vào hàng doi phòng khám.</span>
-        }
-        else if (isFinal)
-        {
-            <span>Bước 8 — Thu <strong>chi phí phát sinh</strong> (CLS + thuốc) sau khi BS chot kham.</span>
-        }
-        else
-        {
-            <span>@Model.InvoiceTypeLabel</span>
-        }
-    </div>
 
     <div class="row">
         <div class="col-lg-8">
@@ -238,18 +221,11 @@
                     {
                         <a href="@Url.Action("Pending")" class="btn btn-outline-warning w-100 mb-2"><i class="bi bi-hourglass"></i> Chờ thu chi phí cuoi</a>
                     }
-                    <button type="button" class="btn btn-outline-primary w-100" onclick="window.print()"><i class="bi bi-printer"></i> In hóa đơn</button>
+                    <a asp-action="Print" asp-route-id="@invoice.InvoiceId" target="_blank" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-printer"></i> In phiếu thu tiền
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-@section Styles {
-    <style>
-        @@media print {
-            .card-header, .btn, .alert, .sticky-top { display: none !important; }
-            .card { border: none !important; box-shadow: none !important; }
-        }
-    </style>
-}
